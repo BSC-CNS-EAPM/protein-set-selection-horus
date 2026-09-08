@@ -1,0 +1,98 @@
+name: Build Plugin
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release tag to create, for example v1.2.3"
+        required: true
+        type: string
+  push:
+    tags:
+      - "*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # Fetch all history and tags
+
+      - name: Determine release tag
+        id: release
+        shell: bash
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            tag="$RELEASE_VERSION"
+          else
+            tag="${GITHUB_REF_NAME}"
+          fi
+
+          if [[ -z "$tag" || "$tag" == -* ]] || ! git check-ref-format "refs/tags/$tag"; then
+            echo "Release tag must be a valid git tag name." >&2
+            exit 1
+          fi
+
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "hp_file=protselect-$tag.hp" >> "$GITHUB_OUTPUT"
+
+      - name: Create release tag
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          tag="$RELEASE_TAG"
+
+          if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            echo "Tag '$tag' already exists." >&2
+            exit 1
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$tag" -m "Release $tag"
+          git push origin "refs/tags/$tag"
+
+      - name: Install zip
+        run: sudo apt-get update && sudo apt-get install -y zip
+
+      - name: Make build script executable
+        run: chmod +x build_plugin.sh
+
+      - name: Build plugin
+        run: ./build_plugin.sh
+
+      - name: Verify the artifact carries no local state
+        shell: bash
+        env:
+          HP_FILE: ${{ steps.release.outputs.hp_file }}
+        run: |
+          # deps/ can run to several GB and config/ holds machine-specific
+          # paths; neither belongs in a released plugin.
+          if unzip -l "$HP_FILE" | grep -E 'ProtSelect/(deps|config)/|__pycache__'; then
+            echo "Artifact contains deps/, config/ or __pycache__ entries." >&2
+            exit 1
+          fi
+          echo "Artifact is clean."
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ steps.release.outputs.hp_file }}
+          path: ${{ steps.release.outputs.hp_file }}
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ steps.release.outputs.tag }}
+          files: ${{ steps.release.outputs.hp_file }}
+          generate_release_notes: true

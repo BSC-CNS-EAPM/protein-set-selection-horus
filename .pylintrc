@@ -1,0 +1,11 @@
+[MESSAGES CONTROL]
+
+# HorusAPI ships with the Horus application rather than PyPI, so it is not
+# importable in CI: import-error and no-name-in-module are unavoidable there.
+# The rest match the house style of the EAPM and MOOD plugins: blocks import
+# heavy dependencies inside their action functions on purpose, and HorusAPI
+# uses camelCase identifiers throughout.
+disable=wrong-import-position,import-outside-toplevel,invalid-name,no-member,import-error,no-name-in-module,duplicate-code
+
+[FORMAT]
+max-line-length=120

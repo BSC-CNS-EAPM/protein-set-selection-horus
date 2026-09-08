@@ -1,0 +1,35 @@
+{
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "black-formatter.args": [
+        "--line-length",
+        "98"
+    ],
+    "python.analysis.extraPaths": [
+        "ProtSelect/deps/",
+        "ProtSelect/Include/",
+        "ProtSelect/Include/Blocks/",
+        "../horus",
+        "../horus/HorusAPI"
+    ],
+    "python.analysis.autoSearchPaths": true,
+    "files.exclude": {
+        "**/__pycache__": true,
+        "ProtSelect/deps": true
+    },
+    "cSpell.words": [
+        "bioemu",
+        "bioprospecting",
+        "codontransformer",
+        "eapm",
+        "horus",
+        "mafft",
+        "mmseqs",
+        "pmpnn",
+        "protselect",
+        "proteinmpnn",
+        "pyrosetta",
+        "rosetta"
+    ]
+}

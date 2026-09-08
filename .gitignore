@@ -1,0 +1,62 @@
+# Built plugin packages
+*.hp
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+dist/
+downloads/
+eggs/
+.eggs/
+*.egg-info/
+*.egg
+
+# Unit test / coverage reports
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+cover/
+
+# Logs
+*.log
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Editors / type checkers
+.mypy_cache/
+.dmypy.json
+.ropeproject
+.ipynb_checkpoints
+
+# Horus per-plugin installed dependencies (regenerated on install)
+ProtSelect/deps/
+
+# Horus per-remote saved config values (machine specific).
+# Horus keeps the real config outside the plugin, in
+# <appSupport>/config/protselect/protselect_<remote>.json; this only catches a
+# stray copy dropped in the plugin folder during development.
+ProtSelect/config/
+
+# Sphinx build output
+docs/build/
+docs/_build/
+
+# Scratch flows and test outputs
+ProtSelect/*.flow.bak
+ProtSelect/test.json

@@ -1,0 +1,33 @@
+name: Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install pylint
+        run: pip install pylint
+
+      # Note: the plugin cannot be import-tested in CI. HorusAPI ships with the
+      # Horus application and is not published to PyPI, so every block fails to
+      # import outside a Horus install. compileall catches syntax errors and
+      # pylint (with import-error disabled, see .pylintrc) catches the rest.
+      - name: Byte-compile every module
+        run: python -m compileall -q ProtSelect
+
+      - name: Pylint
+        run: pylint --rcfile=.pylintrc ProtSelect/Include
