@@ -2,10 +2,43 @@
 
 # HorusAPI ships with the Horus application rather than PyPI, so it is not
 # importable in CI: import-error and no-name-in-module are unavoidable there.
-# The rest match the house style of the EAPM and MOOD plugins: blocks import
-# heavy dependencies inside their action functions on purpose, and HorusAPI
-# uses camelCase identifiers throughout.
-disable=wrong-import-position,import-outside-toplevel,invalid-name,no-member,import-error,no-name-in-module,duplicate-code
+#
+# The rest are house style inherited from the EAPM and MOOD plugins:
+#   import-outside-toplevel  blocks import heavy dependencies inside their
+#                            action functions on purpose, so a missing optional
+#                            dependency only breaks the block that needs it
+#   invalid-name             HorusAPI uses camelCase identifiers throughout
+#   too-many-*               a block action is one long linear procedure by
+#                            nature: read inputs, run a tool, write outputs
+#   unspecified-encoding     every file these blocks touch is ASCII sequence
+#                            data written by the same code that reads it
+#   broad-exception-*        Horus surfaces a raised exception to the user as
+#                            the block's error message
+#
+# What stays enabled is what actually catches bugs: unused imports and
+# variables, undefined names, bad arguments, unreachable code.
+disable=
+    import-error,
+    no-name-in-module,
+    no-member,
+    wrong-import-position,
+    import-outside-toplevel,
+    invalid-name,
+    duplicate-code,
+    missing-module-docstring,
+    missing-function-docstring,
+    missing-class-docstring,
+    too-many-locals,
+    too-many-statements,
+    too-many-branches,
+    too-many-arguments,
+    too-many-positional-arguments,
+    too-many-nested-blocks,
+    unspecified-encoding,
+    broad-exception-raised,
+    broad-exception-caught,
+    consider-using-dict-items,
+    consider-using-with
 
 [FORMAT]
 max-line-length=120

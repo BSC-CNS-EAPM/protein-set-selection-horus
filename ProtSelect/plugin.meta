@@ -1,0 +1,24 @@
+{
+  "id": "protselect",
+  "name": "Protein Set Selection",
+  "description": "Select a small, expressible, structurally diverse subset of a protein family: ProteinMPNN scoring, MMseqs2 clustering, Rosetta relax, BioEmu sampling, Pareto ranking and codon optimisation",
+  "author": "BSC-CNS-EAPM",
+  "version": "0.0.1",
+  "pluginFile": "ProtSelect.py",
+  "platforms": ["universal"],
+  "externalURL": "https://bsc-cns-eapm.github.io/protein-set-selection-horus/",
+  "dependencies": [
+    "numpy",
+    "pandas",
+    "scipy",
+    "pyyaml",
+    "matplotlib",
+    "seaborn",
+    "tqdm",
+    "biopython==1.81",
+    "mdtraj",
+    "git+https://github.com/martin-floor/bsc_calculations.git",
+    "git+https://github.com/martin-floor/prepare_proteins.git",
+    "git+https://github.com/BSC-CNS-EAPM/bioprospecting-horus.git"
+  ]
+}
