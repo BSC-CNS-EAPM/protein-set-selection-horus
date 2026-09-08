@@ -24,6 +24,15 @@ def create_plugin():
     # ========== Blocks (grouped by category, in pipeline order) ========== #
     # pylint: disable=import-outside-toplevel
 
+    # ---------- ProteinMPNN ----------
+    from Blocks.proteinmpnn import proteinMPNNBlock
+
+    protselect_plugin.addBlock(proteinMPNNBlock)
+
+    from Blocks.read_proteinmpnn_scores import readProteinMPNNScoresBlock
+
+    protselect_plugin.addBlock(readProteinMPNNScoresBlock)
+
     # ---------- Structure Preparation ----------
     from Blocks.collect_selected_pdbs import collectSelectedPDBsBlock
 
@@ -62,6 +71,10 @@ def create_plugin():
     from Configs.mafftConfig import mafftExecutableConfig
 
     protselect_plugin.addConfig(mafftExecutableConfig)
+
+    from Configs.proteinmpnnConfig import proteinmpnnExecutableConfig
+
+    protselect_plugin.addConfig(proteinmpnnExecutableConfig)
 
     # ========== Pages ========== #
     from Pages.load_tables import load_page

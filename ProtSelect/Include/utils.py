@@ -37,9 +37,18 @@ def setup_bsc_calculations_based_on_horus_remote(
     conda_env=None,
     modules=None,
     exports=None,
+    localGPU=None,
 ):
     """
     Write the job scripts for the selected Horus remote.
+
+    Parameters
+    ==========
+    localGPU : dict, optional
+        ``{"gpus": int, "parallel": int}``. When given and running locally, the
+        jobs are spread over the machine's GPUs instead of being run as plain
+        parallel CPU jobs. The commands must contain the ``GPUID`` placeholder,
+        which ``bsc_calculations`` substitutes with the GPU index.
 
     Returns the resolved cluster name ("local" or the remote host), which the
     caller uses to decide between submitting a job and running in place.
@@ -78,12 +87,24 @@ def setup_bsc_calculations_based_on_horus_remote(
         )
     # local
     elif cluster == "local":
-        print("Generating local jobs...")
-        bsc_calculations.local.parallel(
-            jobs,
-            cpus=min(cpus or 40, len(jobs)),
-            script_name=scriptName,
-        )
+        if localGPU:
+            local_gpus = int(localGPU.get("gpus", 1) or 1)
+            local_parallel = int(localGPU.get("parallel", 1) or 1)
+            print(f"Generating local GPU jobs on {local_gpus} GPU(s), "
+                  f"{local_parallel} job(s) in parallel per GPU...")
+            bsc_calculations.local.multipleGPUSimulations(
+                jobs,
+                gpus=local_gpus,
+                parallel=local_parallel,
+                script_name=scriptName,
+            )
+        else:
+            print("Generating local jobs...")
+            bsc_calculations.local.parallel(
+                jobs,
+                cpus=min(cpus or 40, len(jobs)),
+                script_name=scriptName,
+            )
     else:
         raise Exception(
             f"The remote '{cluster}' is not supported by this plugin. Use a "
@@ -121,6 +142,62 @@ echo "All scripts completed successfully."
 """
 
 
+def _gpu_hook_script(scriptName: str) -> str:
+    """
+    Build the driver that runs the GPU sub-scripts and waits for them.
+
+    ``bsc_calculations.local.multipleGPUSimulations`` writes one sub-script per
+    slot, named ``<scriptName>_<index>`` zero-filled to the width of the highest
+    slot index, and a driver that launches them with ``nohup ... &`` and leaves
+    the ``wait`` commented out. Two consequences make that driver unusable here:
+
+    * It returns as soon as the jobs are backgrounded, so the block would report
+      success while ProteinMPNN was still running and the final action would
+      collect results that do not exist yet.
+    * ``HOOK_SCRIPT`` cannot stand in for it. Its ``calculation_script.sh_?``
+      glob matches exactly one character, so it picks the sub-scripts up while
+      gpus*parallel <= 10 and silently matches nothing above that, where the
+      names gain a second digit. Running no jobs at all while reporting success
+      is the worst of the available failures.
+
+    So we write our own: launch every sub-script, remember the PIDs, and wait on
+    each one so a non-zero exit actually propagates.
+    """
+    return f"""
+# Run each GPU sub-script in the background and wait for all of them.
+pids=""
+for script in {scriptName}_*; do
+    # Skip the log files the sub-scripts produce, and any glob that matched nothing.
+    case "$script" in
+        *.out|*.err|*.nohup) continue ;;
+    esac
+    [ -f "$script" ] || continue
+
+    sh "$script" > "$script.out" 2> "$script.err" &
+    pids="$pids $!"
+done
+
+if [ -z "$pids" ]; then
+    echo "Error: no sub-scripts matching '{scriptName}_*' were found." >&2
+    exit 1
+fi
+
+status=0
+for pid in $pids; do
+    if ! wait "$pid"; then
+        status=1
+    fi
+done
+
+if [ $status -ne 0 ]; then
+    echo "Error: at least one job failed. See the .err files next to the sub-scripts." >&2
+    exit 1
+fi
+
+echo "All scripts completed successfully."
+"""
+
+
 def launchCalculationAction(
     block: SlurmBlock,
     jobs: typing.List[str],
@@ -130,6 +207,7 @@ def launchCalculationAction(
     condaEnv: typing.Optional[str] = None,
     modules: typing.Optional[typing.List[str]] = None,
     exports: typing.Optional[typing.List[str]] = None,
+    localGPU: typing.Optional[dict] = None,
 ):
     """
     Initial action of a compute block: write, upload and submit the jobs.
@@ -143,6 +221,10 @@ def launchCalculationAction(
         uploadFolders: Folders to upload instead of the whole working
             directory. Uploading everything is the default but is slow once a
             flow has accumulated results.
+        localGPU: ``{"gpus": int, "parallel": int}`` to spread the jobs over
+            local GPUs instead of running them as parallel CPU jobs. Only
+            meaningful when the block runs on the local remote, and the jobs
+            must carry the ``GPUID`` placeholder.
     """
     if jobs is None:
         raise Exception("No jobs selected")
@@ -195,20 +277,22 @@ def launchCalculationAction(
         condaEnv,
         modules,
         jobExports,
+        localGPU,
     )
 
     # Rewrite the main script to add the environment variables and to wait for
-    # the background jobs to finish. bsc_calculations.local.parallel writes a
-    # driver that backgrounds its sub-scripts without waiting, so without this
+    # the background jobs to finish. Both bsc_calculations local backends write
+    # a driver that backgrounds its sub-scripts without waiting, so without this
     # the block would report success the moment the jobs were launched.
     if cluster == "local":
+        body = _gpu_hook_script(scriptName) if localGPU else HOOK_SCRIPT
         with open(scriptName, "w") as f:
             f.write("#!/bin/sh\n")
 
             for key, value in environmentListValues.items():
                 f.write(f"export {key}={value}\n")
 
-            f.write(HOOK_SCRIPT)
+            f.write(body)
 
     if cluster != "local":
         savedID_and_date = block.flow.savedID + "_" + str(datetime.datetime.now().timestamp())
