@@ -1,0 +1,82 @@
+{
+  "A0A1I7JNY4": {
+    "accession": "A0A1I7JNY4",
+    "organism": "Halomonas korlensis",
+    "protein": "Oxygen-dependent choline dehydrogenase",
+    "uniprot_status": "active",
+    "length": 532,
+    "sequence_cluster_size": 4252
+  },
+  "A0A4Q5P860": {
+    "accession": "A0A4Q5P860",
+    "organism": "unclassified (9BURK)",
+    "protein": "",
+    "uniprot_status": "deleted",
+    "length": 577,
+    "sequence_cluster_size": 1618
+  },
+  "A0A264TCW4": {
+    "accession": "A0A264TCW4",
+    "organism": "unclassified (9GAMM)",
+    "protein": "",
+    "uniprot_status": "deleted",
+    "length": 543,
+    "sequence_cluster_size": 1393
+  },
+  "A0A5C1NM78": {
+    "accession": "A0A5C1NM78",
+    "organism": "Halomonas binhaiensis",
+    "protein": "Choline dehydrogenase",
+    "uniprot_status": "active",
+    "length": 548,
+    "sequence_cluster_size": 869
+  },
+  "A0A182E4A1": {
+    "accession": "A0A182E4A1",
+    "organism": "Onchocerca ochengi",
+    "protein": "Glucose-methanol-choline oxidoreductase N-terminal domain-containing protein",
+    "uniprot_status": "active",
+    "length": 560,
+    "sequence_cluster_size": 602
+  },
+  "A0A1X0T8Y9": {
+    "accession": "A0A1X0T8Y9",
+    "organism": "unclassified (9HYPH)",
+    "protein": "",
+    "uniprot_status": "deleted",
+    "length": 531,
+    "sequence_cluster_size": 491
+  },
+  "A0A4Q7S5X9": {
+    "accession": "A0A4Q7S5X9",
+    "organism": "Cupriavidus agavae",
+    "protein": "Choline dehydrogenase-like flavoprotein",
+    "uniprot_status": "active",
+    "length": 545,
+    "sequence_cluster_size": 475
+  },
+  "A3YC68": {
+    "accession": "A3YC68",
+    "organism": "unclassified (9GAMM)",
+    "protein": "",
+    "uniprot_status": "deleted",
+    "length": 543,
+    "sequence_cluster_size": 471
+  },
+  "A0A1A0KLH1": {
+    "accession": "A0A1A0KLH1",
+    "organism": "unclassified (9MYCO)",
+    "protein": "",
+    "uniprot_status": "deleted",
+    "length": 503,
+    "sequence_cluster_size": 401
+  },
+  "A0A5B8EKM0": {
+    "accession": "A0A5B8EKM0",
+    "organism": "unclassified (9ACTN)",
+    "protein": "",
+    "uniprot_status": "deleted",
+    "length": 524,
+    "sequence_cluster_size": 288
+  }
+}
