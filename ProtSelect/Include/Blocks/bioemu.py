@@ -244,18 +244,83 @@ def _use_local_msa(jobs, folder_name, mmseqs_path, database_path, msa_root=None)
 
         # colabfold_search names the alignment after the FASTA header, so pick up
         # whatever .a3m it wrote rather than guessing the name.
+        #
+        # Each step is checked: colabfold_search is on PATH only if the
+        # ColabFold bin folder was set correctly, the search itself can fail
+        # against the database, and it can succeed while writing no alignment.
+        # Without these the job would carry on and hand BioEmu an empty --sequence.
         search = (
+            f'command -v colabfold_search >/dev/null || '
+            f'{{ echo "colabfold_search is not on PATH. Check the '
+            f'\'ColabFold bin folder\' variable." >&2; exit 1; }}\n'
             f"mkdir -p {msa_folder}\n"
             f"if ! ls {msa_folder}/*.a3m > /dev/null 2>&1; then\n"
             f"colabfold_search --mmseqs {mmseqs_path} "
-            f"{fasta_file} {database_path} {msa_folder}\n"
+            f"{fasta_file} {database_path} {msa_folder} || "
+            f'{{ echo "colabfold_search failed for {model}." >&2; exit 1; }}\n'
             f"fi\n"
-            f"MSA=$(ls {msa_folder}/*.a3m | head -n 1)\n"
+            f"MSA=$(ls {msa_folder}/*.a3m 2>/dev/null | head -n 1)\n"
+            f'[ -n "$MSA" ] || '
+            f'{{ echo "No .a3m alignment was produced in {msa_folder}." >&2; exit 1; }}\n'
         )
 
         msa_jobs.append(search + re.sub(r"--sequence \S+ ", '--sequence "$MSA" ', job, count=1))
 
     return msa_jobs
+
+
+def _harden_jobs(jobs):
+    """
+    Make the generated commands fail loudly instead of continuing quietly.
+
+    ``prepare_proteins`` emits the sampling call bare, and (without a local MSA)
+    wraps it in a ``while true`` loop that re-reads the sample count with mdtraj.
+    Two things go wrong with that shape:
+
+    * A failing ``bioemu.sample`` is not detected. The loop then calls mdtraj on
+      a trajectory that was never written, ``NUM_SAMPLES`` comes back empty, the
+      ``-ge`` test errors instead of breaking and the arithmetic that follows
+      produces nonsense, so the job spins on the GPU until the wall clock kills
+      it.
+    * The mdtraj count assumes ``samples.xtc`` and ``topology.pdb`` exist.
+
+    So: give the sampling call an explicit failure exit, and guard the counter on
+    the files being there. This mirrors the runner used by hand on MareNostrum.
+    """
+    import re
+
+    hardened = []
+    for job in jobs:
+        lines = job.split("\n")
+        out = []
+        for line in lines:
+            stripped = line.strip()
+
+            # The sampling call: fail the job rather than looping on an error.
+            if "bioemu.sample" in stripped and "||" not in stripped:
+                out.append(line + ' || { echo "bioemu.sample failed." >&2; exit 1; }')
+                continue
+
+            # The sample counter: mdtraj cannot open what was never written.
+            match = re.match(
+                r'^(\s*)NUM_SAMPLES=\$\((.+)md\.load_xtc\(\'([^\']+)\',\s*top=\'([^\']+)\'\)(.+)\)$',
+                line,
+            )
+            if match:
+                indent, _, xtc, top, _ = match.groups()
+                out.append(
+                    f'{indent}if [ -f "{xtc}" ] && [ -f "{top}" ]; then\n'
+                    f"{line}\n"
+                    f"{indent}else\n"
+                    f"{indent}NUM_SAMPLES=0\n"
+                    f"{indent}fi"
+                )
+                continue
+
+            out.append(line)
+        hardened.append("\n".join(out))
+
+    return hardened
 
 
 def _use_env_python(jobs, cluster_env):
@@ -360,6 +425,7 @@ def initial_bioemu(block: SlurmBlock):
         return
 
     jobs = _use_env_python(jobs, cluster_env)
+    jobs = _harden_jobs(jobs)
 
     exports = []
 
@@ -381,6 +447,9 @@ def initial_bioemu(block: SlurmBlock):
             f"HF_HUB_CACHE={hf_cache}/hub",
             "HF_HUB_OFFLINE=1",
             "TRANSFORMERS_OFFLINE=1",
+            # Belt and braces: something in the stack attempting a pip install
+            # would hang on a node with no route out rather than failing.
+            "PIP_NO_INDEX=1",
         ]
 
     modules = [
