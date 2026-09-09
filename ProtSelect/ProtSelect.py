@@ -34,6 +34,10 @@ def create_plugin():
     protselect_plugin.addBlock(readProteinMPNNScoresBlock)
 
     # ---------- Structure Preparation ----------
+    from Blocks.trim_alphafold_models import trimAlphaFoldModelsBlock
+
+    protselect_plugin.addBlock(trimAlphaFoldModelsBlock)
+
     from Blocks.collect_selected_pdbs import collectSelectedPDBsBlock
 
     protselect_plugin.addBlock(collectSelectedPDBsBlock)
@@ -63,6 +67,24 @@ def create_plugin():
 
     protselect_plugin.addBlock(sequenceLengthDistributionBlock)
 
+    # ---------- Rosetta ----------
+    from Blocks.rosetta_relax import rosettaRelaxBlock
+
+    protselect_plugin.addBlock(rosettaRelaxBlock)
+
+    from Blocks.analyse_rosetta_relax import analyseRosettaRelaxBlock
+
+    protselect_plugin.addBlock(analyseRosettaRelaxBlock)
+
+    # ---------- BioEmu ----------
+    from Blocks.bioemu import bioEmuBlock
+
+    protselect_plugin.addBlock(bioEmuBlock)
+
+    from Blocks.analyse_bioemu import analyseBioEmuBlock
+
+    protselect_plugin.addBlock(analyseBioEmuBlock)
+
     # ========== Configs ========== #
     from Configs.mmseqsConfig import mmseqsExecutableConfig
 
@@ -75,6 +97,18 @@ def create_plugin():
     from Configs.proteinmpnnConfig import proteinmpnnExecutableConfig
 
     protselect_plugin.addConfig(proteinmpnnExecutableConfig)
+
+    from Configs.rosettaConfig import rosettaExecutableConfig
+
+    protselect_plugin.addConfig(rosettaExecutableConfig)
+
+    from Configs.pyrosettaConfig import pyrosettaExecutableConfig
+
+    protselect_plugin.addConfig(pyrosettaExecutableConfig)
+
+    from Configs.bioemuConfig import bioemuExecutableConfig
+
+    protselect_plugin.addConfig(bioemuExecutableConfig)
 
     # ========== Pages ========== #
     from Pages.load_tables import load_page

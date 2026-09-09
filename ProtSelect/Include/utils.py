@@ -114,57 +114,64 @@ def setup_bsc_calculations_based_on_horus_remote(
     return cluster
 
 
-HOOK_SCRIPT = """
-for script in calculation_script.sh_?; do
-    sh "$script" > "${script%.*}.out" 2> "${script%.*}.err" &
-    exit_code=$?
-done
-
-# Wait for all background processes to finish
-wait
-
-if [ $exit_code -ne 0 ]; then
-    echo "Error: Script $script failed with exit code $exit_code" >&2
-    exit 1
-fi
-
-# Check if the .err file is empty in order to determine
-# if the script ran successfully
-if [ -s "${script%.*}.err" ]; then
-    echo "Error: Script $script failed with errors:" >&2
-    cat "${script%.*}.err" >&2
-    exit 1
-fi
-
-
-echo "All scripts completed successfully."
-
-"""
-
-
-def _gpu_hook_script(scriptName: str) -> str:
+def strip_srun(jobs):
     """
-    Build the driver that runs the GPU sub-scripts and waits for them.
+    Remove the ``srun`` launcher from job commands so they can run locally.
 
-    ``bsc_calculations.local.multipleGPUSimulations`` writes one sub-script per
-    slot, named ``<scriptName>_<index>`` zero-filled to the width of the highest
-    slot index, and a driver that launches them with ``nohup ... &`` and leaves
-    the ``wait`` commented out. Two consequences make that driver unusable here:
+    ``prepare_proteins`` prefixes its commands with ``srun`` unconditionally,
+    including the MPI task count. ``srun`` is the SLURM launcher and does not
+    exist off a cluster, so a local run would fail with "srun: not found" -- and
+    because the generated scripts end with a ``cd`` that succeeds, that failure
+    is invisible unless the sub-scripts run under ``sh -e``.
 
-    * It returns as soon as the jobs are backgrounded, so the block would report
-      success while ProteinMPNN was still running and the final action would
-      collect results that do not exist yet.
-    * ``HOOK_SCRIPT`` cannot stand in for it. Its ``calculation_script.sh_?``
-      glob matches exactly one character, so it picks the sub-scripts up while
-      gpus*parallel <= 10 and silently matches nothing above that, where the
-      names gain a second digit. Running no jobs at all while reporting success
-      is the worst of the available failures.
+    Only the launcher is dropped; the command it was wrapping is untouched.
+    """
+    import re
 
-    So we write our own: launch every sub-script, remember the PIDs, and wait on
-    each one so a non-zero exit actually propagates.
+    return [
+        re.sub(r"(?<![\w./-])srun(?:\s+-n\s*\d+)?\s+", "", job)
+        for job in jobs
+    ]
+
+
+def _hook_script(scriptName: str) -> str:
+    """
+    Build the driver that runs the local sub-scripts and waits for them.
+
+    Both ``bsc_calculations`` local backends write one sub-script per slot,
+    named ``<scriptName>_<index>`` zero-filled to the width of the highest
+    index, plus a driver that backgrounds them with ``nohup`` and does not wait.
+    ``local.parallel`` zero-fills by the CPU count and
+    ``local.multipleGPUSimulations`` by ``gpus * parallel``.
+
+    Neither generated driver is usable here, and neither was the hook the EAPM
+    plugin replaced them with. Its shortcomings, all of which are silent -- they
+    change the block's success verdict, not its output:
+
+    * ``for script in <name>_?`` matches exactly one character, so it picks the
+      sub-scripts up at up to 10 slots and matches *nothing* above that, where
+      the names gain a second digit. The block then reports success having run
+      no jobs at all.
+    * ``exit_code=$?`` is read immediately after ``&``, so it captures whether
+      backgrounding succeeded, never the job's own status: a job exiting 3 was
+      reported as success.
+    * Failure was instead inferred from a non-empty ``.err`` file, so any tool
+      that writes a warning to stderr was reported as failed.
+    * ``${{script%.*}}`` strips at the dot in ``calculation_script.sh_0``,
+      yielding ``calculation_script`` for *every* sub-script, so they all wrote
+      over one another's logs.
+
+    This version launches every sub-script, gives each its own logs, remembers
+    the PIDs and waits on each, so the exit status is the real one.
+
+    The sub-scripts are run with ``sh -e``. Without it a failure goes unnoticed:
+    the generated scripts have the shape ``cd <dir>; <tool> ...; cd ../../..``,
+    so the exit status is that of the trailing ``cd``, which always succeeds. A
+    missing executable would otherwise be reported as a successful run that
+    happened to produce no output.
     """
     return f"""
-# Run each GPU sub-script in the background and wait for all of them.
+# Run each sub-script in the background and wait for all of them.
 pids=""
 for script in {scriptName}_*; do
     # Skip the log files the sub-scripts produce, and any glob that matched nothing.
@@ -173,7 +180,7 @@ for script in {scriptName}_*; do
     esac
     [ -f "$script" ] || continue
 
-    sh "$script" > "$script.out" 2> "$script.err" &
+    sh -e "$script" > "$script.out" 2> "$script.err" &
     pids="$pids $!"
 done
 
@@ -285,7 +292,7 @@ def launchCalculationAction(
     # a driver that backgrounds its sub-scripts without waiting, so without this
     # the block would report success the moment the jobs were launched.
     if cluster == "local":
-        body = _gpu_hook_script(scriptName) if localGPU else HOOK_SCRIPT
+        body = _hook_script(scriptName)
         with open(scriptName, "w") as f:
             f.write("#!/bin/sh\n")
 
