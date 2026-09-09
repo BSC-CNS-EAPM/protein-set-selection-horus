@@ -42,8 +42,9 @@ lengthsFile = PluginVariable(
     id="lengths_file",
     name="Sequence lengths (optional)",
     description="Optional JSON {model: length} (e.g. 'sequence_lengths.json' from the "
-    "'Sequence Length Distribution' block). When given, a score-per-residue panel "
-    "is added to the plot and the normalised score is written to the summary.",
+    "'Sequence Length Distribution' block). Leave it empty and the lengths are read "
+    "from the models folder instead, so the score-per-residue panel and the "
+    "normalised score in the summary are produced either way.",
     type=VariableTypes.FILE,
     defaultValue=None,
     allowedValues=["json"],
@@ -541,6 +542,14 @@ def analyse_rosetta_relax(block: PluginBlock):
 
     print("Loading models...")
     models = prepare_proteins.proteinModels(models_folder, ignore_biopython_warnings=True)
+
+    if not lengths:
+        # The models folder already carries the sequences, so the per-residue
+        # score does not need a separate input. Reading them here keeps
+        # score_per_residue -- the objective Pareto Selection defaults to --
+        # available whether or not the Sequence Length Distribution block ran.
+        lengths = {str(name): float(len(seq)) for name, seq in models.sequences.items()}
+        print(f"Derived {len(lengths)} sequence lengths from the models folder.")
 
     analysis_kwargs = {
         "energy_by_residue": energy_by_residue,

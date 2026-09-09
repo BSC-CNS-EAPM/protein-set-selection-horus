@@ -83,7 +83,17 @@ scoresFile = PluginVariable(
     id="scores_file",
     name="Scores file",
     description="JSON mapping each model to its aggregated score. This is the input "
-    "the clustering and selection blocks expect.",
+    "the clustering and selection blocks expect. With a 'both' run this carries "
+    "the vanilla scores.",
+    type=VariableTypes.FILE,
+    allowedValues=["json"],
+)
+secondScoresFile = PluginVariable(
+    id="scores_file_2",
+    name="Second scores file",
+    description="Set only when the scoring block ran with the 'both' weight set: "
+    "the soluble scores, while the first output carries the vanilla ones. Wire "
+    "both into the second score input of Select Cluster Representatives.",
     type=VariableTypes.FILE,
     allowedValues=["json"],
 )
@@ -131,67 +141,99 @@ def read_proteinmpnn_scores(block: PluginBlock):
         ) from error
     # pylint: enable=import-outside-toplevel
 
-    dataframe = readScoresToDataFrame(folder, read_until=(read_until or None))
-    if dataframe is None or dataframe.empty:
-        raise ValueError(
-            f"No ProteinMPNN scores were found in '{folder}'. Check that the "
-            "scoring block finished and that its results were downloaded."
-        )
-
-    # The frame is indexed by (Model, Sample); reset so Model is a column we can
-    # group on.
-    table = dataframe.reset_index()
-
-    if score_column not in table.columns:
-        raise ValueError(
-            f"The ProteinMPNN results have no '{score_column}' column. "
-            f"Available columns: {sorted(table.columns)}."
-        )
-
-    if source_filter != "all" and "source" in table.columns:
-        is_score_only = table["source"].astype(str).str.startswith("score_only")
-        table = table[is_score_only] if source_filter == "score_only" else table[~is_score_only]
-        if table.empty:
-            raise ValueError(
-                f"No rows are left after filtering for '{source_filter}' sources. "
-                "Try the 'all' source filter."
-            )
-
-    grouped = table.groupby("Model")[score_column].agg(aggregation)
-    scores = {str(model): float(value) for model, value in grouped.items()}
-
     sequences_path = block.inputs.get(sequencesFile.id, None)
+    known = None
     if sequences_path and sequences_path != "None":
         known = set(read_sequences(sequences_path))
-        dropped = [model for model in scores if model not in known]
-        scores = {model: value for model, value in scores.items() if model in known}
-        if dropped:
-            print(f"Dropped {len(dropped)} model(s) absent from the sequences file "
-                  f"(e.g. {dropped[:3]}).")
-        if not scores:
+
+    def read_one(source_folder, label):
+        """Aggregate one ProteinMPNN job folder into {model: score}."""
+        dataframe = readScoresToDataFrame(source_folder, read_until=(read_until or None))
+        if dataframe is None or dataframe.empty:
             raise ValueError(
-                "No scored model appears in the sequences file. Check that the model "
-                "names match the structure file names."
+                f"No ProteinMPNN scores were found in '{source_folder}'. Check that "
+                "the scoring block finished and that its results were downloaded."
             )
 
-    print(f"Read {len(table)} row(s) for {len(scores)} model(s); "
-          f"aggregated '{score_column}' with '{aggregation}'.")
+        # The frame is indexed by (Model, Sample); reset so Model is a column we
+        # can group on.
+        frame = dataframe.reset_index()
 
-    scores_output = "proteinmpnn_scores.json"
-    with open(scores_output, "w") as jf:
-        json.dump(scores, jf, indent=2)
+        if score_column not in frame.columns:
+            raise ValueError(
+                f"The ProteinMPNN results have no '{score_column}' column. "
+                f"Available columns: {sorted(frame.columns)}."
+            )
 
+        if source_filter != "all" and "source" in frame.columns:
+            is_score_only = frame["source"].astype(str).str.startswith("score_only")
+            frame = frame[is_score_only] if source_filter == "score_only" \
+                else frame[~is_score_only]
+            if frame.empty:
+                raise ValueError(
+                    f"No rows are left after filtering for '{source_filter}' sources. "
+                    "Try the 'all' source filter."
+                )
+
+        grouped = frame.groupby("Model")[score_column].agg(aggregation)
+        found = {str(model): float(value) for model, value in grouped.items()}
+
+        if known is not None:
+            dropped = [m for m in found if m not in known]
+            found = {m: v for m, v in found.items() if m in known}
+            if dropped:
+                print(f"  {label}: dropped {len(dropped)} model(s) absent from the "
+                      f"sequences file (e.g. {dropped[:3]}).")
+            if not found:
+                raise ValueError(
+                    "No scored model appears in the sequences file. Check that the "
+                    "model names match the structure file names."
+                )
+
+        print(f"  {label}: {len(frame)} row(s) for {len(found)} model(s)")
+        frame.insert(0, "weight_set", label)
+        return found, frame
+
+    # A 'both' run writes vanilla/ and soluble/ subfolders; anything else is a
+    # single job folder.
+    sets = [
+        (label, os.path.join(folder, label))
+        for label in ("vanilla", "soluble")
+        if os.path.isdir(os.path.join(folder, label))
+    ]
+    if not sets:
+        sets = [("scores", folder)]
+
+    print(f"Reading {len(sets)} weight set(s), aggregating '{score_column}' "
+          f"with '{aggregation}'...")
+
+    results, frames = [], []
+    for label, source_folder in sets:
+        found, frame = read_one(source_folder, label)
+        results.append((label, found))
+        frames.append(frame)
+
+    import pandas as pd  # pylint: disable=import-outside-toplevel
+
+    table = pd.concat(frames, ignore_index=True)
     table_output = "proteinmpnn_scores_table.csv"
     table.to_csv(table_output, index=False)
 
-    ranked = sorted(scores.items(), key=lambda item: item[1])
-    show_table_html(
-        [(model, f"{value:.4f}") for model, value in ranked],
-        ["Model", score_column],
-        f"ProteinMPNN scores ({aggregation}, lower is better)",
-    )
+    output_vars = [scoresFile, secondScoresFile]
+    for index, (label, found) in enumerate(results[:2]):
+        name = f"proteinmpnn_scores_{label}.json" if len(results) > 1 \
+            else "proteinmpnn_scores.json"
+        with open(name, "w") as jf:
+            json.dump(found, jf, indent=2)
+        block.setOutput(output_vars[index].id, name)
 
-    block.setOutput(scoresFile.id, scores_output)
+        ranked = sorted(found.items(), key=lambda item: item[1])
+        show_table_html(
+            [(model, f"{value:.4f}") for model, value in ranked],
+            ["Model", score_column],
+            f"ProteinMPNN scores - {label} ({aggregation}, lower is better)",
+        )
+
     block.setOutput(scoresTableFile.id, table_output)
 
 
@@ -208,6 +250,6 @@ readProteinMPNNScoresBlock = PluginBlock(
         sourceFilterVariable,
         readUntilVariable,
     ],
-    outputs=[scoresFile, scoresTableFile],
+    outputs=[scoresFile, secondScoresFile, scoresTableFile],
     action=read_proteinmpnn_scores,
 )

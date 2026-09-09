@@ -9,8 +9,9 @@ to rank the members of each sequence cluster.
 ProteinMPNN ships two sets of weights. The "vanilla" weights are trained on all
 of the PDB; the "soluble" weights exclude membrane proteins and so favour
 sequences that express solubly. The reference workflow scores with both and
-keeps the union of the two selections, which is done here by placing this block
-twice and toggling ``use_soluble_model``.
+keeps the union of the two selections. Set the weight set to "both" and this
+block runs each in turn, writing them side by side for the score reader to pick
+up; there is no need to place the block twice.
 
 The work is GPU-bound. On a cluster the jobs go into a SLURM array; locally
 they are spread over the machine's GPUs, several at a time per GPU. Running on
@@ -52,14 +53,16 @@ folderNameVariable = PluginVariable(
     type=VariableTypes.STRING,
     defaultValue="proteinmpnn",
 )
-useSolubleModelVariable = PluginVariable(
-    id="use_soluble_model",
-    name="Use soluble weights",
-    description="Score with the soluble-trained weights instead of the vanilla ones. "
-    "The soluble weights exclude membrane proteins and favour solubly expressing "
-    "sequences.",
-    type=VariableTypes.BOOLEAN,
-    defaultValue=False,
+weightsVariable = PluginVariable(
+    id="weights",
+    name="Weight set",
+    description="Which ProteinMPNN weights to score with. The soluble weights "
+    "exclude membrane proteins and favour solubly expressing sequences. 'both' "
+    "runs each in turn and writes them to 'vanilla' and 'soluble' subfolders, "
+    "which is what the reference workflow compares.",
+    type=VariableTypes.STRING_LIST,
+    defaultValue="both",
+    allowedValues=["vanilla", "soluble", "both"],
 )
 numSeqPerTargetVariable = PluginVariable(
     id="num_seq_per_target",
@@ -252,11 +255,19 @@ def initial_proteinmpnn(block: SlurmBlock):
         sequences = read_sequences(sequences_path)
         print(f"Evaluating {len(sequences)} supplied sequence(s) against each backbone.")
 
-    use_soluble = block.variables.get(useSolubleModelVariable.id, False)
+    weights = block.variables.get(weightsVariable.id, "both") or "both"
+    if weights == "both":
+        # Each weight set gets its own job folder so the score reader can tell
+        # them apart; a single output folder still carries both.
+        runs = [("vanilla", os.path.join(folder_name, "vanilla"), False),
+                ("soluble", os.path.join(folder_name, "soluble"), True)]
+    else:
+        runs = [(weights, folder_name, weights == "soluble")]
+
     is_local = block.remote.isLocal
 
     print(f"Setting up ProteinMPNN for {pdb_count} structure(s) using the "
-          f"{'soluble' if use_soluble else 'vanilla'} weights...")
+          f"{weights} weight set(s)...")
 
     # pylint: disable=import-outside-toplevel
     try:
@@ -272,23 +283,26 @@ def initial_proteinmpnn(block: SlurmBlock):
     # gpu_local is what makes bioprospecting emit the 'CUDA_VISIBLE_DEVICES=GPUID'
     # prefix that bsc_calculations substitutes per GPU slot. It must track the
     # execution target: on the cluster the job array assigns the GPU instead.
-    jobs = setUPProteinMPNNCalculations(
-        folder_name,
-        pdbs_folder,
-        sequences=sequences,
-        num_seq_per_target=block.variables.get(numSeqPerTargetVariable.id, 100),
-        evaluate_pdb_sequence=block.variables.get(evaluatePdbSequenceVariable.id, True),
-        score_only=block.variables.get(scoreOnlyVariable.id, True),
-        model_name=block.variables.get(modelNameVariable.id, "v_48_020"),
-        use_soluble_model=use_soluble,
-        sampling_temp=block.variables.get(samplingTempVariable.id, 0.1),
-        batch_size=block.variables.get(batchSizeVariable.id, 1),
-        backbone_noise=block.variables.get(backboneNoiseVariable.id, 0.0),
-        seed=block.variables.get(seedVariable.id, 0),
-        skip_finished=block.variables.get(skipFinishedVariable.id, True),
-        overwrite=block.variables.get(overwriteVariable.id, False),
-        gpu_local=is_local,
-    )
+    jobs = []
+    for label, job_folder, soluble in runs:
+        print(f"  {label}: {job_folder}")
+        jobs += setUPProteinMPNNCalculations(
+            job_folder,
+            pdbs_folder,
+            sequences=sequences,
+            num_seq_per_target=block.variables.get(numSeqPerTargetVariable.id, 100),
+            evaluate_pdb_sequence=block.variables.get(evaluatePdbSequenceVariable.id, True),
+            score_only=block.variables.get(scoreOnlyVariable.id, True),
+            model_name=block.variables.get(modelNameVariable.id, "v_48_020"),
+            use_soluble_model=soluble,
+            sampling_temp=block.variables.get(samplingTempVariable.id, 0.1),
+            batch_size=block.variables.get(batchSizeVariable.id, 1),
+            backbone_noise=block.variables.get(backboneNoiseVariable.id, 0.0),
+            seed=block.variables.get(seedVariable.id, 0),
+            skip_finished=block.variables.get(skipFinishedVariable.id, True),
+            overwrite=block.variables.get(overwriteVariable.id, False),
+            gpu_local=is_local,
+        )
 
     if not jobs:
         raise Exception(
@@ -368,7 +382,7 @@ proteinMPNNBlock = SlurmBlock(
     + [
         gpusVariable,
         folderNameVariable,
-        useSolubleModelVariable,
+        weightsVariable,
         numSeqPerTargetVariable,
         evaluatePdbSequenceVariable,
         scoreOnlyVariable,

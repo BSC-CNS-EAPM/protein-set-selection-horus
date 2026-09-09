@@ -59,10 +59,6 @@ def create_plugin():
 
     protselect_plugin.addBlock(selectClusterRepresentativesBlock)
 
-    from Blocks.combine_selected_sequences import combineSelectedSequencesBlock
-
-    protselect_plugin.addBlock(combineSelectedSequencesBlock)
-
     from Blocks.sequence_length_distribution import sequenceLengthDistributionBlock
 
     protselect_plugin.addBlock(sequenceLengthDistributionBlock)

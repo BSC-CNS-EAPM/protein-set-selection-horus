@@ -11,16 +11,16 @@ front, and codon-optimises the winners for expression.
 
 The plugin is family-agnostic: every block takes a sequences FASTA/JSON, a
 folder of structures, or a scores file. The worked example in the documentation
-happens to be a set of unspecific peroxygenases (UPOs), but nothing in the
-blocks assumes it.
+happens to be a set of unspecific peroxygenases, but nothing in the blocks
+assumes it, and the shipped datasets are lysozymes and HMFOs.
 
 ## The pipeline
 
 | Stage | Blocks |
 | --- | --- |
-| Score | ProteinMPNN Scoring (vanilla and soluble), Read ProteinMPNN Scores |
+| Score | ProteinMPNN Scoring, Read ProteinMPNN Scores |
 | Cluster | MMseqs2 Clustering (local and SLURM), MMseqs2 Threshold Sweep |
-| Select | Select Cluster Representatives, Combine Selected Sequences, Sequence Length Distribution |
+| Select | Select Cluster Representatives, Sequence Length Distribution |
 | Prepare | Trim AlphaFold Models, Collect Selected Structures |
 | Relax | Rosetta Relax, Analyse Rosetta Relax |
 | Sample | BioEmu Sampling, Analyse BioEmu |
@@ -29,8 +29,14 @@ blocks assumes it.
 | Inspect | Multiple Sequence Alignment (MAFFT), Phylogenetic Tree |
 
 A prebuilt flow wiring all of them together ships in `ProtSelect/Flows/` and
-appears in Horus as a preset, along with a small example dataset in
+appears in Horus as a preset, along with example datasets in
 `ProtSelect/ExampleData/` so it can be run out of the box.
+
+The reference workflow scores with both ProteinMPNN weight sets and keeps the
+union of the two selections. That is one block each here, not two: **ProteinMPNN
+Scoring** takes a weight set of `vanilla`, `soluble` or `both`, and **Select
+Cluster Representatives** takes an optional second scores file and returns the
+union, labelled by which set chose each model.
 
 ## Installation
 
@@ -74,7 +80,7 @@ ProtSelect/                 the plugin root (this is what gets zipped)
 ├── plugin.meta             metadata and pip dependencies
 ├── ProtSelect.py           entry point; registers blocks, configs and pages
 ├── Flows/                  prebuilt flow presets, auto-registered by Horus
-├── ExampleData/            a small runnable dataset
+├── ExampleData/            runnable example datasets (lysozyme, hmfo)
 ├── Pages/                  HTML for the plugin's pages
 └── Include/                added to sys.path by Horus
     ├── Blocks/             one module per block
