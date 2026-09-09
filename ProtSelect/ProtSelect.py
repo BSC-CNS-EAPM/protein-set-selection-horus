@@ -138,6 +138,10 @@ def create_plugin():
 
     protselect_plugin.addPage(load_page)
 
+    from Pages.environment import environment_page
+
+    protselect_plugin.addPage(environment_page)
+
     # pylint: enable=import-outside-toplevel
 
     # Return the plugin

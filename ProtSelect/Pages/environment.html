@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Environment Setup</title>
+    <style>
+      :root { color-scheme: light dark; }
+      body {
+        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        margin: 0; padding: 20px; font-size: 14px; line-height: 1.45;
+      }
+      h1 { font-size: 20px; margin: 0 0 4px; }
+      .sub { opacity: .7; margin: 0 0 20px; }
+      .bar { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+      button {
+        font: inherit; padding: 5px 12px; border-radius: 6px;
+        border: 1px solid rgba(128,128,128,.45); background: transparent;
+        cursor: pointer;
+      }
+      button:hover:not(:disabled) { background: rgba(128,128,128,.14); }
+      button:disabled { opacity: .45; cursor: default; }
+      button.primary { border-color: #2b7; }
+      table { border-collapse: collapse; width: 100%; }
+      th, td { border-bottom: 1px solid rgba(128,128,128,.25); padding: 8px 10px; text-align: left; vertical-align: top; }
+      th { font-weight: 600; opacity: .75; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+      td.state { white-space: nowrap; font-weight: 600; }
+      .ok { color: #2a8; }
+      .missing { color: #d44; }
+      .optional { color: #c92; }
+      .path { font-family: ui-monospace, monospace; font-size: 12px; word-break: break-all; opacity: .85; }
+      .note { font-size: 12px; opacity: .7; margin-top: 3px; }
+      .needed { font-size: 12px; opacity: .7; }
+      .banner {
+        border-left: 3px solid #d44; padding: 10px 14px; margin-bottom: 18px;
+        background: rgba(212,68,68,.08); border-radius: 0 6px 6px 0;
+      }
+      .banner.clear { border-left-color: #2a8; background: rgba(42,168,136,.08); }
+      pre#log {
+        margin-top: 18px; padding: 12px; border-radius: 6px; font-size: 12px;
+        background: rgba(128,128,128,.12); max-height: 320px; overflow: auto;
+        white-space: pre-wrap; display: none;
+      }
+      dialog { border: 1px solid rgba(128,128,128,.4); border-radius: 8px; padding: 20px; min-width: 320px; }
+      dialog label { display: block; margin: 10px 0 4px; font-size: 13px; }
+      dialog input { width: 100%; padding: 6px; font: inherit; box-sizing: border-box; }
+      .hint { font-size: 12px; opacity: .7; margin-top: 12px; }
+    </style>
+  </head>
+  <body>
+    <h1>Environment Setup</h1>
+    <p class="sub">
+      The external tools this plugin drives. Python dependencies are installed by
+      Horus into the plugin's own folder; everything below either lives outside
+      it or needs its own environment.
+    </p>
+
+    <div class="bar">
+      <label for="remote">Remote</label>
+      <input id="remote" value="Local" style="padding:5px; font:inherit; width:120px" />
+      <button id="refresh">Refresh</button>
+      <button id="save" class="primary">Save detected paths</button>
+    </div>
+
+    <div id="banner"></div>
+    <table>
+      <thead>
+        <tr>
+          <th>Tool</th><th>Needed by</th><th>Status</th><th>Detected</th><th></th>
+        </tr>
+      </thead>
+      <tbody id="rows">
+        <tr><td colspan="5">Loading…</td></tr>
+      </tbody>
+    </table>
+
+    <pre id="log"></pre>
+
+    <p class="hint" id="configpath"></p>
+
+    <dialog id="creds">
+      <form method="dialog" id="credsform">
+        <b id="credstitle">Credentials</b>
+        <div id="credsfields"></div>
+        <p class="hint">
+          Credentials are used for this install only. They are redacted from the
+          log and are never written to the plugin configuration.
+        </p>
+        <div style="margin-top:14px; display:flex; gap:8px; justify-content:flex-end">
+          <button value="cancel">Cancel</button>
+          <button value="ok" class="primary">Install</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script>
+      const base = window.location.href.endsWith("/")
+        ? window.location.href
+        : window.location.href + "/";
+
+      const el = (id) => document.getElementById(id);
+      const esc = (s) =>
+        String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+      let tools = [];
+
+      function remote() {
+        return el("remote").value.trim() || "Local";
+      }
+
+      function logLines(lines) {
+        const pre = el("log");
+        pre.style.display = "block";
+        pre.textContent = lines.join("\n");
+        pre.scrollTop = pre.scrollHeight;
+      }
+
+      function render(data) {
+        tools = data.tools || [];
+        const body = el("rows");
+
+        body.innerHTML = tools
+          .map((t) => {
+            const cls = t.state === "ok" ? "ok" : t.state === "missing" ? "missing" : "optional";
+            const label =
+              t.state === "ok" ? "OK" : t.state === "missing" ? "Missing" : "Optional";
+            const detected = t.detected
+              ? `<div class="path">${esc(t.detected)}</div>` +
+                (t.version ? `<div class="note">${esc(t.version)}</div>` : "")
+              : t.message
+              ? `<div class="note">${esc(t.message)}</div>`
+              : "";
+            const action = t.installable
+              ? `<button data-key="${esc(t.key)}" ${t.state === "ok" ? "" : "class=primary"}>${
+                  t.state === "ok" ? "Reinstall" : "Install"
+                }</button>`
+              : `<span class="note">manual</span>`;
+            return `<tr>
+              <td><b>${esc(t.label)}</b><div class="note">${esc(t.note)}</div></td>
+              <td class="needed">${t.needed_by.map(esc).join("<br>")}</td>
+              <td class="state ${cls}">${label}</td>
+              <td>${detected}</td>
+              <td>${action}</td>
+            </tr>`;
+          })
+          .join("");
+
+        body.querySelectorAll("button[data-key]").forEach((b) =>
+          b.addEventListener("click", () => install(b.dataset.key))
+        );
+
+        const blocked = data.blocked || [];
+        el("banner").innerHTML = blocked.length
+          ? `<div class="banner"><b>${blocked.length} block(s) cannot run yet:</b>
+             ${blocked.map(esc).join(", ")}</div>`
+          : `<div class="banner clear">Every block has what it needs.</div>`;
+
+        el("configpath").textContent = data.config_path
+          ? "Configuration file: " + data.config_path
+          : "";
+      }
+
+      async function refresh() {
+        el("rows").innerHTML = `<tr><td colspan="5">Loading…</td></tr>`;
+        try {
+          const res = await fetch(base + "status?remote=" + encodeURIComponent(remote()));
+          const data = await res.json();
+          if (data.error) throw new Error(data.error);
+          render(data);
+        } catch (e) {
+          el("rows").innerHTML = `<tr><td colspan="5" class="missing">${esc(e.message)}</td></tr>`;
+        }
+      }
+
+      async function askCredentials(tool) {
+        if (!tool.credentials) return {};
+        const dialog = el("creds");
+        el("credstitle").textContent = tool.label + " credentials";
+        el("credsfields").innerHTML = Object.entries(tool.credentials)
+          .map(
+            ([k, prompt]) =>
+              `<label for="c_${esc(k)}">${esc(prompt)}</label>
+               <input id="c_${esc(k)}" name="${esc(k)}" type="password" autocomplete="off" />`
+          )
+          .join("");
+        dialog.showModal();
+        const result = await new Promise((resolve) =>
+          dialog.addEventListener("close", () => resolve(dialog.returnValue), { once: true })
+        );
+        const creds = {};
+        Object.keys(tool.credentials).forEach((k) => {
+          const input = el("c_" + k);
+          if (input) {
+            creds[k] = input.value;
+            input.value = ""; // do not leave secrets in the DOM
+          }
+        });
+        return result === "ok" ? creds : null;
+      }
+
+      async function install(key) {
+        const tool = tools.find((t) => t.key === key);
+        const credentials = await askCredentials(tool);
+        if (credentials === null) return;
+
+        document.querySelectorAll("button").forEach((b) => (b.disabled = true));
+        logLines([`Installing ${tool.label}…`]);
+        try {
+          const res = await fetch(base + "install", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ key, remote: remote(), credentials }),
+          });
+          const data = await res.json();
+          logLines(
+            (data.log || []).concat(
+              data.ok ? ["", "Done."] : ["", "FAILED: " + (data.error || "unknown error")]
+            )
+          );
+        } catch (e) {
+          logLines(["FAILED: " + e.message]);
+        } finally {
+          document.querySelectorAll("button").forEach((b) => (b.disabled = false));
+          refresh();
+        }
+      }
+
+      async function savePaths() {
+        try {
+          const res = await fetch(base + "save_paths", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ remote: remote() }),
+          });
+          const data = await res.json();
+          logLines(
+            data.ok
+              ? ["Saved to " + data.path, ""].concat(
+                  Object.entries(data.saved).map(([k, v]) => `  ${k} = ${v}`),
+                  ["", "Reopen the Configs tab to see the new values."]
+                )
+              : ["FAILED: " + (data.error || "unknown error")]
+          );
+        } catch (e) {
+          logLines(["FAILED: " + e.message]);
+        }
+      }
+
+      el("refresh").addEventListener("click", refresh);
+      el("save").addEventListener("click", savePaths);
+      el("remote").addEventListener("change", refresh);
+      document.addEventListener("DOMContentLoaded", refresh);
+      if (document.readyState !== "loading") refresh();
+    </script>
+  </body>
+</html>
