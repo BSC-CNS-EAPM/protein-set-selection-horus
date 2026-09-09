@@ -85,6 +85,25 @@ def create_plugin():
 
     protselect_plugin.addBlock(analyseBioEmuBlock)
 
+    # ---------- Model Ranking ----------
+    from Blocks.pareto_selection import paretoSelectionBlock
+
+    protselect_plugin.addBlock(paretoSelectionBlock)
+
+    # ---------- Sequence Alignment ----------
+    from Blocks.mafft import multipleSequenceAlignmentBlock
+
+    protselect_plugin.addBlock(multipleSequenceAlignmentBlock)
+
+    from Blocks.phylogenetic_tree import phylogeneticTreeBlock
+
+    protselect_plugin.addBlock(phylogeneticTreeBlock)
+
+    # ---------- Design & Prediction ----------
+    from Blocks.codon_transformer import codonTransformerBlock
+
+    protselect_plugin.addBlock(codonTransformerBlock)
+
     # ========== Configs ========== #
     from Configs.mmseqsConfig import mmseqsExecutableConfig
 
@@ -109,6 +128,10 @@ def create_plugin():
     from Configs.bioemuConfig import bioemuExecutableConfig
 
     protselect_plugin.addConfig(bioemuExecutableConfig)
+
+    from Configs.codontransformerConfig import codonTransformerExecutableConfig
+
+    protselect_plugin.addConfig(codonTransformerExecutableConfig)
 
     # ========== Pages ========== #
     from Pages.load_tables import load_page
