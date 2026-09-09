@@ -1,0 +1,82 @@
+{
+  "LYSC_CHICK": {
+    "accession": "P00698",
+    "organism": "Gallus gallus",
+    "description": "Lysozyme C",
+    "version": 6,
+    "url": "https://alphafold.ebi.ac.uk/files/AF-P00698-F1-model_v6.pdb",
+    "plddt": 93.88
+  },
+  "LYSC_COLVI": {
+    "accession": "P00700",
+    "organism": "Colinus virginianus",
+    "description": "Lysozyme C",
+    "version": 6,
+    "url": "https://alphafold.ebi.ac.uk/files/AF-P00700-F1-model_v6.pdb",
+    "plddt": 98.06
+  },
+  "LYSC_COTJA": {
+    "accession": "P00701",
+    "organism": "Coturnix japonica",
+    "description": "Lysozyme C",
+    "version": 6,
+    "url": "https://alphafold.ebi.ac.uk/files/AF-P00701-F1-model_v6.pdb",
+    "plddt": 93.94
+  },
+  "LYSC_MELGA": {
+    "accession": "P00703",
+    "organism": "Meleagris gallopavo",
+    "description": "Lysozyme C",
+    "version": 6,
+    "url": "https://alphafold.ebi.ac.uk/files/AF-P00703-F1-model_v6.pdb",
+    "plddt": 93.75
+  },
+  "LYSC_HUMAN": {
+    "accession": "P61626",
+    "organism": "Homo sapiens",
+    "description": "Lysozyme C",
+    "version": 6,
+    "url": "https://alphafold.ebi.ac.uk/files/AF-P61626-F1-model_v6.pdb",
+    "plddt": 94.06
+  },
+  "LYSC1_HORSE": {
+    "accession": "P11376",
+    "organism": "Equus caballus",
+    "description": "Lysozyme C, milk isozyme",
+    "version": 6,
+    "url": "https://alphafold.ebi.ac.uk/files/AF-P11376-F1-model_v6.pdb",
+    "plddt": 97.81
+  },
+  "LALBA_BOVIN": {
+    "accession": "P00711",
+    "organism": "Bos taurus",
+    "description": "Alpha-lactalbumin",
+    "version": 6,
+    "url": "https://alphafold.ebi.ac.uk/files/AF-P00711-F1-model_v6.pdb",
+    "plddt": 91.44
+  },
+  "LALBA_HUMAN": {
+    "accession": "P00709",
+    "organism": "Homo sapiens",
+    "description": "Alpha-lactalbumin",
+    "version": 6,
+    "url": "https://alphafold.ebi.ac.uk/files/AF-P00709-F1-model_v6.pdb",
+    "plddt": 91.69
+  },
+  "LALBA_CAPHI": {
+    "accession": "P00712",
+    "organism": "Capra hircus",
+    "description": "Alpha-lactalbumin",
+    "version": 6,
+    "url": "https://alphafold.ebi.ac.uk/files/AF-P00712-F1-model_v6.pdb",
+    "plddt": 91.56
+  },
+  "LALBA_SHEEP": {
+    "accession": "P09462",
+    "organism": "Ovis aries",
+    "description": "Alpha-lactalbumin",
+    "version": 6,
+    "url": "https://alphafold.ebi.ac.uk/files/AF-P09462-F1-model_v6.pdb",
+    "plddt": 91.38
+  }
+}
