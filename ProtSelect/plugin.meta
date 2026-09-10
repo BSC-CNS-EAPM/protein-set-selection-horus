@@ -5,10 +5,12 @@
   "author": "BSC-CNS-EAPM",
   "version": "0.0.1",
   "pluginFile": "ProtSelect.py",
-  "platforms": ["universal"],
+  "platforms": [
+    "universal"
+  ],
   "externalURL": "https://bsc-cns-eapm.github.io/protein-set-selection-horus/",
   "dependencies": [
-    "numpy",
+    "numpy<2.5",
     "pandas",
     "scipy",
     "pyyaml",
@@ -19,6 +21,6 @@
     "mdtraj",
     "git+https://github.com/martin-floor/bsc_calculations.git",
     "git+https://github.com/martin-floor/prepare_proteins.git",
-    "git+https://github.com/BSC-CNS-EAPM/bioprospecting-horus.git"
+    "git+https://github.com/bsc-cns-eapm/bioprospecting-horus.git"
   ]
 }
