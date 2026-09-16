@@ -22,7 +22,12 @@ unavailable on hosts that use micromamba.
 """
 
 from HorusAPI import PluginBlock, PluginVariable, VariableTypes
-from sequence_io import read_sequences, require_local, show_table_html
+from sequence_io import (
+    foreign_python_env,
+    read_sequences,
+    require_local,
+    show_table_html,
+)
 
 # ==========================#
 # Variable inputs
@@ -174,6 +179,7 @@ def _assert_codon_transformer(env_bin, env_value: str):
         capture_output=True,
         text=True,
         check=False,
+        env=foreign_python_env(),
     )
     if probe.returncode != 0:
         where = f"environment '{env_value}'" if env_value else "the Horus backend"

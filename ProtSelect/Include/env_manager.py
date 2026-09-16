@@ -68,6 +68,20 @@ def resolve_env_python(env_value: str):
     return None
 
 
+def _foreign_python_env():
+    """
+    Environment for invoking an interpreter other than the one running Horus.
+
+    Horus puts the plugin's deps site-packages on PYTHONPATH and a subprocess
+    inherits it, which breaks an interpreter from another environment -- usually
+    on another Python version -- before it can import anything.
+    """
+    env = dict(os.environ)
+    for name in ("PYTHONPATH", "PYTHONHOME", "PYTHONSTARTUP", "PYTHONUSERBASE"):
+        env.pop(name, None)
+    return env
+
+
 def _conda_command():
     """Return a usable conda-like executable, preferring micromamba."""
     for name in ("micromamba", "mamba", "conda"):
@@ -134,6 +148,7 @@ def _check_conda_env(tool, values):
         [interpreter, "-c", f"import {tool['module']}; "
                             f"print(getattr({tool['module']}, '__version__', ''))"],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False,
+        env=_foreign_python_env(),
     )
     if probe.returncode != 0:
         return False, interpreter, f"cannot import {tool['module']}"

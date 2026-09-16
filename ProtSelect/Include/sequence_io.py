@@ -219,6 +219,33 @@ def load_scores(scores_path: str) -> dict:
 
 
 # ==========================#
+# Subprocess environment
+# ==========================#
+def foreign_python_env(extra=None) -> dict:
+    """
+    Environment for invoking a Python interpreter other than this one.
+
+    Horus puts the plugin's own ``deps/lib/pythonX.Y/site-packages`` on
+    ``PYTHONPATH`` before importing the plugin, and a subprocess inherits it.
+    That is right for a child running *this* interpreter and wrong for any
+    other: PyRosetta, CodonTransformer, BioEmu and the torch used by ProteinMPNN
+    all live in their own environments, usually on a different Python version,
+    and a 3.12 site-packages on the path of a 3.10 interpreter breaks the very
+    imports we are checking for -- numpy fails first, with a message about
+    ``numpy._core._multiarray_umath`` that says nothing about the real cause.
+
+    So strip the variables that redirect module lookup, and leave the rest of
+    the environment alone.
+    """
+    env = dict(os.environ)
+    for name in ("PYTHONPATH", "PYTHONHOME", "PYTHONSTARTUP", "PYTHONUSERBASE"):
+        env.pop(name, None)
+    if extra:
+        env.update(extra)
+    return env
+
+
+# ==========================#
 # Execution guards
 # ==========================#
 def require_local(block, what: str = "This block") -> None:
@@ -286,6 +313,7 @@ def resolve_interpreter(block, config_key: str, module: str, default: str = "") 
     probe = subprocess.run(
         [interpreter, "-c", f"import {module}"],
         stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, check=False,
+        env=foreign_python_env(),
     )
     if probe.returncode != 0:
         raise ValueError(

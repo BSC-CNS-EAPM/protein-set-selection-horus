@@ -45,6 +45,23 @@ def _resolve_env_python(env: str):
     return None
 
 
+def _foreign_python_env():
+    """
+    Environment for invoking an interpreter other than the one running Horus.
+
+    Horus puts the plugin's own deps site-packages on PYTHONPATH, and a
+    subprocess inherits it. Pointed at an environment on a different Python
+    version that breaks the very imports being checked, with a numpy error that
+    gives no hint of the cause. See sequence_io.foreign_python_env.
+    """
+    import os
+
+    env = dict(os.environ)
+    for name in ("PYTHONPATH", "PYTHONHOME", "PYTHONSTARTUP", "PYTHONUSERBASE"):
+        env.pop(name, None)
+    return env
+
+
 def checkCodonTransformerInstallation(block: PluginConfig):
     """Check that the configured environment can import CodonTransformer."""
     import subprocess
@@ -68,6 +85,7 @@ def checkCodonTransformerInstallation(block: PluginConfig):
     probe = subprocess.run(
         [interpreter, "-c", "import CodonTransformer, torch; print(torch.__version__)"],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False,
+        env=_foreign_python_env(),
     )
     if probe.returncode != 0:
         raise Exception(

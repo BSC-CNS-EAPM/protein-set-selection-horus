@@ -18,6 +18,23 @@ proteinmpnnPythonVariable = PluginVariable(
 )
 
 
+def _foreign_python_env():
+    """
+    Environment for invoking an interpreter other than the one running Horus.
+
+    Horus puts the plugin's own deps site-packages on PYTHONPATH, and a
+    subprocess inherits it. Pointed at an environment on a different Python
+    version that breaks the very imports being checked, with a numpy error that
+    gives no hint of the cause. See sequence_io.foreign_python_env.
+    """
+    import os
+
+    env = dict(os.environ)
+    for name in ("PYTHONPATH", "PYTHONHOME", "PYTHONSTARTUP", "PYTHONUSERBASE"):
+        env.pop(name, None)
+    return env
+
+
 def checkProteinMPNNInstallation(block: PluginConfig):
     """Check that the configured interpreter can import torch."""
     import os
@@ -45,6 +62,7 @@ def checkProteinMPNNInstallation(block: PluginConfig):
     probe = subprocess.run(
         [interpreter, "-c", "import torch; print(torch.__version__)"],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False,
+        env=_foreign_python_env(),
     )
     if probe.returncode != 0:
         raise Exception(
@@ -59,6 +77,7 @@ def checkProteinMPNNInstallation(block: PluginConfig):
     cuda_probe = subprocess.run(
         [interpreter, "-c", "import torch; print(torch.cuda.is_available())"],
         stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, check=False,
+        env=_foreign_python_env(),
     )
     if cuda_probe.stdout.decode("utf-8", "replace").strip() != "True":
         print(

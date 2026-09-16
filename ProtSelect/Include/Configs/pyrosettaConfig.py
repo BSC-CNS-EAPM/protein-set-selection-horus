@@ -10,6 +10,23 @@ pyrosettaPythonVariable = PluginVariable(
 )
 
 
+def _foreign_python_env():
+    """
+    Environment for invoking an interpreter other than the one running Horus.
+
+    Horus puts the plugin's own deps site-packages on PYTHONPATH, and a
+    subprocess inherits it. Pointed at an environment on a different Python
+    version that breaks the very imports being checked, with a numpy error that
+    gives no hint of the cause. See sequence_io.foreign_python_env.
+    """
+    import os
+
+    env = dict(os.environ)
+    for name in ("PYTHONPATH", "PYTHONHOME", "PYTHONSTARTUP", "PYTHONUSERBASE"):
+        env.pop(name, None)
+    return env
+
+
 def checkPyrosettaInstallation(block: PluginConfig):
     import os
     import shutil
@@ -33,6 +50,7 @@ def checkPyrosettaInstallation(block: PluginConfig):
         [resolved, "-c", "import pyrosetta"],
         capture_output=True,
         check=False,
+        env=_foreign_python_env(),
     )
 
     if result.returncode != 0:
