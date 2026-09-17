@@ -1,22 +1,28 @@
 """
 Run MMseqs2 sequence clustering on an HPC cluster via SLURM.
 
-A runner script (SBATCH headers + the ``mmseqs easy-cluster`` command) is
-generated in the flow working directory. For a remote, the input FASTA and
-runner are transferred to a per-run sandbox on the cluster and the job is
-submitted there; the final action downloads the sandbox back and builds the
-``{representative: [members]}`` clustering map. For the local remote the runner
-is submitted directly with no transfer.
+The SLURM counterpart of the local ``MMseqs2 Clustering`` block, running the
+same ``mmseqs easy-cluster`` call. It earns its place on large families, where
+clustering is slow enough to be worth a job; for a few hundred sequences the
+local block is faster than the queue wait.
 
-This is the SLURM counterpart of the local ``MMseqs2 Clustering`` block; it runs
-the exact same ``mmseqs easy-cluster`` call.
+Like every other compute block here it goes through the shared launcher in
+``utils``, so it gets the same Slurm variables, the account and time handling
+that ``bsc_calculations`` applies, and the same upload/submit/download cycle.
+The block it replaces hand-rolled its own SBATCH header, which meant it emitted
+no ``--account`` unless one was typed in, did no time clamping, and offered a
+different set of fields in the UI from the blocks either side of it.
+
+MMseqs2 is not a program ``bsc_calculations`` knows, so the environment is
+supplied through the usual "cluster modules" variable -- on MareNostrum that is
+``mmseqs2/15-6f452`` -- or through a free-text preamble for anything a module
+does not cover.
 """
 
 import os
-import posixpath
-import shlex
 
 from HorusAPI import PluginVariable, SlurmBlock, VariableTypes
+from utils import BSC_JOB_VARIABLES, downloadResultsAction, launchCalculationAction
 
 # ==========================#
 # Input
@@ -31,23 +37,31 @@ sequencesFile = PluginVariable(
 )
 
 # ==========================#
-# MMseqs2 parameters
+# Variables (parameters)
 # ==========================#
-minSeqIdVar = PluginVariable(
+folderNameVariable = PluginVariable(
+    id="folder_name",
+    name="Output folder name",
+    description="Name of the job folder holding the MMseqs2 input and results.",
+    type=VariableTypes.STRING,
+    defaultValue="mmseqs_clustering",
+)
+minSeqIdVariable = PluginVariable(
     id="min_seq_id",
     name="Minimum sequence identity",
-    description="List matches above this sequence identity (--min-seq-id, 0.0-1.0).",
+    description="List matches above this sequence identity for clustering "
+    "(--min-seq-id, range 0.0-1.0).",
     type=VariableTypes.FLOAT,
     defaultValue=0.5,
 )
-coverageVar = PluginVariable(
+coverageVariable = PluginVariable(
     id="coverage",
     name="Coverage",
-    description="Minimum alignment coverage (-c, 0.0-1.0).",
+    description="Minimum alignment coverage (-c, range 0.0-1.0).",
     type=VariableTypes.FLOAT,
     defaultValue=0.8,
 )
-covModeVar = PluginVariable(
+covModeVariable = PluginVariable(
     id="cov_mode",
     name="Coverage mode",
     description="MMseqs2 coverage mode (--cov-mode). 0: bidirectional, "
@@ -55,93 +69,40 @@ covModeVar = PluginVariable(
     type=VariableTypes.INTEGER,
     defaultValue=1,
 )
-
-# ==========================#
-# SLURM parameters
-# ==========================#
-preambleTextVar = PluginVariable(
+clusterModulesVariable = PluginVariable(
+    id="cluster_modules",
+    name="Cluster modules",
+    description="Comma-separated modules loaded before the job. MMseqs2 is not on "
+    "PATH by default on MareNostrum; 'bsc/1.0, mmseqs2/15-6f452' provides it.",
+    type=VariableTypes.STRING,
+    defaultValue="bsc/1.0, mmseqs2/15-6f452",
+)
+preambleVariable = PluginVariable(
     id="preamble",
     name="Preamble",
-    description=(
-        "Shell lines prepended to the runner before MMseqs2 runs, to put 'mmseqs' "
-        "on the PATH (e.g. 'module load mmseqs2'). One command per line. "
-        "Combined with the Preamble file below if both are set."
-    ),
+    description="Extra shell lines run before MMseqs2, for anything the modules do "
+    "not cover (sourcing a conda profile, exporting a licence path).",
     type=VariableTypes.TEXT_AREA,
-    defaultValue=None,
+    defaultValue="",
 )
-preambleFileVar = PluginVariable(
-    id="preamble_file",
-    name="Preamble file",
-    description=(
-        "Shell snippet prepended to the runner (module loads, conda activate, ...). "
-        "Typically puts 'mmseqs' on the PATH (e.g. 'module load mmseqs2'). "
-        "Leave empty for none."
-    ),
-    type=VariableTypes.FILE,
-    defaultValue=None,
-    allowedValues=["sh", "txt"],
-)
-ntasksVar = PluginVariable(
-    id="ntasks",
-    name="ntasks",
-    description="#SBATCH --ntasks value.",
-    type=VariableTypes.INTEGER,
-    defaultValue=1,
-)
-cpusPerTaskVar = PluginVariable(
-    id="cpus_per_task",
-    name="cpus-per-task",
-    description="#SBATCH --cpus-per-task value. Also passed to MMseqs2 as --threads.",
-    type=VariableTypes.INTEGER,
-    defaultValue=4,
-)
-timeVar = PluginVariable(
-    id="time",
-    name="Time limit",
-    description="#SBATCH --time value (e.g. 00-01:00:00).",
-    type=VariableTypes.STRING,
-    defaultValue="00-01:00:00",
-)
-qosVar = PluginVariable(
-    id="qos",
-    name="QOS",
-    description="#SBATCH --qos value. Leave empty for none.",
-    type=VariableTypes.STRING,
-    defaultValue=None,
-)
-partitionVar = PluginVariable(
-    id="partition",
-    name="Partition",
-    description="#SBATCH --partition value. Leave empty for none.",
-    type=VariableTypes.STRING,
-    defaultValue=None,
-)
-accountVar = PluginVariable(
-    id="account",
-    name="Account",
-    description="#SBATCH --account value. Leave empty for none.",
-    type=VariableTypes.STRING,
-    defaultValue=None,
-)
-jobNameVar = PluginVariable(
-    id="job_name",
-    name="Job name",
-    description="SLURM job name. Leave empty to derive from the input file name.",
-    type=VariableTypes.STRING,
-    defaultValue=None,
-)
-mmseqsCommandVar = PluginVariable(
+mmseqsCommandVariable = PluginVariable(
     id="mmseqs_command",
     name="MMseqs2 command",
-    description="Command used to invoke MMseqs2 on the cluster (after the preamble "
-    "has loaded it). Usually just 'mmseqs'.",
+    description="The MMseqs2 executable to call on the cluster. Leave as 'mmseqs' "
+    "when a module puts it on PATH, or give an absolute path.",
     type=VariableTypes.STRING,
     defaultValue="mmseqs",
 )
+removeExistingResultsVariable = PluginVariable(
+    id="remove_existing_results",
+    name="Remove existing results",
+    description="Delete the job folder if it already exists.",
+    type=VariableTypes.BOOLEAN,
+    defaultValue=False,
+)
 
 # ==========================#
-# Output
+# Outputs
 # ==========================#
 clustersFile = PluginVariable(
     id="clusters_file",
@@ -165,186 +126,114 @@ resultsFolder = PluginVariable(
     type=VariableTypes.FOLDER,
 )
 
-# MMseqs2 easy-cluster output prefix used inside the sandbox
+# MMseqs2 easy-cluster output prefix used inside the job folder
 CLUSTER_PREFIX = "clusterRes"
 
 
-def _ensure_local_fasta(sequences_path: str, base: str) -> str:
-    """Return a path to a FASTA file, converting a JSON ``{name: seq}`` file if needed."""
-    import json
+def initial_mmseqs_slurm(block: SlurmBlock):
+    """
+    Write the MMseqs2 input and command, and submit the job.
 
-    if not sequences_path.lower().endswith(".json"):
-        return os.path.abspath(sequences_path)
+    Args:
+        block (SlurmBlock): The block to run the action on.
+    """
+    # pylint: disable=import-outside-toplevel
+    import shlex
+    import shutil
 
-    with open(sequences_path) as jf:
-        data = json.load(jf)
-    if not isinstance(data, dict):
-        raise ValueError("The JSON sequences file must map sequence names to sequences.")
+    from sequence_io import read_sequences, write_fasta
 
-    fasta_path = os.path.join(base, "mmseqs_input.fasta")
-    with open(fasta_path, "w") as of:
-        for name, seq in data.items():
-            of.write(f">{name}\n{seq}\n")
-    return fasta_path
+    # pylint: enable=import-outside-toplevel
 
+    sequences_path = block.inputs.get(sequencesFile.id, None)
+    if not sequences_path or sequences_path == "None":
+        raise Exception("No sequences file provided.")
+    if not os.path.isfile(sequences_path):
+        raise Exception(f"The sequences file '{sequences_path}' does not exist.")
 
-def _sbatch_header(block, job_name: str) -> str:
-    lines = ["#!/bin/bash", f"#SBATCH --job-name={job_name}"]
+    folder_name = block.variables.get(folderNameVariable.id, "mmseqs_clustering")
+    remove_existing = block.variables.get(removeExistingResultsVariable.id, False)
 
-    ntasks = block.variables.get("ntasks")
-    if ntasks not in (None, ""):
-        lines.append(f"#SBATCH --ntasks={int(ntasks)}")
+    if remove_existing and os.path.exists(folder_name):
+        shutil.rmtree(folder_name, ignore_errors=True)
+    if not remove_existing and os.path.exists(folder_name):
+        raise Exception(
+            f"The folder {folder_name} already exists. "
+            "Please, choose another name or remove it with the remove existing folder option."
+        )
 
-    cpus = block.variables.get("cpus_per_task")
-    if cpus not in (None, ""):
-        lines.append(f"#SBATCH --cpus-per-task={int(cpus)}")
+    os.makedirs(folder_name, exist_ok=True)
+    block.extraData["folder_name"] = folder_name
 
-    time_limit = block.variables.get("time")
-    if time_limit:
-        lines.append(f"#SBATCH --time={time_limit}")
+    # MMseqs2 only reads FASTA, and the pipeline passes JSON around, so normalise
+    # here rather than making the caller convert.
+    sequences = read_sequences(sequences_path)
+    input_fasta = write_fasta(sequences, os.path.join(folder_name, "input.fasta"))
+    print(f"Clustering {len(sequences)} sequences with MMseqs2 on the cluster...")
 
-    qos = block.variables.get("qos")
-    if qos:
-        lines.append(f"#SBATCH --qos={qos}")
+    mmseqs_cmd = block.variables.get(mmseqsCommandVariable.id) or "mmseqs"
+    cpus_per_task = block.variables.get("cpus_per_task") or 1
 
-    partition = block.variables.get("partition")
-    if partition:
-        lines.append(f"#SBATCH --partition={partition}")
-
-    account = block.variables.get("account")
-    if account:
-        lines.append(f"#SBATCH --account={account}")
-
-    lines.append("#SBATCH --output=mmseqs_%j.out")
-    lines.append("#SBATCH --error=mmseqs_%j.err")
-    return "\n".join(lines)
-
-
-def _preamble_text(block) -> str:
-    """Combine the inline preamble and the preamble file (in that order)."""
-    parts = []
-
-    inline = block.variables.get("preamble")
-    if inline and str(inline).strip():
-        parts.append(str(inline).rstrip())
-
-    preamble_file = block.variables.get("preamble_file")
-    if preamble_file:
-        with open(os.path.expanduser(str(preamble_file)), "r", encoding="utf-8") as fh:
-            parts.append(fh.read().rstrip())
-
-    if not parts:
-        return ""
-    return "\n".join(parts) + "\n"
-
-
-def _build_command(block, input_basename: str) -> str:
-    """Build the ``mmseqs easy-cluster`` command run inside the sandbox."""
-    mmseqs_cmd = block.variables.get("mmseqs_command") or "mmseqs"
-
-    parts = [
+    command = " ".join([
         shlex.quote(mmseqs_cmd),
         "easy-cluster",
-        shlex.quote(input_basename),
+        shlex.quote(os.path.basename(input_fasta)),
         CLUSTER_PREFIX,
         "tmp",
-        "--min-seq-id",
-        str(block.variables.get("min_seq_id", 0.5)),
-        "-c",
-        str(block.variables.get("coverage", 0.8)),
-        "--cov-mode",
-        str(block.variables.get("cov_mode", 1)),
+        "--min-seq-id", str(block.variables.get(minSeqIdVariable.id, 0.5)),
+        "-c", str(block.variables.get(coverageVariable.id, 0.8)),
+        "--cov-mode", str(block.variables.get(covModeVariable.id, 1)),
+        "--threads", str(int(cpus_per_task)),
+    ])
+
+    # easy-cluster writes its output into the working directory, so the job has
+    # to run inside the folder that travels to the cluster.
+    quoted_folder = shlex.quote(folder_name)
+    job = f"cd {quoted_folder}\n{command}\ncd -"
+
+    preamble = (block.variables.get(preambleVariable.id) or "").strip()
+    if preamble:
+        job = preamble + "\n" + job
+
+    modules = [
+        module.strip()
+        for module in (block.variables.get(clusterModulesVariable.id) or "").split(",")
+        if module.strip()
     ]
 
-    cpus = block.variables.get("cpus_per_task")
-    if cpus not in (None, ""):
-        parts += ["--threads", str(int(cpus))]
-
-    return " ".join(parts)
-
-
-def submitMMseqsSlurm(block: SlurmBlock):
-    sequences_path = block.inputs.get("sequences_file")
-    if not sequences_path or not os.path.isfile(sequences_path):
-        raise Exception("A valid sequences file (FASTA or JSON) must be provided.")
-
-    base = os.getcwd()
-    local_fasta = _ensure_local_fasta(sequences_path, base)
-    input_basename = os.path.basename(local_fasta)
-
-    stem = os.path.splitext(input_basename)[0]
-    job_name = block.variables.get("job_name") or f"mmseqs_{stem}"
-
-    header = _sbatch_header(block, job_name)
-    preamble = _preamble_text(block)
-    command = _build_command(block, input_basename)
-
-    # ---------------------------------------------------------------- #
-    # Local remote: run in place, no transfer.
-    # ---------------------------------------------------------------- #
-    if block.remote.isLocal:
-        input_in_base = os.path.join(base, input_basename)
-        if os.path.abspath(local_fasta) != input_in_base:
-            block.remote.command(
-                f"cp {shlex.quote(os.path.abspath(local_fasta))} {shlex.quote(input_in_base)}"
-            )
-
-        runner_text = f"{header}\n\n{preamble}cd {shlex.quote(base)}\n{command}\n"
-        runner = os.path.join(base, f"{job_name}_runner.sh")
-        with open(runner, "w", encoding="utf-8") as fh:
-            fh.write(runner_text)
-
-        block.extraData["results_folder"] = base
-        block.extraData["local_results_folder"] = base
-
-        print(f"Submitting MMseqs2 SLURM job: {runner}")
-        job_id = block.remote.submitJob(runner)
-        print(f"Submitted MMseqs2 SLURM job: {job_id}")
-        return
-
-    # ---------------------------------------------------------------- #
-    # Remote: transfer the FASTA + runner to a sandbox and submit.
-    # ---------------------------------------------------------------- #
-    remote_sandbox = posixpath.join(block.remote.workDir, job_name)
-    block.remote.command(f"mkdir -p {shlex.quote(remote_sandbox)}")
-
-    print(f"Transferring sequences to '{remote_sandbox}'...")
-    block.remote.sendData(local_fasta, remote_sandbox)
-
-    runner_text = f"{header}\n\n{preamble}cd {shlex.quote(remote_sandbox)}\n{command}\n"
-    runner = os.path.join(base, f"{job_name}_runner.sh")
-    with open(runner, "w", encoding="utf-8") as fh:
-        fh.write(runner_text)
-
-    remote_runner = block.remote.sendData(runner, remote_sandbox)
-    print(f"Transferred runner to: {remote_runner}")
-
-    local_sandbox = os.path.join(base, job_name)
-    block.extraData["results_folder"] = remote_sandbox
-    block.extraData["local_results_folder"] = local_sandbox
-
-    print(f"Submitting MMseqs2 SLURM job: {remote_runner}")
-    job_id = block.remote.submitJob(remote_runner)
-    print(f"Submitted MMseqs2 SLURM job: {job_id}")
+    # program=None: bsc_calculations has no MMseqs2 preset, so the environment
+    # comes from the modules above.
+    launchCalculationAction(
+        block,
+        [job],
+        program=None,
+        uploadFolders=[folder_name],
+        modules=modules or None,
+    )
 
 
-def collectMMseqsSlurm(block: SlurmBlock):
+def final_mmseqs_slurm(block: SlurmBlock):
+    """
+    Download the results and build the clustering map.
+
+    Args:
+        block (SlurmBlock): The block to run the action on.
+    """
+    # pylint: disable=import-outside-toplevel
     import json
     import shutil
 
-    remote_results = block.extraData.get("results_folder")
-    local_results = block.extraData.get("local_results_folder", remote_results)
+    # pylint: enable=import-outside-toplevel
 
-    if not block.remote.isLocal:
-        print(f"Downloading results from '{remote_results}'...")
-        local_results = block.remote.getData(remote_results, local_results)
+    downloaded = downloadResultsAction(block)
+    folder_name = block.extraData.get("folder_name", "mmseqs_clustering")
+    results = os.path.join(downloaded, folder_name)
 
-    base = os.getcwd()
-    cluster_tsv = os.path.join(local_results, CLUSTER_PREFIX + "_cluster.tsv")
+    cluster_tsv = os.path.join(results, CLUSTER_PREFIX + "_cluster.tsv")
     if not os.path.isfile(cluster_tsv):
         raise Exception(
             f"MMseqs2 clustering result not found ({cluster_tsv}). "
-            "Check the mmseqs_*.err file in the results folder."
+            "Check the job's .err file in the results folder."
         )
 
     clusters: dict = {}
@@ -355,47 +244,42 @@ def collectMMseqsSlurm(block: SlurmBlock):
             representative, member = line.split()
             clusters.setdefault(representative, []).append(member)
 
-    clusters_output = os.path.join(base, "mmseqs_clusters.json")
+    clusters_output = "mmseqs_clusters.json"
     with open(clusters_output, "w") as jf:
         json.dump(clusters, jf, indent=2)
 
-    representatives_output = os.path.join(base, "mmseqs_representatives.fasta")
-    rep_seq_fasta = os.path.join(local_results, CLUSTER_PREFIX + "_rep_seq.fasta")
+    representatives_output = "mmseqs_representatives.fasta"
+    rep_seq_fasta = os.path.join(results, CLUSTER_PREFIX + "_rep_seq.fasta")
     if os.path.isfile(rep_seq_fasta):
         shutil.copyfile(rep_seq_fasta, representatives_output)
 
-    print(f"MMseqs2 SLURM run finished. Found {len(clusters)} clusters. "
-          f"Results in: {local_results}")
+    print(f"MMseqs2 finished: {len(clusters)} clusters. Results in {results}")
 
     block.setOutput(clustersFile.id, clusters_output)
     if os.path.isfile(representatives_output):
         block.setOutput(representativesFile.id, representatives_output)
-    block.setOutput(resultsFolder.id, local_results)
+    block.setOutput(resultsFolder.id, results)
 
 
 mmseqsClusterSlurmBlock = SlurmBlock(
+    category="Clustering & Selection",
     name="MMseqs2 Clustering (SLURM)",
     id="mmseqs2_cluster_slurm",
     description="Cluster protein sequences by identity with MMseqs2 (easy-cluster), "
-    "submitted as a SLURM job.",
-    initialAction=submitMMseqsSlurm,
-    finalAction=collectMMseqsSlurm,
+    "submitted as a SLURM job. Use the local block for small sets.",
+    initialAction=initial_mmseqs_slurm,
+    finalAction=final_mmseqs_slurm,
     inputs=[sequencesFile],
-    variables=[
-        minSeqIdVar,
-        coverageVar,
-        covModeVar,
-        preambleTextVar,
-        preambleFileVar,
-        ntasksVar,
-        cpusPerTaskVar,
-        timeVar,
-        qosVar,
-        partitionVar,
-        accountVar,
-        jobNameVar,
-        mmseqsCommandVar,
+    variables=BSC_JOB_VARIABLES
+    + [
+        folderNameVariable,
+        minSeqIdVariable,
+        coverageVariable,
+        covModeVariable,
+        clusterModulesVariable,
+        preambleVariable,
+        mmseqsCommandVariable,
+        removeExistingResultsVariable,
     ],
     outputs=[clustersFile, representativesFile, resultsFolder],
-    category="Clustering & Selection",
 )
