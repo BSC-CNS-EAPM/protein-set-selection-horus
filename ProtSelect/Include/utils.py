@@ -38,6 +38,8 @@ def setup_bsc_calculations_based_on_horus_remote(
     modules=None,
     exports=None,
     localGPU=None,
+    time=None,
+    group_jobs_by=None,
 ):
     """
     Write the job scripts for the selected Horus remote.
@@ -74,6 +76,12 @@ def setup_bsc_calculations_based_on_horus_remote(
             mn5_arguments["modules"] = modules
         if exports:
             mn5_arguments["exports"] = exports
+        # Both are no-ops when unset: bsc_calculations keeps its 48h default and
+        # one array task per job.
+        if time:
+            mn5_arguments["time"] = time
+        if group_jobs_by:
+            mn5_arguments["group_jobs_by"] = group_jobs_by
         bsc_calculations.mn5.jobArrays(
             jobs,
             job_name=job_name,
@@ -242,6 +250,8 @@ def launchCalculationAction(
     # Only the blocks that expose the GPUs variable request them; the rest keep
     # the cluster defaults.
     gpus = block.variables.get("gpus")
+    walltime = block.variables.get("time") or None
+    groupJobsBy = block.variables.get("group_jobs_by") or None
     simulationName = block.variables.get("folder_name")
     scriptName = block.variables.get("script_name", "calculation_script.sh")
 
@@ -285,6 +295,8 @@ def launchCalculationAction(
         modules,
         jobExports,
         localGPU,
+        walltime,
+        groupJobsBy,
     )
 
     # Rewrite the main script to add the environment variables and to wait for
@@ -503,6 +515,30 @@ gpusVariable = PluginVariable(
     category="Slurm configuration",
 )
 
+timeVariable = PluginVariable(
+    name="Walltime (hours)",
+    id="time",
+    description="Wall clock limit in hours. bsc_calculations clamps this to the "
+    "QOS cap (2h on the *_debug queues), and a request far above what a job needs "
+    "only makes it queue longer. 0 leaves the bsc_calculations default of 48h.",
+    type=VariableTypes.INTEGER,
+    defaultValue=0,
+    category="Slurm configuration",
+)
+
+groupJobsByVariable = PluginVariable(
+    name="Group jobs per array task",
+    id="group_jobs_by",
+    description="Bundle this many jobs into each array task, run one after another. "
+    "One array task per job is right for long jobs, but for jobs of a few minutes "
+    "the queue wait dominates: ten one-minute jobs each wait separately. Setting "
+    "this to the number of jobs runs them all in a single task. 0 keeps one task "
+    "per job.",
+    type=VariableTypes.INTEGER,
+    defaultValue=0,
+    category="Slurm configuration",
+)
+
 removeFolderOnFinishVariable = PluginVariable(
     name="Remove remote folder on finish",
     id="remove_folder_on_finish",
@@ -541,7 +577,9 @@ BSC_JOB_VARIABLES = [
     scriptNameVariable,
     partitionVariable,
     cpusVariable,
+    cpusPerTaskVariable,
+    timeVariable,
+    groupJobsByVariable,
     environmentList,
     removeFolderOnFinishVariable,
-    cpusPerTaskVariable,
 ]
