@@ -85,11 +85,23 @@ preambleVariable = PluginVariable(
     type=VariableTypes.TEXT_AREA,
     defaultValue="",
 )
+mpiRunnerVariable = PluginVariable(
+    id="mpi_runner",
+    name="MPI runner",
+    description="Exported as RUNNER on the cluster, which MMseqs2 prefixes to its "
+    "MPI-parallel steps. The MareNostrum module is an MPI build: without this, "
+    "kmermatcher calls MPI_Init outside a launcher and aborts with 'PMI2_Job_GetId "
+    "returned 14'. Clear it for a non-MPI build, where srun would instead start one "
+    "full copy of each step per task. Not used when running locally.",
+    type=VariableTypes.STRING,
+    defaultValue="srun",
+)
 mmseqsCommandVariable = PluginVariable(
     id="mmseqs_command",
     name="MMseqs2 command",
-    description="The MMseqs2 executable to call on the cluster. Leave as 'mmseqs' "
-    "when a module puts it on PATH, or give an absolute path.",
+    description="The MMseqs2 executable to call. Leave as 'mmseqs' when a module "
+    "puts it on PATH; when the block runs locally that default is replaced by the "
+    "plugin's configured MMseqs2 path. Give an absolute path to override both.",
     type=VariableTypes.STRING,
     defaultValue="mmseqs",
 )
@@ -171,7 +183,14 @@ def initial_mmseqs_slurm(block: SlurmBlock):
     input_fasta = write_fasta(sequences, os.path.join(folder_name, "input.fasta"))
     print(f"Clustering {len(sequences)} sequences with MMseqs2 on the cluster...")
 
-    mmseqs_cmd = block.variables.get(mmseqsCommandVariable.id) or "mmseqs"
+    mmseqs_cmd = (block.variables.get(mmseqsCommandVariable.id) or "mmseqs").strip()
+    if block.remote.isLocal and mmseqs_cmd == "mmseqs":
+        # The default is right on a cluster, where a module puts mmseqs on PATH,
+        # and wrong locally, where it usually lives in an environment of its
+        # own. The plugin configuration already knows where; use it.
+        from sequence_io import resolve_executable  # pylint: disable=import-outside-toplevel
+
+        mmseqs_cmd = resolve_executable(block, "mmseqs_path", "mmseqs")
     cpus_per_task = block.variables.get("cpus_per_task") or 1
 
     command = " ".join([
@@ -190,6 +209,13 @@ def initial_mmseqs_slurm(block: SlurmBlock):
     # to run inside the folder that travels to the cluster.
     quoted_folder = shlex.quote(folder_name)
     job = f"cd {quoted_folder}\n{command}\ncd -"
+
+    # MPI builds need their steps launched through srun to initialise; see the
+    # mpi_runner variable. Only on the cluster: locally there is no srun, and
+    # the configured binary is not an MPI build.
+    runner = (block.variables.get(mpiRunnerVariable.id) or "").strip()
+    if runner and not block.remote.isLocal:
+        job = f"export RUNNER={shlex.quote(runner)}\n" + job
 
     preamble = (block.variables.get(preambleVariable.id) or "").strip()
     if preamble:
@@ -278,6 +304,7 @@ mmseqsClusterSlurmBlock = SlurmBlock(
         covModeVariable,
         clusterModulesVariable,
         preambleVariable,
+        mpiRunnerVariable,
         mmseqsCommandVariable,
         removeExistingResultsVariable,
     ],
