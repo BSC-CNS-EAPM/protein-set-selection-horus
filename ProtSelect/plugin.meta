@@ -19,6 +19,7 @@
     "tqdm",
     "biopython==1.81",
     "mdtraj",
+    "ipywidgets",
     "git+https://github.com/martin-floor/bsc_calculations.git",
     "git+https://github.com/martin-floor/prepare_proteins.git",
     "git+https://github.com/bsc-cns-eapm/bioprospecting-horus.git"
