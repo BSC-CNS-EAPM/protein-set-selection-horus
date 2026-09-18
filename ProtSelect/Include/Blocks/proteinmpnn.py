@@ -57,9 +57,9 @@ weightsVariable = PluginVariable(
     id="weights",
     name="Weight set",
     description="Which ProteinMPNN weights to score with. The soluble weights "
-    "exclude membrane proteins and favour solubly expressing sequences. 'both' "
-    "runs each in turn and writes them to 'vanilla' and 'soluble' subfolders, "
-    "which is what the reference workflow compares.",
+    "exclude membrane proteins and favour solubly expressing sequences. Each set "
+    "is written to a subfolder named after it; 'both' runs the two in turn, which "
+    "is what the reference workflow compares.",
     type=VariableTypes.STRING_LIST,
     defaultValue="both",
     allowedValues=["vanilla", "soluble", "both"],
@@ -256,13 +256,13 @@ def initial_proteinmpnn(block: SlurmBlock):
         print(f"Evaluating {len(sequences)} supplied sequence(s) against each backbone.")
 
     weights = block.variables.get(weightsVariable.id, "both") or "both"
-    if weights == "both":
-        # Each weight set gets its own job folder so the score reader can tell
-        # them apart; a single output folder still carries both.
-        runs = [("vanilla", os.path.join(folder_name, "vanilla"), False),
-                ("soluble", os.path.join(folder_name, "soluble"), True)]
-    else:
-        runs = [(weights, folder_name, weights == "soluble")]
+    # Every weight set gets its own subfolder, named after it, even when only
+    # one is run. That is what lets the score reader route each one to the
+    # matching output: from the folder layout alone it could not otherwise tell
+    # a vanilla-only run from a soluble-only one.
+    labels = ["vanilla", "soluble"] if weights == "both" else [weights]
+    runs = [(label, os.path.join(folder_name, label), label == "soluble")
+            for label in labels]
 
     is_local = block.remote.isLocal
 

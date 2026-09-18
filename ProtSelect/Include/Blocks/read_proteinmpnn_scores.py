@@ -79,21 +79,19 @@ readUntilVariable = PluginVariable(
 # ==========================#
 # Variable outputs
 # ==========================#
-scoresFile = PluginVariable(
-    id="scores_file",
-    name="Scores file",
-    description="JSON mapping each model to its aggregated score. This is the input "
-    "the clustering and selection blocks expect. With a 'both' run this carries "
-    "the vanilla scores.",
+vanillaScoresFile = PluginVariable(
+    id="vanilla_scores_file",
+    name="Vanilla scores",
+    description="JSON mapping each model to its aggregated score under the vanilla "
+    "ProteinMPNN weights. Set when the scoring run included the vanilla set.",
     type=VariableTypes.FILE,
     allowedValues=["json"],
 )
-secondScoresFile = PluginVariable(
-    id="scores_file_2",
-    name="Second scores file",
-    description="Set only when the scoring block ran with the 'both' weight set: "
-    "the soluble scores, while the first output carries the vanilla ones. Wire "
-    "both into the second score input of Select Cluster Representatives.",
+solubleScoresFile = PluginVariable(
+    id="soluble_scores_file",
+    name="Soluble scores",
+    description="JSON mapping each model to its aggregated score under the soluble "
+    "ProteinMPNN weights. Set when the scoring run included the soluble set.",
     type=VariableTypes.FILE,
     allowedValues=["json"],
 )
@@ -194,15 +192,20 @@ def read_proteinmpnn_scores(block: PluginBlock):
         frame.insert(0, "weight_set", label)
         return found, frame
 
-    # A 'both' run writes vanilla/ and soluble/ subfolders; anything else is a
-    # single job folder.
+    # The scoring block writes each weight set to a subfolder named after it,
+    # which is what lets each one land on the matching output here.
     sets = [
         (label, os.path.join(folder, label))
         for label in ("vanilla", "soluble")
         if os.path.isdir(os.path.join(folder, label))
     ]
     if not sets:
-        sets = [("scores", folder)]
+        # A folder from before the subfolder layout, or from outside this
+        # plugin. Its weight set cannot be read from the layout, so treat it as
+        # vanilla -- the ProteinMPNN default -- and say so.
+        print("No 'vanilla' or 'soluble' subfolder found; reading the folder "
+              "itself and treating it as the vanilla weight set.")
+        sets = [("vanilla", folder)]
 
     print(f"Reading {len(sets)} weight set(s), aggregating '{score_column}' "
           f"with '{aggregation}'...")
@@ -219,13 +222,12 @@ def read_proteinmpnn_scores(block: PluginBlock):
     table_output = "proteinmpnn_scores_table.csv"
     table.to_csv(table_output, index=False)
 
-    output_vars = [scoresFile, secondScoresFile]
-    for index, (label, found) in enumerate(results[:2]):
-        name = f"proteinmpnn_scores_{label}.json" if len(results) > 1 \
-            else "proteinmpnn_scores.json"
+    output_for = {"vanilla": vanillaScoresFile, "soluble": solubleScoresFile}
+    for label, found in results:
+        name = f"proteinmpnn_scores_{label}.json"
         with open(name, "w") as jf:
             json.dump(found, jf, indent=2)
-        block.setOutput(output_vars[index].id, name)
+        block.setOutput(output_for[label].id, name)
 
         ranked = sorted(found.items(), key=lambda item: item[1])
         show_table_html(
@@ -250,6 +252,6 @@ readProteinMPNNScoresBlock = PluginBlock(
         sourceFilterVariable,
         readUntilVariable,
     ],
-    outputs=[scoresFile, secondScoresFile, scoresTableFile],
+    outputs=[vanillaScoresFile, solubleScoresFile, scoresTableFile],
     action=read_proteinmpnn_scores,
 )

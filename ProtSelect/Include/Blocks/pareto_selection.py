@@ -43,8 +43,9 @@ extraMetricsFile = PluginVariable(
 originFile = PluginVariable(
     id="origin_file",
     name="Model origin (optional)",
-    description="JSON {model: origin} from 'Combine Selected Sequences'. Added as a "
-    "Model_Origin column for reference.",
+    description="JSON {model: origin} from Select Cluster Representatives, labelling "
+    "each model 'vanilla only', 'soluble only' or 'common'. Added as a Model_Origin "
+    "column for reference.",
     type=VariableTypes.FILE,
     defaultValue=None,
     allowedValues=["json"],

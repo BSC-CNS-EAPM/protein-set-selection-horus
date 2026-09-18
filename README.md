@@ -34,9 +34,10 @@ appears in Horus as a preset, along with example datasets in
 
 The reference workflow scores with both ProteinMPNN weight sets and keeps the
 union of the two selections. That is one block each here, not two: **ProteinMPNN
-Scoring** takes a weight set of `vanilla`, `soluble` or `both`, and **Select
-Cluster Representatives** takes an optional second scores file and returns the
-union, labelled by which set chose each model.
+Scoring** takes a weight set of `vanilla`, `soluble` or `both`, **Read
+ProteinMPNN Scores** emits a vanilla and a soluble scores file, and **Select
+Cluster Representatives** takes both and returns the union, labelled
+`vanilla only`, `soluble only` or `common`.
 
 ## Installation
 

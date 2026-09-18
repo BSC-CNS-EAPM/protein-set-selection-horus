@@ -7,9 +7,8 @@ member of each as its representative.
 
 The workflow does this twice, once per ProteinMPNN weight set, and keeps the
 union. Rather than two copies of this block feeding a third that merges them,
-the second score set is an optional input here: give one and you get a plain
-selection, give two and you get the union, labelled by which set each model came
-from.
+both score sets are inputs here: give one and you get a plain selection, give
+both and you get the union, labelled by which set chose each model.
 """
 
 from HorusAPI import PluginBlock, PluginVariable, VariableTypes
@@ -26,20 +25,21 @@ clustersFile = PluginVariable(
     type=VariableTypes.FILE,
     allowedValues=["json"],
 )
-scoresFile = PluginVariable(
-    id="scores_file",
-    name="Scores file",
-    description="Per-model scores. Either a JSON file mapping model name to score, "
-    "or a CSV with a name column and a score column.",
+vanillaScoresFile = PluginVariable(
+    id="vanilla_scores_file",
+    name="Vanilla scores",
+    description="Per-model scores under the vanilla ProteinMPNN weights: a JSON file "
+    "mapping model name to score, or a CSV with a name and a score column. Give "
+    "this, the soluble scores, or both.",
     type=VariableTypes.FILE,
     allowedValues=["json", "csv"],
+    required=False,
 )
-secondScoresFile = PluginVariable(
-    id="scores_file_2",
-    name="Second scores file (optional)",
-    description="A second set of scores, selected independently. The result is the "
-    "union of the two selections. The reference workflow uses the ProteinMPNN "
-    "vanilla and soluble scores here.",
+solubleScoresFile = PluginVariable(
+    id="soluble_scores_file",
+    name="Soluble scores",
+    description="Per-model scores under the soluble ProteinMPNN weights. Selected "
+    "independently of the vanilla scores; with both given the result is the union.",
     type=VariableTypes.FILE,
     allowedValues=["json", "csv"],
     required=False,
@@ -75,11 +75,11 @@ maximizeVariable = PluginVariable(
 selectionVariable = PluginVariable(
     id="model_selection",
     name="Combine as",
-    description="How to combine the two selections when a second score set is "
-    "given. 'both' keeps the union; 'first' or 'second' keep only that one.",
+    description="How to combine the two selections when both score sets are given. "
+    "'both' keeps the union; 'vanilla' or 'soluble' keep only that one.",
     type=VariableTypes.STRING_LIST,
     defaultValue="both",
-    allowedValues=["both", "first", "second"],
+    allowedValues=["both", "vanilla", "soluble"],
 )
 
 # ==========================#
@@ -102,15 +102,15 @@ selectedSequencesFile = PluginVariable(
 selectedScoresFile = PluginVariable(
     id="selected_scores_file",
     name="Selected scores",
-    description="JSON mapping each selected model to its score. With two score sets, "
-    "the score from the set that selected it (the first, when both did).",
+    description="JSON mapping each selected model to its score. With both score sets, "
+    "the score from the set that selected it (the vanilla one, when both did).",
     type=VariableTypes.FILE,
     allowedValues=["json"],
 )
 originFile = PluginVariable(
     id="origin_file",
     name="Origin",
-    description="JSON labelling each selected model 'first only', 'second only' or "
+    description="JSON labelling each selected model 'vanilla only', 'soluble only' or "
     "'common'. Feed this to the Pareto Selection block to colour its plot.",
     type=VariableTypes.FILE,
     allowedValues=["json"],
@@ -187,13 +187,17 @@ def select_representatives(block: PluginBlock):
     if not clusters_path or not os.path.isfile(clusters_path):
         raise ValueError("A valid clusters JSON file must be provided.")
 
-    scores_path = block.inputs.get(scoresFile.id, None)
-    if not scores_path or not os.path.isfile(scores_path):
-        raise ValueError("A valid scores file (JSON or CSV) must be provided.")
+    def given(variable):
+        path = block.inputs.get(variable.id, None)
+        return path if path and path != "None" and os.path.isfile(path) else None
 
-    second_path = block.inputs.get(secondScoresFile.id, None)
-    if second_path == "None":
-        second_path = None
+    vanilla_path = given(vanillaScoresFile)
+    soluble_path = given(solubleScoresFile)
+    if not vanilla_path and not soluble_path:
+        raise ValueError(
+            "No scores were provided. Connect the vanilla scores, the soluble "
+            "scores, or both."
+        )
 
     sequences_path = block.inputs.get(sequencesFile.id, None)
     if sequences_path == "None":
@@ -208,29 +212,31 @@ def select_representatives(block: PluginBlock):
     if not isinstance(clusters, dict):
         raise ValueError("The clusters file must map representatives to member lists.")
 
-    first_models, first_scores, first_rows = _select_one(
-        clusters, load_scores(scores_path), top_n, maximize
-    )
-    print(f"Ranked {len(clusters)} clusters; first score set selected "
-          f"{len(first_models)} representatives.")
-
-    second_models, second_scores, second_rows = [], {}, []
-    if second_path and os.path.isfile(second_path):
-        second_models, second_scores, second_rows = _select_one(
-            clusters, load_scores(second_path), top_n, maximize
+    vanilla_models, vanilla_scores, vanilla_rows = [], {}, []
+    soluble_models, soluble_scores, soluble_rows = [], {}, []
+    print(f"Ranking {len(clusters)} clusters...")
+    if vanilla_path:
+        vanilla_models, vanilla_scores, vanilla_rows = _select_one(
+            clusters, load_scores(vanilla_path), top_n, maximize
         )
-        print(f"Second score set selected {len(second_models)} representatives.")
+        print(f"  vanilla scores selected {len(vanilla_models)} representatives.")
+    if soluble_path:
+        soluble_models, soluble_scores, soluble_rows = _select_one(
+            clusters, load_scores(soluble_path), top_n, maximize
+        )
+        print(f"  soluble scores selected {len(soluble_models)} representatives.")
 
-    first_set, second_set = set(first_models), set(second_models)
+    vanilla_set, soluble_set = set(vanilla_models), set(soluble_models)
+    both_given = bool(vanilla_path and soluble_path)
 
-    if not second_models or combine_as == "first":
-        chosen = list(first_models)
-    elif combine_as == "second":
-        chosen = list(second_models)
+    if both_given and combine_as == "vanilla":
+        chosen = list(vanilla_models)
+    elif both_given and combine_as == "soluble":
+        chosen = list(soluble_models)
     else:
-        # Union, keeping the first set's order and appending what only the
-        # second set found.
-        chosen = list(first_models) + [m for m in second_models if m not in first_set]
+        # Union, keeping the vanilla order and appending what only the soluble
+        # set found. With a single set given this is just that set.
+        chosen = list(vanilla_models) + [m for m in soluble_models if m not in vanilla_set]
 
     if not chosen:
         raise ValueError(
@@ -239,11 +245,9 @@ def select_representatives(block: PluginBlock):
         )
 
     def origin_of(model):
-        if second_models:
-            if model in first_set and model in second_set:
-                return "common"
-            return "first only" if model in first_set else "second only"
-        return "first only"
+        if model in vanilla_set and model in soluble_set:
+            return "common"
+        return "vanilla only" if model in vanilla_set else "soluble only"
 
     origin = {model: origin_of(model) for model in chosen}
     counts: dict = {}
@@ -251,9 +255,9 @@ def select_representatives(block: PluginBlock):
         counts[label] = counts.get(label, 0) + 1
     print(f"Selected {len(chosen)} model(s)"
           + (f" ({', '.join(f'{k}: {v}' for k, v in sorted(counts.items()))})"
-             if second_models else ""))
+             if both_given else ""))
 
-    combined_scores = {m: first_scores.get(m, second_scores.get(m)) for m in chosen}
+    combined_scores = {m: vanilla_scores.get(m, soluble_scores.get(m)) for m in chosen}
 
     models_output = "selected_models.json"
     with open(models_output, "w") as jf:
@@ -275,10 +279,10 @@ def select_representatives(block: PluginBlock):
                         "cluster_size", "scored_members", "score_set"],
         )
         writer.writeheader()
-        for row in first_rows:
-            writer.writerow({**row, "score_set": "first"})
-        for row in second_rows:
-            writer.writerow({**row, "score_set": "second"})
+        for row in vanilla_rows:
+            writer.writerow({**row, "score_set": "vanilla"})
+        for row in soluble_rows:
+            writer.writerow({**row, "score_set": "soluble"})
 
     block.setOutput(selectedModelsFile.id, models_output)
     block.setOutput(selectedScoresFile.id, scores_output)
@@ -302,9 +306,9 @@ selectClusterRepresentativesBlock = PluginBlock(
     category="Clustering & Selection",
     name="Select Cluster Representatives",
     id="select_cluster_representatives",
-    description="Keep the best-scoring member of each of the top-N clusters. Give a "
-    "second score set to select from both and keep the union.",
-    inputs=[clustersFile, scoresFile, secondScoresFile, sequencesFile],
+    description="Keep the best-scoring member of each of the top-N clusters. Give the "
+    "vanilla and soluble scores to select from both and keep the union.",
+    inputs=[clustersFile, vanillaScoresFile, solubleScoresFile, sequencesFile],
     variables=[topNVariable, maximizeVariable, selectionVariable],
     outputs=[selectedModelsFile, selectedSequencesFile, selectedScoresFile,
              originFile, selectionTableFile],
