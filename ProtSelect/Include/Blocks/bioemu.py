@@ -366,15 +366,18 @@ def initial_bioemu(block: SlurmBlock):
     remove_existing = block.variables.get(removeExistingResults.id, False)
 
     if remove_existing and os.path.exists(folder_name):
-        os.system("rm -rf " + folder_name)
+        shutil.rmtree(folder_name, ignore_errors=True)
 
-    if not remove_existing and os.path.exists(folder_name):
-        raise Exception(
-            f"The folder {folder_name} already exists. "
-            "Please, choose another name or remove it with the remove existing folder option."
-        )
+    # An existing folder is reused, so a run that stopped part-way (walltime,
+    # cancelled job) resumes: with 'Skip finished' on, only the models without
+    # output get new jobs.
+    if os.path.exists(folder_name) and not remove_existing:
+        print(f"Reusing the existing folder '{folder_name}'. Finished models are "
+              "skipped when 'Skip finished' is on.")
 
     block.extraData["folder_name"] = folder_name
+    # extraData outlives a run; clear the flag a previous resume may have left.
+    block.extraData["nothing_to_run"] = False
 
     print("Loading sequences...")
     sequences = prepare_proteins.sequenceModels(sequences_file)
@@ -394,10 +397,11 @@ def initial_bioemu(block: SlurmBlock):
     )
 
     if not jobs:
-        raise Exception(
-            "No BioEmu jobs were generated. If 'Skip finished' is enabled the "
-            "sampling may already be complete."
-        )
+        # Every sequence already has its samples: a complete result, not a
+        # failure. The final action picks up the folder as it stands.
+        print("Every sequence already has its samples; nothing to run.")
+        block.extraData["nothing_to_run"] = True
+        return
 
     if block.variables.get(msaCalculationVariable.id, False):
         print("Adding the local MSA calculation to the jobs...")
@@ -487,7 +491,10 @@ def final_bioemu(block: SlurmBlock):
 
     # pylint: enable=import-outside-toplevel
 
-    downloaded_path = downloadResultsAction(block)
+    if block.extraData.get("nothing_to_run"):
+        downloaded_path = os.getcwd()
+    else:
+        downloaded_path = downloadResultsAction(block)
 
     results_folder = block.extraData["folder_name"]
     bioemu_folder = os.path.join(downloaded_path, results_folder)

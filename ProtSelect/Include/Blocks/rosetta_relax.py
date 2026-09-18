@@ -138,6 +138,8 @@ def initial_rosetta_relax(block: SlurmBlock):
     # pylint: disable=import-outside-toplevel
     import os
 
+    import shutil
+
     import prepare_proteins
     from utils import launchCalculationAction, strip_srun
 
@@ -157,15 +159,21 @@ def initial_rosetta_relax(block: SlurmBlock):
     remove_existing = block.variables.get(removeExistingResults.id, False)
 
     if remove_existing and os.path.exists(folder_name):
-        os.system("rm -rf " + folder_name)
+        shutil.rmtree(folder_name, ignore_errors=True)
 
-    if not remove_existing and os.path.exists(folder_name):
-        raise Exception(
-            f"The folder {folder_name} already exists. "
-            "Please, choose another name or remove it with the remove existing folder option."
-        )
+    # An existing folder is reused, not refused. That is what lets a run that hit
+    # its walltime be picked up again: with 'Skip finished' on, prepare_proteins
+    # skips every model whose silent file already holds nstruct structures and
+    # generates jobs only for the rest. Refusing to start -- as this block used
+    # to -- meant the only way to rerun was 'Remove existing results', which
+    # threw the finished models away and made skip_finished dead code.
+    if os.path.exists(folder_name) and not remove_existing:
+        print(f"Reusing the existing folder '{folder_name}'. Models that already "
+              "hold all their structures are skipped when 'Skip finished' is on.")
 
     block.extraData["folder_name"] = folder_name
+    # extraData outlives a run; clear the flag a previous resume may have left.
+    block.extraData["nothing_to_run"] = False
 
     print("Loading models...")
     models = prepare_proteins.proteinModels(models_folder, ignore_biopython_warnings=True)
@@ -196,10 +204,12 @@ def initial_rosetta_relax(block: SlurmBlock):
     )
 
     if not jobs:
-        raise Exception(
-            "No Rosetta jobs were generated. If 'Skip finished' is enabled the "
-            "calculation may already be complete."
-        )
+        # Every model is already finished. Nothing to submit, but that is a
+        # complete result rather than a failure; the final action picks up the
+        # folder as it stands.
+        print("Every model already has all its structures; nothing to run.")
+        block.extraData["nothing_to_run"] = True
+        return
 
     print(f"Generated {len(jobs)} Rosetta relax job(s).")
 
@@ -225,7 +235,10 @@ def final_rosetta_relax(block: SlurmBlock):
 
     # pylint: enable=import-outside-toplevel
 
-    downloaded_path = downloadResultsAction(block)
+    if block.extraData.get("nothing_to_run"):
+        downloaded_path = os.getcwd()
+    else:
+        downloaded_path = downloadResultsAction(block)
 
     results_folder = block.extraData["folder_name"]
     relax_folder = os.path.join(downloaded_path, results_folder)

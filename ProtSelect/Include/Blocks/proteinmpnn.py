@@ -241,13 +241,16 @@ def initial_proteinmpnn(block: SlurmBlock):
     if remove_existing and os.path.exists(folder_name):
         shutil.rmtree(folder_name, ignore_errors=True)
 
-    if not remove_existing and os.path.exists(folder_name):
-        raise Exception(
-            f"The folder {folder_name} already exists. "
-            "Please, choose another name or remove it with the remove existing folder option."
-        )
+    # An existing folder is reused, so a run that stopped part-way (walltime,
+    # cancelled job) resumes: with 'Skip finished' on, only the models without
+    # output get new jobs.
+    if os.path.exists(folder_name) and not remove_existing:
+        print(f"Reusing the existing folder '{folder_name}'. Finished models are "
+              "skipped when 'Skip finished' is on.")
 
     block.extraData["folder_name"] = folder_name
+    # extraData outlives a run; clear the flag a previous resume may have left.
+    block.extraData["nothing_to_run"] = False
 
     sequences = None
     sequences_path = block.inputs.get(sequencesFile.id, None)
@@ -305,10 +308,12 @@ def initial_proteinmpnn(block: SlurmBlock):
         )
 
     if not jobs:
-        raise Exception(
-            "ProteinMPNN produced no jobs. Every model may already have results; "
-            "disable 'Skip finished' to score them again."
-        )
+        # Every model already has results: a complete result, not a failure.
+        # The final action picks up the folder as it stands.
+        print("Every model already has results; nothing to run. Disable "
+              "'Skip finished' to score them again.")
+        block.extraData["nothing_to_run"] = True
+        return
 
     print(f"Generated {len(jobs)} ProteinMPNN job(s).")
 
@@ -362,7 +367,10 @@ def final_proteinmpnn(block: SlurmBlock):
 
     # pylint: enable=import-outside-toplevel
 
-    downloaded = downloadResultsAction(block)
+    if block.extraData.get("nothing_to_run"):
+        downloaded = os.getcwd()
+    else:
+        downloaded = downloadResultsAction(block)
 
     folder_name = block.extraData.get("folder_name", "proteinmpnn")
     output_folder = os.path.join(downloaded, folder_name)
