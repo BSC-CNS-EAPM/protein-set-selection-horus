@@ -209,6 +209,7 @@ def _build_plot(frame, objective_columns, output_path):
     from matplotlib import colors as mcolors
     import matplotlib.pyplot as plt
     import numpy as np
+    from pandas.api.types import is_numeric_dtype
 
     y_column = objective_columns[0]
     numeric = [
@@ -216,7 +217,9 @@ def _build_plot(frame, objective_columns, output_path):
         for c in frame.columns
         if c != y_column
         and c not in ("Pareto_Rank", "Selected")
-        and np.issubdtype(frame[c].dtype, np.number)
+        # pandas' own test: np.issubdtype cannot read pandas extension dtypes,
+        # such as the default string dtype of pandas 3, and raised on them.
+        and is_numeric_dtype(frame[c])
     ]
     if not numeric:
         numeric = [y_column]
