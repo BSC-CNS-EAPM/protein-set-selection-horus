@@ -374,6 +374,11 @@ def _run_extraction_jobs(jobs, cpus, verbose, interpreter):
         if re.match(rf"^{re.escape(script_name)}(_\d+)?$", existing):
             os.remove(existing)
 
+    # local.parallel writes each job verbatim, and the prepare_proteins analysis
+    # jobs carry no trailing newline: two jobs sharing a script ran together on
+    # one line, the second command becoming arguments to the first.
+    jobs = [job if job.endswith("\n") else job + "\n" for job in jobs]
+
     bsc_calculations.local.parallel(jobs, cpus=cpus, script_name=script_name)
 
     numbered = sorted(

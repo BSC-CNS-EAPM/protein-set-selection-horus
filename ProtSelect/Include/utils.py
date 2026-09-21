@@ -108,8 +108,11 @@ def setup_bsc_calculations_based_on_horus_remote(
             )
         else:
             print("Generating local jobs...")
+            # Unlike mn5.jobArrays and multipleGPUSimulations, local.parallel
+            # writes each job verbatim: without a trailing newline, two jobs
+            # sharing a script run together as one command line.
             bsc_calculations.local.parallel(
-                jobs,
+                [job if job.endswith("\n") else job + "\n" for job in jobs],
                 cpus=min(cpus or 40, len(jobs)),
                 script_name=scriptName,
             )
