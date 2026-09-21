@@ -74,9 +74,10 @@ condaEnvVariable = PluginVariable(
     name="CodonTransformer environment",
     description="Environment holding CodonTransformer: an env name (looked up in the "
     "conda/micromamba roots), a path to the environment, or a path to its python. "
-    "Leave empty to use the Horus backend's own interpreter.",
+    "Leave empty to use the 'codontransformer_env' plugin configuration, and "
+    "failing that the Horus backend's own interpreter.",
     type=VariableTypes.STRING,
-    defaultValue="codontransformer",
+    defaultValue=None,
 )
 startMethionineVariable = PluginVariable(
     id="add_start_methionine",
@@ -233,11 +234,13 @@ def compute_codon_sequences(block: PluginBlock):
     device = block.variables.get(deviceVariable.id) or "cpu"
     # Fall back to the plugin configuration so the environment can be set once
     # for the machine rather than on every placement of the block.
-    conda_env = (
-        block.variables.get(condaEnvVariable.id)
-        or block.config.get("codontransformer_env")
-        or None
-    )
+    # The field used to default to "codontransformer", which always won over
+    # the configuration; blocks placed back then still carry it, so treat that
+    # value as unset whenever a configured environment exists.
+    conda_env = block.variables.get(condaEnvVariable.id) or None
+    configured_env = block.config.get("codontransformer_env") or None
+    if not conda_env or (conda_env == "codontransformer" and configured_env):
+        conda_env = configured_env
     add_start_methionine = block.variables.get(startMethionineVariable.id, True)
 
     print(f"Codon-optimising {len(sequences)} sequence(s) for '{organism}' on {device}...")
@@ -260,16 +263,28 @@ def compute_codon_sequences(block: PluginBlock):
     env_bin = _resolve_environment_bin(conda_env)
     python = _assert_codon_transformer(env_bin, conda_env)
     print(f"Running CodonTransformer with {python}")
+    # bioprospecting runs the model with a bare subprocess that inherits
+    # os.environ, so the environment is swapped for the duration of the call:
+    # the env's bin first on PATH, and none of the PYTHONPATH that points this
+    # process at the plugin's own site-packages (a different Python version,
+    # which broke numpy inside the environment).
+    saved_environ = dict(os.environ)
+    run_environ = foreign_python_env()
     if env_bin:
-        os.environ["PATH"] = env_bin + os.pathsep + os.environ.get("PATH", "")
-
-    codon_sequences = codonTransformer.computeCodonTransformerSequences(
-        sequences,
-        organism=organism,
-        device=device,
-        codon_transformer_conda_env=None,
-        add_start_methionine=add_start_methionine,
-    )
+        run_environ["PATH"] = env_bin + os.pathsep + run_environ.get("PATH", "")
+    os.environ.clear()
+    os.environ.update(run_environ)
+    try:
+        codon_sequences = codonTransformer.computeCodonTransformerSequences(
+            sequences,
+            organism=organism,
+            device=device,
+            codon_transformer_conda_env=None,
+            add_start_methionine=add_start_methionine,
+        )
+    finally:
+        os.environ.clear()
+        os.environ.update(saved_environ)
 
     codon_sequences = {str(k): str(v) for k, v in dict(codon_sequences).items()}
 
