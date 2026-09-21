@@ -208,7 +208,6 @@ def _build_plot(frame, objective_columns, output_path):
     from matplotlib import cm
     from matplotlib import colors as mcolors
     import matplotlib.pyplot as plt
-    import numpy as np
     from pandas.api.types import is_numeric_dtype
 
     y_column = objective_columns[0]

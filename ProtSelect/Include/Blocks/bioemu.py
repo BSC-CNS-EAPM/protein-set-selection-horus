@@ -348,6 +348,7 @@ def initial_bioemu(block: SlurmBlock):
     """
     # pylint: disable=import-outside-toplevel
     import os
+    import shutil
 
     import prepare_proteins
     from utils import launchCalculationAction
