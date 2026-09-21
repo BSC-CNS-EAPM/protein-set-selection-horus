@@ -230,7 +230,12 @@ def _build_plot(frame, objective_columns, output_path):
 
     cols = min(3, len(numeric))
     rows = (len(numeric) + cols - 1) // cols
-    fig, axes = plt.subplots(rows, cols, figsize=(5 * cols, 4 * rows), squeeze=False)
+    # Constrained layout leaves room for each panel's x label above the next
+    # row's title; without it the two overlapped.
+    fig, axes = plt.subplots(
+        rows, cols, figsize=(5 * cols, 4 * rows), squeeze=False, layout="constrained"
+    )
+    fig.get_layout_engine().set(h_pad=0.15, w_pad=0.1, hspace=0.08)
 
     selected_mask = frame["Selected"].to_numpy(dtype=bool)
 
