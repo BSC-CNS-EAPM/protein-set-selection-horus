@@ -145,6 +145,39 @@ def strip_srun(jobs):
     ]
 
 
+def removal_requested(block, remove_existing, folder_name) -> bool:
+    """
+    Whether 'Remove existing results' should delete the block's folder now.
+
+    Only when the user started the run from this very block. Horus reruns every
+    block downstream of the one started, so an option left on would otherwise
+    delete hours of cluster results -- and resubmit them -- whenever anything
+    upstream is touched. Horus records the starting block in
+    ``flow.runStartedFrom``; on a Horus that does not, the start is unknown and
+    the results are kept, since a skipped deletion costs nothing and a wrong
+    one costs the whole calculation.
+    """
+    if not remove_existing or not os.path.exists(folder_name):
+        return False
+
+    flow = getattr(block, "flow", None)
+    started_from = getattr(flow, "runStartedFrom", None)
+    # Compared as text: the placedID may reach the flow from the frontend as a string.
+    if started_from is not None and str(started_from) == str(getattr(block, "_placedID", "")):
+        print(f"Removing the existing '{folder_name}' ('Remove existing results' is on).")
+        return True
+
+    if started_from is None:
+        advice = ("the run's starting block is unknown (an older Horus, or a resumed "
+                  f"run). Delete '{folder_name}' by hand to start over.")
+    else:
+        advice = ("the run was started from another block and only reached this one. "
+                  "Run this block itself to remove it.")
+    print(f"Keeping the existing '{folder_name}' although 'Remove existing results' "
+          f"is on: {advice}")
+    return False
+
+
 def _hook_script(scriptName: str) -> str:
     """
     Build the driver that runs the local sub-scripts and waits for them.

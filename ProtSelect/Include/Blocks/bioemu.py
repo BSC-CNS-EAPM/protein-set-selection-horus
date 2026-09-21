@@ -20,7 +20,7 @@ written on the ``acc_*`` partitions) and the CPUs that go with them are set with
 the shared "CPUs per task" variable, e.g. 1 GPU + 20 CPUs per task.
 """
 
-from utils import BSC_JOB_VARIABLES, gpusVariable
+from utils import BSC_JOB_VARIABLES, gpusVariable, removal_requested
 
 from HorusAPI import PluginVariable, SlurmBlock, VariableTypes
 
@@ -363,7 +363,9 @@ def initial_bioemu(block: SlurmBlock):
     sequences_file = _ensure_fasta(sequences_file)
 
     folder_name = block.variables.get(output.id, "bioemu_sampling")
-    remove_existing = block.variables.get(removeExistingResults.id, False)
+    remove_existing = removal_requested(
+        block, block.variables.get(removeExistingResults.id, False), folder_name
+    )
 
     if remove_existing and os.path.exists(folder_name):
         shutil.rmtree(folder_name, ignore_errors=True)

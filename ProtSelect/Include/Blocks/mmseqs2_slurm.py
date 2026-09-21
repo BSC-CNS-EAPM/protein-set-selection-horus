@@ -22,7 +22,7 @@ does not cover.
 import os
 
 from HorusAPI import PluginVariable, SlurmBlock, VariableTypes
-from utils import BSC_JOB_VARIABLES, downloadResultsAction, launchCalculationAction
+from utils import BSC_JOB_VARIABLES, downloadResultsAction, launchCalculationAction, removal_requested
 
 # ==========================#
 # Input
@@ -225,7 +225,9 @@ def initial_mmseqs_slurm(block: SlurmBlock):
         raise Exception(f"The sequences file '{sequences_path}' does not exist.")
 
     folder_name = block.variables.get(folderNameVariable.id, "mmseqs_clustering")
-    remove_existing = block.variables.get(removeExistingResultsVariable.id, False)
+    remove_existing = removal_requested(
+        block, block.variables.get(removeExistingResultsVariable.id, False), folder_name
+    )
 
     if remove_existing and os.path.exists(folder_name):
         shutil.rmtree(folder_name, ignore_errors=True)

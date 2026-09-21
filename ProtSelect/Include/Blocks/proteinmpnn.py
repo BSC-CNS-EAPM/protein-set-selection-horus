@@ -20,7 +20,7 @@ the model count small when testing.
 """
 
 from HorusAPI import PluginVariable, SlurmBlock, VariableTypes
-from utils import BSC_JOB_VARIABLES, downloadResultsAction, gpusVariable, launchCalculationAction
+from utils import BSC_JOB_VARIABLES, downloadResultsAction, gpusVariable, launchCalculationAction, removal_requested
 
 # ==========================#
 # Variable inputs
@@ -236,7 +236,9 @@ def initial_proteinmpnn(block: SlurmBlock):
         raise Exception(f"There are no pdb files in the structures folder: {pdbs_folder}")
 
     folder_name = block.variables.get(folderNameVariable.id, "proteinmpnn")
-    remove_existing = block.variables.get(removeExistingResultsVariable.id, False)
+    remove_existing = removal_requested(
+        block, block.variables.get(removeExistingResultsVariable.id, False), folder_name
+    )
 
     if remove_existing and os.path.exists(folder_name):
         shutil.rmtree(folder_name, ignore_errors=True)

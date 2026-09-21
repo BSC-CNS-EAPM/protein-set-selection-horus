@@ -15,7 +15,7 @@ launcher, so the block runs on MareNostrum / Nord3 or locally exactly like the
 other BSC blocks (Alphafold, PELE).
 """
 
-from utils import BSC_JOB_VARIABLES
+from utils import BSC_JOB_VARIABLES, removal_requested
 
 from HorusAPI import PluginVariable, SlurmBlock, VariableTypes
 
@@ -156,7 +156,9 @@ def initial_rosetta_relax(block: SlurmBlock):
         raise Exception(f"There are no pdb files in the models folder: {models_folder}")
 
     folder_name = block.variables.get(output.id, "relax_selected_models")
-    remove_existing = block.variables.get(removeExistingResults.id, False)
+    remove_existing = removal_requested(
+        block, block.variables.get(removeExistingResults.id, False), folder_name
+    )
 
     if remove_existing and os.path.exists(folder_name):
         shutil.rmtree(folder_name, ignore_errors=True)
