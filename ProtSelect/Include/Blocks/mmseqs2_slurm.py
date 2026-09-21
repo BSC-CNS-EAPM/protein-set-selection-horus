@@ -142,6 +142,66 @@ resultsFolder = PluginVariable(
 CLUSTER_PREFIX = "clusterRes"
 
 
+SETTINGS_FILE = "clustering_settings.json"
+
+
+def _reuse_existing(folder_name, sequences, settings):
+    """
+    Whether an existing MMseqs2 folder already holds this exact clustering.
+
+    True when it has a result, was run on the same sequences and, if it recorded
+    them, with the same settings. A folder with a result for other input or
+    settings raises rather than being overwritten or silently reused; a folder
+    without a result (a failed or unfinished run) returns False and is rerun.
+    """
+    # pylint: disable=import-outside-toplevel
+    import json
+
+    from sequence_io import read_sequences
+
+    # pylint: enable=import-outside-toplevel
+
+    cluster_tsv = os.path.join(folder_name, CLUSTER_PREFIX + "_cluster.tsv")
+    previous_input = os.path.join(folder_name, "input.fasta")
+    if not (os.path.isfile(cluster_tsv) and os.path.isfile(previous_input)):
+        print(f"'{folder_name}' holds no finished clustering; running it again.")
+        return False
+
+    refuse = (
+        "Choose another folder name, or enable 'Remove existing results' to "
+        "recluster."
+    )
+    if read_sequences(previous_input) != sequences:
+        raise Exception(
+            f"'{folder_name}' holds a clustering of different sequences. " + refuse
+        )
+
+    settings_path = os.path.join(folder_name, SETTINGS_FILE)
+    if os.path.isfile(settings_path):
+        with open(settings_path) as sf:
+            previous = json.load(sf)
+        changed = {
+            key: (previous.get(key), value)
+            for key, value in settings.items()
+            if previous.get(key) != value
+        }
+        if changed:
+            described = ", ".join(f"{k}: {old} -> {new}" for k, (old, new) in changed.items())
+            raise Exception(
+                f"'{folder_name}' was clustered with other settings ({described}). "
+                + refuse
+            )
+    else:
+        # Folders from before the settings were recorded: the sequences match,
+        # but the settings cannot be checked.
+        print(f"Warning: '{folder_name}' does not record its clustering settings; "
+              "reusing it on the assumption they match the current ones.")
+
+    print(f"Reusing the existing clustering in '{folder_name}' (same sequences"
+          + (" and settings)." if os.path.isfile(settings_path) else ")."))
+    return True
+
+
 def initial_mmseqs_slurm(block: SlurmBlock):
     """
     Write the MMseqs2 input and command, and submit the job.
@@ -150,6 +210,7 @@ def initial_mmseqs_slurm(block: SlurmBlock):
         block (SlurmBlock): The block to run the action on.
     """
     # pylint: disable=import-outside-toplevel
+    import json
     import shlex
     import shutil
 
@@ -168,19 +229,31 @@ def initial_mmseqs_slurm(block: SlurmBlock):
 
     if remove_existing and os.path.exists(folder_name):
         shutil.rmtree(folder_name, ignore_errors=True)
-    if not remove_existing and os.path.exists(folder_name):
-        raise Exception(
-            f"The folder {folder_name} already exists. "
-            "Please, choose another name or remove it with the remove existing folder option."
-        )
 
-    os.makedirs(folder_name, exist_ok=True)
     block.extraData["folder_name"] = folder_name
+    # extraData outlives a run; clear the flag a previous reuse may have left.
+    block.extraData["nothing_to_run"] = False
 
     # MMseqs2 only reads FASTA, and the pipeline passes JSON around, so normalise
     # here rather than making the caller convert.
     sequences = read_sequences(sequences_path)
+    settings = {
+        "min_seq_id": block.variables.get(minSeqIdVariable.id, 0.5),
+        "coverage": block.variables.get(coverageVariable.id, 0.8),
+        "cov_mode": block.variables.get(covModeVariable.id, 1),
+    }
+
+    # Rerunning a flow reruns this block whenever anything upstream is touched.
+    # An existing clustering of the same sequences with the same settings is
+    # reused instead of refused or resubmitted.
+    if os.path.exists(folder_name) and _reuse_existing(folder_name, sequences, settings):
+        block.extraData["nothing_to_run"] = True
+        return
+
+    os.makedirs(folder_name, exist_ok=True)
     input_fasta = write_fasta(sequences, os.path.join(folder_name, "input.fasta"))
+    with open(os.path.join(folder_name, SETTINGS_FILE), "w") as sf:
+        json.dump(settings, sf)
     print(f"Clustering {len(sequences)} sequences with MMseqs2 on the cluster...")
 
     mmseqs_cmd = (block.variables.get(mmseqsCommandVariable.id) or "mmseqs").strip()
@@ -251,7 +324,10 @@ def final_mmseqs_slurm(block: SlurmBlock):
 
     # pylint: enable=import-outside-toplevel
 
-    downloaded = downloadResultsAction(block)
+    if block.extraData.get("nothing_to_run"):
+        downloaded = os.getcwd()
+    else:
+        downloaded = downloadResultsAction(block)
     folder_name = block.extraData.get("folder_name", "mmseqs_clustering")
     results = os.path.join(downloaded, folder_name)
 
