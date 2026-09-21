@@ -21,7 +21,7 @@ of them, so the DataFrame is only read once every job has finished.
 """
 
 from HorusAPI import Extensions, PluginBlock, PluginVariable, VariableTypes
-from sequence_io import require_local
+from sequence_io import foreign_python_env, require_local
 
 # ==========================#
 # Variable inputs
@@ -358,7 +358,7 @@ def _build_data_table_page(frame, page_size, csv_name):
     )
 
 
-def _run_extraction_jobs(jobs, cpus, verbose, interpreter):
+def _run_extraction_jobs(jobs, cpus, verbose, interpreter, relax_folder):
     """Generate the parallel scripts and run them to completion."""
     import os
     import re
@@ -400,11 +400,28 @@ def _run_extraction_jobs(jobs, cpus, verbose, interpreter):
         with open(script, "w") as sf:
             sf.write(patched)
 
+    # The extraction script creates its output folders with a check-then-mkdir.
+    # With several scripts starting at once on a fresh folder, two pass the
+    # check together and the loser dies with "File exists", losing that model's
+    # scores. Create them up front so every job finds them already there.
+    for sub in ("scores", "binding_energy", "distances", "ebr", "neighbours"):
+        os.makedirs(os.path.join(relax_folder, ".analysis", sub), exist_ok=True)
+
     print(f"Running {len(jobs)} extraction job(s) across {len(numbered)} script(s)...")
 
+    # -e: a script holds several jobs, and without it its exit status is only
+    # that of the last one, so an earlier failure passed as success and
+    # surfaced later as a misleading "PyRosetta was not found".
     output = None if verbose else subprocess.DEVNULL
     processes = [
-        subprocess.Popen(["bash", script], stdout=output, stderr=subprocess.PIPE)
+        subprocess.Popen(
+            ["bash", "-e", script],
+            stdout=output,
+            stderr=subprocess.PIPE,
+            # PyRosetta lives in its own environment, usually another Python
+            # version: this process's PYTHONPATH would break its imports.
+            env=foreign_python_env(),
+        )
         for script in numbered
     ]
 
@@ -569,7 +586,7 @@ def analyse_rosetta_relax(block: PluginBlock):
 
     if jobs:
         interpreter = block.config.get("pyrosetta_python") or sys.executable
-        _run_extraction_jobs(jobs, cpus, verbose, interpreter)
+        _run_extraction_jobs(jobs, cpus, verbose, interpreter, relax_folder)
     else:
         print("No extraction jobs pending; reading existing results.")
 
