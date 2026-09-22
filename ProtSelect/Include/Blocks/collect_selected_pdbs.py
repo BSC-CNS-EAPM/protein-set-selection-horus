@@ -58,7 +58,7 @@ overwriteVariable = PluginVariable(
     id="overwrite",
     name="Overwrite existing",
     description="Re-copy structures that are already present in the output folder. "
-    "Disabled by default, matching the notebook's skip-if-exists behaviour.",
+    "Disabled by default, so structures already copied are skipped.",
     type=VariableTypes.BOOLEAN,
     defaultValue=False,
 )

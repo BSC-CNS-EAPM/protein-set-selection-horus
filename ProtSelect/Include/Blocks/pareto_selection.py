@@ -70,7 +70,7 @@ objectiveMaximizeVariable = PluginVariable(
 objectivesList = VariableList(
     id="objectives",
     name="Objectives",
-    description="Metrics to optimise. Defaults to the notebook's pair: Q_Average "
+    description="Metrics to optimise. Defaults to the reference workflow's pair: Q_Average "
     "maximised and score_per_residue minimised.",
     prototypes=[objectiveColumnVariable, objectiveMaximizeVariable],
     defaultValue=[

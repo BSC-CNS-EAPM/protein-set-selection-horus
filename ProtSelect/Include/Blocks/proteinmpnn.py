@@ -48,8 +48,8 @@ sequencesFile = PluginVariable(
 folderNameVariable = PluginVariable(
     id="folder_name",
     name="Output folder name",
-    description="Name of the job folder. Use a distinct name per weight set, "
-    "for example 'pmpnn_vanilla' and 'pmpnn_soluble'.",
+    description="Name of the job folder. Each weight set is written to a subfolder "
+    "named after it (vanilla/, soluble/).",
     type=VariableTypes.STRING,
     defaultValue="proteinmpnn",
 )
@@ -173,7 +173,9 @@ clusterModulesVariable = PluginVariable(
 removeExistingResultsVariable = PluginVariable(
     id="remove_existing_results",
     name="Remove existing results",
-    description="Delete the output folder if it already exists.",
+    description="Delete the existing results folder before running. Only applied when the "
+    "run is started from this block: a run that reaches it through its "
+    "connections keeps the results.",
     type=VariableTypes.BOOLEAN,
     defaultValue=False,
 )
@@ -385,8 +387,8 @@ proteinMPNNBlock = SlurmBlock(
     category="ProteinMPNN",
     name="ProteinMPNN Scoring",
     id="proteinmpnn_scoring",
-    description="Score a folder of structures with ProteinMPNN, using either the "
-    "vanilla or the soluble weights.",
+    description="Score a folder of structures with ProteinMPNN, with the vanilla "
+    "weights, the soluble weights, or both.",
     inputs=[pdbsFolder, sequencesFile],
     variables=BSC_JOB_VARIABLES
     + [

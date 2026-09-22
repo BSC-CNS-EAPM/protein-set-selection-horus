@@ -63,7 +63,7 @@ cpusVariable = PluginVariable(
 skipFinishedVariable = PluginVariable(
     id="skip_finished",
     name="Skip finished",
-    description="Do not regenerate extraction jobs whose output already exists.",
+    description="Only extract models whose scores are not extracted yet.",
     type=VariableTypes.BOOLEAN,
     defaultValue=True,
 )

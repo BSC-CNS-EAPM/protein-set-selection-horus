@@ -30,7 +30,8 @@ from HorusAPI import PluginVariable, SlurmBlock, VariableTypes
 sequencesFile = PluginVariable(
     name="Sequences file",
     id="sequences_file",
-    description="Sequences to sample. A FASTA file (e.g. the combined selection) or "
+    description="Sequences to sample: usually the selected sequences from Select Cluster "
+    "Representatives. A FASTA file or "
     "a JSON {name: sequence} mapping.",
     type=VariableTypes.FILE,
     defaultValue=None,
@@ -57,7 +58,7 @@ numSamplesVariable = PluginVariable(
 batchSizeVariable = PluginVariable(
     name="Batch size (per 100 residues)",
     id="batch_size_100",
-    description="BioEmu batch size normalised to 100 residues. The notebook uses 200; "
+    description="BioEmu batch size normalised to 100 residues. The reference workflow uses 200; "
     "the prepare_proteins default is 20. Lower it if you hit GPU memory limits.",
     type=VariableTypes.INTEGER,
     defaultValue=200,
@@ -178,7 +179,9 @@ skipFinishedVariable = PluginVariable(
 removeExistingResults = PluginVariable(
     name="Remove existing results",
     id="remove_existing_results",
-    description="Remove the BioEmu folder if it already exists.",
+    description="Delete the existing results folder before running. Only applied when the "
+    "run is started from this block: a run that reaches it through its "
+    "connections keeps the results.",
     type=VariableTypes.BOOLEAN,
     defaultValue=False,
 )
@@ -512,7 +515,7 @@ bioEmuBlock = SlurmBlock(
     name="BioEmu Sampling",
     id="bioemu_sampling",
     description="Sample conformational ensembles with BioEmu "
-    "(for MareNostrum, Nord3 clusters or local).",
+    "as a SLURM job on a GPU cluster remote, or on the Local remote.",
     initialAction=initial_bioemu,
     finalAction=final_bioemu,
     variables=BSC_JOB_VARIABLES

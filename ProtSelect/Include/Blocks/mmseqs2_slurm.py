@@ -106,7 +106,9 @@ mmseqsCommandVariable = PluginVariable(
 removeExistingResultsVariable = PluginVariable(
     id="remove_existing_results",
     name="Remove existing results",
-    description="Delete the job folder if it already exists.",
+    description="Delete the existing results folder before running. Only applied when the "
+    "run is started from this block: a run that reaches it through its "
+    "connections keeps the results.",
     type=VariableTypes.BOOLEAN,
     defaultValue=False,
 )

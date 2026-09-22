@@ -11,8 +11,8 @@ Reproduces the relax setup and submission of the reference workflow::
                                    program='rosetta', ...)
 
 The jobs are built with ``prepare_proteins`` and handed to the shared BSC
-launcher, so the block runs on MareNostrum / Nord3 or locally exactly like the
-other BSC blocks (Alphafold, PELE).
+launcher, so the block runs on a SLURM cluster or locally like the other
+compute blocks.
 """
 
 from utils import BSC_JOB_VARIABLES, removal_requested
@@ -58,8 +58,8 @@ relaxCyclesVariable = PluginVariable(
 cstOptimizationVariable = PluginVariable(
     name="Constraint optimization",
     id="cst_optimization",
-    description="Run a constrained optimization. The notebook disables this for the "
-    "the reference workflow; note the prepare_proteins default is enabled.",
+    description="Run a constrained optimization. Disabled in the reference workflow; note "
+    "that the prepare_proteins default is enabled.",
     type=VariableTypes.BOOLEAN,
     defaultValue=False,
 )
@@ -80,7 +80,8 @@ caConstraintVariable = PluginVariable(
 skipFinishedVariable = PluginVariable(
     name="Skip finished",
     id="skip_finished",
-    description="Do not regenerate jobs whose output already exists.",
+    description="Only submit models that do not yet have all their structures, so "
+    "an interrupted run resumes where it stopped.",
     type=VariableTypes.BOOLEAN,
     defaultValue=True,
 )
@@ -111,7 +112,9 @@ paramFilesVariable = PluginVariable(
 removeExistingResults = PluginVariable(
     name="Remove existing results",
     id="remove_existing_results",
-    description="Remove the relax folder if it already exists.",
+    description="Delete the existing results folder before running. Only applied when the "
+    "run is started from this block: a run that reaches it through its "
+    "connections keeps the results.",
     type=VariableTypes.BOOLEAN,
     defaultValue=False,
 )
@@ -255,7 +258,7 @@ rosettaRelaxBlock = SlurmBlock(
     name="Rosetta Relax",
     id="rosetta_relax",
     description="Set up and run a Rosetta relax optimization on a folder of models "
-    "(for MareNostrum, Nord3 clusters or local).",
+    "as a SLURM job on a cluster remote, or on the Local remote.",
     initialAction=initial_rosetta_relax,
     finalAction=final_rosetta_relax,
     variables=BSC_JOB_VARIABLES

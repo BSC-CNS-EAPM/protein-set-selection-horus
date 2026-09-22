@@ -504,7 +504,8 @@ def downloadResultsAction(block: SlurmBlock):
 scriptNameVariable = PluginVariable(
     name="Script name",
     id="script_name",
-    description="Name of the script.",
+    description="Name of the generated job script. Change it only to run two "
+    "calculations of the same block in one folder.",
     type=VariableTypes.STRING,
     defaultValue="calculation_script.sh",
     category="Slurm configuration",
@@ -513,7 +514,9 @@ scriptNameVariable = PluginVariable(
 partitionVariable = PluginVariable(
     name="Partition",
     id="partition",
-    description="Partition where to lunch.",
+    description="SLURM queue (QOS) to submit to. On MareNostrum 5, gp_* queues are "
+    "the general-purpose CPU partition and acc_* the GPU partition; *_debug queues "
+    "start fast but are limited to short runs.",
     type=VariableTypes.STRING_LIST,
     defaultValue="gp_bscls",
     allowedValues=["gp_bscls", "gp_debug", "acc_bscls", "acc_debug", "debug", "bsc_ls"],
@@ -534,7 +537,8 @@ cpusVariable = PluginVariable(
 cpusPerTaskVariable = PluginVariable(
     name="CPUs per task",
     id="cpus_per_task",
-    description="Number of CPUs per task to use.",
+    description="CPUs given to each task (OpenMP/threads). Most blocks use one; "
+    "MMseqs2 uses it as its thread count.",
     type=VariableTypes.INTEGER,
     defaultValue=1,
     category="Slurm configuration",
