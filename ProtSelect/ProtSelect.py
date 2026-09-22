@@ -43,9 +43,6 @@ def create_plugin():
     protselect_plugin.addBlock(collectSelectedPDBsBlock)
 
     # ---------- Clustering & Selection ----------
-    from Blocks.mmseqs2 import mmseqsClusterBlock
-
-    protselect_plugin.addBlock(mmseqsClusterBlock)
 
     from Blocks.mmseqs2_slurm import mmseqsClusterSlurmBlock
 

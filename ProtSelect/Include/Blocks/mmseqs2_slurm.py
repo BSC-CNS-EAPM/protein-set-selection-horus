@@ -1,22 +1,20 @@
 """
-Run MMseqs2 sequence clustering on an HPC cluster via SLURM.
+Cluster protein sequences by identity with MMseqs2 (``easy-cluster``).
 
-The SLURM counterpart of the local ``MMseqs2 Clustering`` block, running the
-same ``mmseqs easy-cluster`` call. It earns its place on large families, where
-clustering is slow enough to be worth a job; for a few hundred sequences the
-local block is faster than the queue wait.
+One block for every scale: on a cluster remote it is submitted as a SLURM job,
+worth it for large families; on the Local remote the same job runs on this
+machine, with the binary taken from the ``mmseqs_path`` configuration. There
+used to be a separate local-only block with the same call and outputs; this one
+replaced it. Its id keeps the ``_slurm`` suffix so existing flows still load.
 
 Like every other compute block here it goes through the shared launcher in
 ``utils``, so it gets the same Slurm variables, the account and time handling
 that ``bsc_calculations`` applies, and the same upload/submit/download cycle.
-The block it replaces hand-rolled its own SBATCH header, which meant it emitted
-no ``--account`` unless one was typed in, did no time clamping, and offered a
-different set of fields in the UI from the blocks either side of it.
 
-MMseqs2 is not a program ``bsc_calculations`` knows, so the environment is
-supplied through the usual "cluster modules" variable -- on MareNostrum that is
-``mmseqs2/15-6f452`` -- or through a free-text preamble for anything a module
-does not cover.
+MMseqs2 is not a program ``bsc_calculations`` knows, so on a cluster the
+environment is supplied through the usual "cluster modules" variable -- on
+MareNostrum that is ``mmseqs2/15-6f452`` -- or through a free-text preamble for
+anything a module does not cover. Those are ignored locally.
 """
 
 import os
@@ -256,7 +254,8 @@ def initial_mmseqs_slurm(block: SlurmBlock):
     input_fasta = write_fasta(sequences, os.path.join(folder_name, "input.fasta"))
     with open(os.path.join(folder_name, SETTINGS_FILE), "w") as sf:
         json.dump(settings, sf)
-    print(f"Clustering {len(sequences)} sequences with MMseqs2 on the cluster...")
+    where = "on this machine" if block.remote.isLocal else "as a SLURM job"
+    print(f"Clustering {len(sequences)} sequences with MMseqs2 {where}...")
 
     mmseqs_cmd = (block.variables.get(mmseqsCommandVariable.id) or "mmseqs").strip()
     if block.remote.isLocal and mmseqs_cmd == "mmseqs":
@@ -266,9 +265,7 @@ def initial_mmseqs_slurm(block: SlurmBlock):
         from sequence_io import resolve_executable  # pylint: disable=import-outside-toplevel
 
         mmseqs_cmd = resolve_executable(block, "mmseqs_path", "mmseqs")
-    cpus_per_task = block.variables.get("cpus_per_task") or 1
-
-    command = " ".join([
+    arguments = [
         shlex.quote(mmseqs_cmd),
         "easy-cluster",
         shlex.quote(os.path.basename(input_fasta)),
@@ -277,8 +274,13 @@ def initial_mmseqs_slurm(block: SlurmBlock):
         "--min-seq-id", str(block.variables.get(minSeqIdVariable.id, 0.5)),
         "-c", str(block.variables.get(coverageVariable.id, 0.8)),
         "--cov-mode", str(block.variables.get(covModeVariable.id, 1)),
-        "--threads", str(int(cpus_per_task)),
-    ])
+    ]
+    # On a cluster the job gets cpus_per_task cores and must not use more. On
+    # this machine MMseqs2's own default -- every core -- is the right one.
+    if not block.remote.isLocal:
+        cpus_per_task = block.variables.get("cpus_per_task") or 1
+        arguments += ["--threads", str(int(cpus_per_task))]
+    command = " ".join(arguments)
 
     # easy-cluster writes its output into the working directory, so the job has
     # to run inside the folder that travels to the cluster.
@@ -335,9 +337,10 @@ def final_mmseqs_slurm(block: SlurmBlock):
 
     cluster_tsv = os.path.join(results, CLUSTER_PREFIX + "_cluster.tsv")
     if not os.path.isfile(cluster_tsv):
+        where = ("the calculation_script.sh_*.err logs in the flow folder"
+                 if block.remote.isLocal else "the job's .err file in the results folder")
         raise Exception(
-            f"MMseqs2 clustering result not found ({cluster_tsv}). "
-            "Check the job's .err file in the results folder."
+            f"MMseqs2 clustering result not found ({cluster_tsv}). Check {where}."
         )
 
     clusters: dict = {}
@@ -356,6 +359,12 @@ def final_mmseqs_slurm(block: SlurmBlock):
     rep_seq_fasta = os.path.join(results, CLUSTER_PREFIX + "_rep_seq.fasta")
     if os.path.isfile(rep_seq_fasta):
         shutil.copyfile(rep_seq_fasta, representatives_output)
+    else:
+        # Rebuild it from the clustered input rather than leave the port empty.
+        from sequence_io import read_sequences, write_fasta  # pylint: disable=import-outside-toplevel
+
+        sequences = read_sequences(os.path.join(results, "input.fasta"))
+        write_fasta({r: sequences.get(r, "") for r in clusters}, representatives_output)
 
     print(f"MMseqs2 finished: {len(clusters)} clusters. Results in {results}")
 
@@ -367,10 +376,11 @@ def final_mmseqs_slurm(block: SlurmBlock):
 
 mmseqsClusterSlurmBlock = SlurmBlock(
     category="Clustering & Selection",
-    name="MMseqs2 Clustering (SLURM)",
+    name="MMseqs2 Clustering",
     id="mmseqs2_cluster_slurm",
-    description="Cluster protein sequences by identity with MMseqs2 (easy-cluster), "
-    "submitted as a SLURM job. Use the local block for small sets.",
+    description="Cluster protein sequences by identity with MMseqs2 (easy-cluster). "
+    "Submitted as a SLURM job on a cluster remote, or run on this machine on the "
+    "Local remote.",
     initialAction=initial_mmseqs_slurm,
     finalAction=final_mmseqs_slurm,
     inputs=[sequencesFile],

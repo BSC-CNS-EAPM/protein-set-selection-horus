@@ -19,7 +19,7 @@ assumes it, and the shipped datasets are lysozymes and HMFOs.
 | Stage | Blocks |
 | --- | --- |
 | Score | ProteinMPNN Scoring, Read ProteinMPNN Scores |
-| Cluster | MMseqs2 Clustering (local and SLURM), MMseqs2 Threshold Sweep |
+| Cluster | MMseqs2 Clustering (runs locally or as a SLURM job), MMseqs2 Threshold Sweep |
 | Select | Select Cluster Representatives, Sequence Length Distribution |
 | Prepare | Trim AlphaFold Models, Collect Selected Structures |
 | Relax | Rosetta Relax, Analyse Rosetta Relax |
