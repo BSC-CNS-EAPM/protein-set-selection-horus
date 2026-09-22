@@ -1,0 +1,43 @@
+name: Docs
+
+# Build the documentation on every pull request, so a broken page or a block
+# the reference generator cannot read fails the check, and publish it to
+# GitHub Pages from main.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up the docs environment
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-file: Devtools/Environment/docs.yaml
+          environment-name: protselect_docs
+          cache-environment: true
+
+      # -W: warnings are errors, so a malformed description in a block fails
+      # here rather than rendering wrongly.
+      - name: Build
+        shell: bash -el {0}
+        run: sphinx-build -b html -W --keep-going docs docs/build/html
+
+      - name: Publish to GitHub Pages
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: docs/build/html

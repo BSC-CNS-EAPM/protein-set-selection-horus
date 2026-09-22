@@ -1,0 +1,11 @@
+name: protselect_docs
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      - sphinx==7.4.7
+      - pydata_sphinx_theme==0.15.4
+      - sphinx_design==0.6.1
+      - sphinx_copybutton==0.5.2

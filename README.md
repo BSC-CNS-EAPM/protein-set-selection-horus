@@ -10,9 +10,25 @@ their conformational ensembles with BioEmu, ranks what is left on a Pareto
 front, and codon-optimises the winners for expression.
 
 The plugin is family-agnostic: every block takes a sequences FASTA/JSON, a
-folder of structures, or a scores file. The worked example in the documentation
-happens to be a set of unspecific peroxygenases, but nothing in the blocks
-assumes it, and the shipped datasets are lysozymes and HMFOs.
+folder of structures, or a scores file. The workflow was developed for
+unspecific peroxygenases, but nothing in the blocks assumes it, and the shipped
+datasets are lysozymes and HMFOs.
+
+## Documentation
+
+The [documentation](https://bsc-cns-eapm.github.io/protein-set-selection-horus/)
+covers installation, the external tools, setting up cluster remotes (including
+the GPU/CPU split on MareNostrum 5), the workflow and the preset flow, and has a
+reference page for every block's inputs, parameters and outputs.
+
+The block reference is generated from the block definitions at every build, so
+it always matches the code. Build it locally with:
+
+```bash
+micromamba create -f Devtools/Environment/docs.yaml
+micromamba activate protselect_docs
+sphinx-build -b html -W docs docs/build/html
+```
 
 ## The pipeline
 
@@ -91,6 +107,7 @@ ProtSelect/                 the plugin root (this is what gets zipped)
     ├── env_manager.py      external tool detection and installation
     └── utils.py            SLURM and local job submission
 docs/                       Sphinx site published to GitHub Pages
+└── _ext/                  generates the block reference from Include/Blocks
 ```
 
 ## Relationship to EAPM-plugins

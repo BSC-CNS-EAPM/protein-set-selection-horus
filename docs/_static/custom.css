@@ -1,0 +1,16 @@
+/* Tables use the column widths set in the source: without a fixed layout one
+   long unbreakable value widens its column and pushes the table past the
+   page. */
+article table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+/* Long literals (paths, executables, defaults) wrap inside table cells.
+   Sphinx puts the text of inline code in span.pre, which the theme sets to
+   nowrap. */
+article table td code,
+article table td span.pre {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

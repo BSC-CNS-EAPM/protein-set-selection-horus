@@ -56,6 +56,8 @@ ProtSelect/config/
 # Sphinx build output
 docs/build/
 docs/_build/
+# Generated from the block source at every docs build (docs/_ext)
+docs/reference/
 
 # Scratch flows and test outputs
 ProtSelect/*.flow.bak
