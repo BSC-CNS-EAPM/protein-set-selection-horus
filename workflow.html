@@ -1,0 +1,817 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>The workflow &#8212; Protein Set Selection</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=60d9f863" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=2709fde1"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'workflow';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Troubleshooting" href="troubleshooting.html" />
+    <link rel="prev" title="Example data" href="example_data.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Protein Set Selection</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="configuration.html">
+    Tools and configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="remotes.html">
+    Remotes and clusters
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="example_data.html">
+    Example data
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    The workflow
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="troubleshooting.html">
+    Troubleshooting
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="reference/index.html">
+    Block reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/BSC-CNS-EAPM/protein-set-selection-horus" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.bsc.es/" title="Barcelona Supercomputing Center" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa fa-globe fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Barcelona Supercomputing Center</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="configuration.html">
+    Tools and configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="remotes.html">
+    Remotes and clusters
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="example_data.html">
+    Example data
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    The workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="troubleshooting.html">
+    Troubleshooting
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="reference/index.html">
+    Block reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/BSC-CNS-EAPM/protein-set-selection-horus" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.bsc.es/" title="Barcelona Supercomputing Center" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa fa-globe fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Barcelona Supercomputing Center</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">The workflow</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="the-workflow">
+<h1>The workflow<a class="headerlink" href="#the-workflow" title="Link to this heading">#</a></h1>
+<p>Given many structures of a protein family, the pipeline selects a few proteins
+that are</p>
+<ul class="simple">
+<li><p><strong>diverse</strong>: at most one per sequence cluster;</p></li>
+<li><p><strong>well designed</strong>: good ProteinMPNN scores, which correlate with sequences that
+fold and express;</p></li>
+<li><p><strong>stable</strong>: low Rosetta energy after relax, and a folded ensemble in BioEmu.</p></li>
+</ul>
+<p>It then prepares them for the lab: codon-optimised DNA, plus an alignment and a
+tree to check how diverse the final set is.</p>
+<section id="stages">
+<h2>Stages<a class="headerlink" href="#stages" title="Link to this heading">#</a></h2>
+<section id="score-the-structures-with-proteinmpnn">
+<h3>1. Score the structures with ProteinMPNN<a class="headerlink" href="#score-the-structures-with-proteinmpnn" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="reference/blocks/proteinmpnn_scoring.html#block-proteinmpnn-scoring"><span class="std std-ref">ProteinMPNN Scoring</span></a> scores each structure's
+own sequence (<strong>score only</strong>) with the <strong>vanilla</strong> and the <strong>soluble</strong> weights.
+The soluble weights were trained without membrane proteins, so the two score
+sets favour somewhat different proteins. <a class="reference internal" href="reference/blocks/read_proteinmpnn_scores.html#block-read-proteinmpnn-scores"><span class="std std-ref">Read ProteinMPNN Scores</span></a> averages the per-sample scores into one
+<code class="docutils literal notranslate"><span class="pre">{model:</span> <span class="pre">score}</span></code> table per weight set. <strong>Lower is better.</strong></p>
+</section>
+<section id="cluster-the-sequences-with-mmseqs2">
+<h3>2. Cluster the sequences with MMseqs2<a class="headerlink" href="#cluster-the-sequences-with-mmseqs2" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="reference/blocks/mmseqs2_cluster_slurm.html#block-mmseqs2-cluster-slurm"><span class="std std-ref">MMseqs2 Clustering</span></a> groups the sequences
+at a minimum sequence identity (<code class="docutils literal notranslate"><span class="pre">min_seq_id</span></code>, default 0.5) and coverage. Each
+cluster is a group of close homologues, so taking one protein per cluster keeps
+the final set diverse. To choose the identity threshold, run <a class="reference internal" href="reference/blocks/mmseqs2_threshold_sweep.html#block-mmseqs2-threshold-sweep"><span class="std std-ref">MMseqs2
+Threshold Sweep</span></a> first: it clusters over a range
+of thresholds and plots, for each one, the score distribution of the top-N
+representatives it would select. It needs a scores file, so connect it to one
+of the ProteinMPNN score outputs.</p>
+</section>
+<section id="pick-one-representative-per-cluster">
+<h3>3. Pick one representative per cluster<a class="headerlink" href="#pick-one-representative-per-cluster" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="reference/blocks/select_cluster_representatives.html#block-select-cluster-representatives"><span class="std std-ref">Select Cluster Representatives</span></a>
+ranks the clusters by their best-scoring member, keeps the top N clusters
+(<code class="docutils literal notranslate"><span class="pre">top_n_clusters</span></code>, default 100) and takes the best member of each. It does
+this separately for the vanilla and soluble scores and keeps the <strong>union</strong>,
+labelling each model <em>vanilla only</em>, <em>soluble only</em> or <em>common</em>. Connect the
+sequences file too: the block then writes the selected sequences, which BioEmu
+and MAFFT need.</p>
+<p><a class="reference internal" href="reference/blocks/collect_selected_pdbs.html#block-collect-selected-pdbs"><span class="std std-ref">Collect Selected Structures</span></a> copies the
+selected models' structures into their own folder.</p>
+</section>
+<section id="relax-with-rosetta">
+<h3>4. Relax with Rosetta<a class="headerlink" href="#relax-with-rosetta" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="reference/blocks/rosetta_relax.html#block-rosetta-relax"><span class="std std-ref">Rosetta Relax</span></a> relaxes every selected structure
+<code class="docutils literal notranslate"><span class="pre">nstruct</span></code> times (default 100) with <code class="docutils literal notranslate"><span class="pre">rosetta_scripts</span></code>. <a class="reference internal" href="reference/blocks/analyse_rosetta_relax.html#block-analyse-rosetta-relax"><span class="std std-ref">Analyse Rosetta
+Relax</span></a> extracts the energies with PyRosetta and
+summarises them per model, including <code class="docutils literal notranslate"><span class="pre">score_per_residue</span></code> (mean score divided
+by length), which compares proteins of different sizes fairly.</p>
+</section>
+<section id="sample-conformations-with-bioemu">
+<h3>5. Sample conformations with BioEmu<a class="headerlink" href="#sample-conformations-with-bioemu" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="reference/blocks/bioemu_sampling.html#block-bioemu-sampling"><span class="std std-ref">BioEmu Sampling</span></a> generates an ensemble of
+structures for each selected sequence (<code class="docutils literal notranslate"><span class="pre">num_samples</span></code>, default 10,000).
+<a class="reference internal" href="reference/blocks/analyse_bioemu.html#block-analyse-bioemu"><span class="std std-ref">Analyse BioEmu</span></a> compares each ensemble with the
+model's structure:</p>
+<ul class="simple">
+<li><p><strong>RMSD</strong> and <strong>RMSF</strong>: how far and how much the ensemble moves;</p></li>
+<li><p><strong>Q</strong>, the fraction of native contacts (needs SMOG2): how much of the model's
+fold each sample keeps;</p></li>
+<li><p><strong>dGf</strong>, a folding free energy from the fraction of samples above a Q
+threshold.</p></li>
+</ul>
+<p>dGf needs both folded and unfolded samples. With few samples, or a very stable
+protein, every sample is folded and dGf is not computed. That is expected, not
+an error.</p>
+</section>
+<section id="rank-with-a-pareto-selection">
+<h3>6. Rank with a Pareto selection<a class="headerlink" href="#rank-with-a-pareto-selection" title="Link to this heading">#</a></h3>
+<p><a class="reference internal" href="reference/blocks/pareto_selection.html#block-pareto-selection"><span class="std std-ref">Pareto Selection</span></a> merges the BioEmu metrics with
+the Rosetta summary and ranks the models into Pareto fronts. The default
+objectives are <strong>Q_Average</strong> (maximised) and <strong>score_per_residue</strong> (minimised).
+Models on the first front are not beaten on both objectives by any other model.
+It selects <code class="docutils literal notranslate"><span class="pre">n_select</span></code> models (default 10) by front and, within a front, by
+crowding distance, which favours models spread along the front. Models missing
+any objective (for example, sampled by BioEmu but never relaxed) are dropped,
+with a warning.</p>
+</section>
+<section id="prepare-for-expression-and-inspect-the-set">
+<h3>7. Prepare for expression and inspect the set<a class="headerlink" href="#prepare-for-expression-and-inspect-the-set" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><a class="reference internal" href="reference/blocks/codon_transformer.html#block-codon-transformer"><span class="std std-ref">CodonTransformer</span></a> codon-optimises the Pareto
+selection for an expression host (default <em>E. coli</em>).</p></li>
+<li><p><a class="reference internal" href="reference/blocks/mafft_msa.html#block-mafft-msa"><span class="std std-ref">MAFFT</span></a> aligns the selected sequences, and
+<a class="reference internal" href="reference/blocks/phylogenetic_tree.html#block-phylogenetic-tree"><span class="std std-ref">Phylogenetic Tree</span></a> builds a
+neighbour-joining tree from the alignment, to see how diverse the set is.</p></li>
+</ul>
+</section>
+</section>
+<section id="the-protesel-pipeline-preset">
+<h2>The ProteSel Pipeline preset<a class="headerlink" href="#the-protesel-pipeline-preset" title="Link to this heading">#</a></h2>
+<p>The whole pipeline ships as a flow. In Horus, open the <strong>Protein Set Selection</strong>
+plugin's presets and choose <strong>ProteSel Pipeline</strong>.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Folder (structures) ──┬─&gt; ProteinMPNN Scoring ─&gt; Read ProteinMPNN Scores ─┐
+                      │                                                  │
+File (sequences) ─────┼─&gt; MMseqs2 Clustering ────────────────────────────┤
+                      │                                                  v
+                      └──────────────────────────&gt; Select Cluster Representatives
+                                                       │         │          │
+                  ┌────────────────────────────────────┘         │          │
+                  v                                              v          │
+       Collect Selected Structures                        BioEmu Sampling    │
+                  │                                              │          │
+                  v                                              v          │
+            Rosetta Relax ─&gt; Analyse Rosetta Relax        Analyse BioEmu     │
+                                       │                         │          │
+                                       └──────&gt; Pareto Selection &lt;┘&lt;── origin┘
+                                                       │
+                                                       v
+                                               CodonTransformer
+
+       Select Cluster Representatives ─&gt; MAFFT ─&gt; Phylogenetic Tree
+</pre></div>
+</div>
+<p>The main connections:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>From</p></th>
+<th class="head"><p>To</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Folder (structures)</p></td>
+<td><p>ProteinMPNN Scoring, Collect Selected Structures, Analyse BioEmu</p></td>
+</tr>
+<tr class="row-odd"><td><p>File (sequences)</p></td>
+<td><p>MMseqs2 Clustering, Select Cluster Representatives, ProteinMPNN Scoring,
+CodonTransformer, Analyse BioEmu</p></td>
+</tr>
+<tr class="row-even"><td><p>Read ProteinMPNN Scores: vanilla / soluble scores</p></td>
+<td><p>Select Cluster Representatives</p></td>
+</tr>
+<tr class="row-odd"><td><p>MMseqs2 Clustering: clusters</p></td>
+<td><p>Select Cluster Representatives</p></td>
+</tr>
+<tr class="row-even"><td><p>Select Cluster Representatives: selected models</p></td>
+<td><p>Collect Selected Structures</p></td>
+</tr>
+<tr class="row-odd"><td><p>Select Cluster Representatives: selected sequences</p></td>
+<td><p>BioEmu Sampling, MAFFT</p></td>
+</tr>
+<tr class="row-even"><td><p>Select Cluster Representatives: origin</p></td>
+<td><p>Pareto Selection (colours the plot)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Analyse Rosetta Relax: score summary; Analyse BioEmu: metrics</p></td>
+<td><p>Pareto Selection</p></td>
+</tr>
+<tr class="row-even"><td><p>Pareto Selection: selected models</p></td>
+<td><p>CodonTransformer</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The preset's settings are for a production run: Rosetta <code class="docutils literal notranslate"><span class="pre">nstruct</span></code> 100 with
+101 CPUs, BioEmu 10,000 samples, Pareto 10 models, and ProteinMPNN grouped into
+one short job.</p>
+<section id="running-the-preset">
+<h3>Running the preset<a class="headerlink" href="#running-the-preset" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p>In the <strong>Folder</strong> block, select the folder of structures. In the <strong>File</strong>
+block, select the sequences file (FASTA or JSON, keyed by the structure file
+names). To try it, use <code class="docutils literal notranslate"><span class="pre">ExampleData/hmfo</span></code>; see <a class="reference internal" href="example_data.html"><span class="doc">Example data</span></a>.</p></li>
+<li><p>Assign the remotes: ProteinMPNN and BioEmu to your GPU remote, MMseqs2 and
+Rosetta to your CPU remote (see <a class="reference internal" href="remotes.html"><span class="doc">Remotes and clusters</span></a>). Leave the rest on Local.</p></li>
+<li><p>For a quick test, reduce the expensive settings first: Rosetta <code class="docutils literal notranslate"><span class="pre">nstruct</span></code> 2
+(and <strong>CPUs</strong> 3), BioEmu <code class="docutils literal notranslate"><span class="pre">num_samples</span></code> 10, Pareto <code class="docutils literal notranslate"><span class="pre">n_select</span></code> below the
+number of representatives.</p></li>
+<li><p>Run the flow from the first block. Horus runs each block once its inputs are
+ready and waits for the cluster jobs.</p></li>
+</ol>
+</section>
+<section id="where-the-results-are">
+<h3>Where the results are<a class="headerlink" href="#where-the-results-are" title="Link to this heading">#</a></h3>
+<p>Horus runs the flow in a folder named after the flow, next to the <code class="docutils literal notranslate"><span class="pre">.flow</span></code>
+file. The main outputs:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>File or folder</p></th>
+<th class="head"><p>Content</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">proteinmpnn/</span></code>, <code class="docutils literal notranslate"><span class="pre">proteinmpnn_scores_vanilla.json</span></code>, <code class="docutils literal notranslate"><span class="pre">proteinmpnn_scores_soluble.json</span></code></p></td>
+<td><p>ProteinMPNN runs and per-model scores</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mmseqs_clustering/</span></code>, <code class="docutils literal notranslate"><span class="pre">mmseqs_clusters.json</span></code></p></td>
+<td><p>MMseqs2 run and <code class="docutils literal notranslate"><span class="pre">{representative:</span> <span class="pre">[members]}</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">selected_models.json</span></code>, <code class="docutils literal notranslate"><span class="pre">selected_sequences.fasta</span></code>, <code class="docutils literal notranslate"><span class="pre">selected_origin.json</span></code>, <code class="docutils literal notranslate"><span class="pre">selection_table.csv</span></code></p></td>
+<td><p>the cluster representatives</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">selected_models/</span></code></p></td>
+<td><p>their structures</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">relax_selected_models/</span></code>, <code class="docutils literal notranslate"><span class="pre">rosetta_score_summary.csv</span></code></p></td>
+<td><p>Rosetta relax output and per-model energies</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">bioemu_sampling/</span></code>, <code class="docutils literal notranslate"><span class="pre">bioemu_metrics.csv</span></code></p></td>
+<td><p>BioEmu ensembles and per-model metrics</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">pareto_ranked_models.csv</span></code>, <code class="docutils literal notranslate"><span class="pre">pareto_selected_models.json</span></code>, <code class="docutils literal notranslate"><span class="pre">pareto_selection_plot.png</span></code></p></td>
+<td><p>the Pareto ranking and final selection</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">codon_optimised_dna.fasta</span></code></p></td>
+<td><p>the DNA for the final selection</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">msa.fasta</span></code>, <code class="docutils literal notranslate"><span class="pre">phylogenetic_tree.nwk</span></code>, <code class="docutils literal notranslate"><span class="pre">phylogenetic_tree.png</span></code></p></td>
+<td><p>alignment and tree</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="rerunning-and-resuming">
+<h2>Rerunning and resuming<a class="headerlink" href="#rerunning-and-resuming" title="Link to this heading">#</a></h2>
+<p>Running a block in Horus also reruns every block <strong>downstream</strong> of it. The
+blocks are built so that rerunning is cheap and safe.</p>
+<p><strong>Skip finished (default on).</strong> ProteinMPNN Scoring, Rosetta Relax and BioEmu
+Sampling reuse their existing folder and only submit the models that are not
+finished. A run that stopped half-way, for example a Rosetta job that hit its
+walltime, resumes where it stopped: rerun the block and only the unfinished
+models are submitted. If everything is already finished, the block completes
+without submitting anything.</p>
+<p><strong>MMseqs2 Clustering</strong> reuses an existing clustering when the sequences and
+settings are the same. If you change <code class="docutils literal notranslate"><span class="pre">min_seq_id</span></code>, coverage or the sequences,
+it stops and says what changed. Use a new folder name, or turn on <strong>Remove
+existing results</strong>, to recluster.</p>
+<p><strong>Remove existing results</strong> deletes the block's folder and starts over, but
+<strong>only when you run that block itself</strong>. When a run started further up reaches
+the block, the results are kept and the log says so. Leaving the option on is
+therefore safe: it will not delete a finished calculation because you changed
+something upstream. (This needs a Horus version that records which block a run
+was started from. On older versions the results are always kept; delete the
+folder by hand to start over.)</p>
+<p><strong>A cluster block that ended in a failed or unknown state</strong> after its job
+finished: use the block's <strong>Continue</strong> action, not <strong>Run</strong>. Continue skips the
+submission and downloads the results. Run submits the job again.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="example_data.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Example data</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="troubleshooting.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Troubleshooting</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stages">Stages</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#score-the-structures-with-proteinmpnn">1. Score the structures with ProteinMPNN</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cluster-the-sequences-with-mmseqs2">2. Cluster the sequences with MMseqs2</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pick-one-representative-per-cluster">3. Pick one representative per cluster</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#relax-with-rosetta">4. Relax with Rosetta</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sample-conformations-with-bioemu">5. Sample conformations with BioEmu</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rank-with-a-pareto-selection">6. Rank with a Pareto selection</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prepare-for-expression-and-inspect-the-set">7. Prepare for expression and inspect the set</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-protesel-pipeline-preset">The ProteSel Pipeline preset</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#running-the-preset">Running the preset</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#where-the-results-are">Where the results are</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#rerunning-and-resuming">Rerunning and resuming</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, BSC | Barcelona Supercomputing Center.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

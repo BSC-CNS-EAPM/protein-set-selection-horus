@@ -1,0 +1,100 @@
+.. _block-select_cluster_representatives:
+
+Select Cluster Representatives
+==============================
+
+:Block id: ``protselect.select_cluster_representatives``
+:Category: Clustering & Selection
+:Runs on: the machine running Horus
+:Source: ``ProtSelect/Include/Blocks/select_cluster_representatives.py``
+
+Keep the best-scoring member of each of the top-N clusters. Give the vanilla and soluble scores to select from both and keep the union.
+
+Inputs
+------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 3 12
+
+   * - Input
+     - Type
+     - Accepts
+     - Required
+     - Description
+   * - **Clusters file** (``clusters_file``)
+     - file
+     - .json
+     - yes
+     - JSON mapping each cluster representative to its member list, as produced by the MMseqs2 Clustering block.
+   * - **Vanilla scores** (``vanilla_scores_file``)
+     - file
+     - .json, .csv
+     - no
+     - Per-model scores under the vanilla ProteinMPNN weights: a JSON file mapping model name to score, or a CSV with a name and a score column. Give this, the soluble scores, or both.
+   * - **Soluble scores** (``soluble_scores_file``)
+     - file
+     - .json, .csv
+     - no
+     - Per-model scores under the soluble ProteinMPNN weights. Selected independently of the vanilla scores; with both given the result is the union.
+   * - **Sequences file (optional)** (``sequences_file``)
+     - file
+     - .fasta, .fa, .faa, .json
+     - no
+     - Sequences of the clustered models. When given, the selected sequences are written out as a FASTA for the rest of the pipeline.
+
+Parameters
+----------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 4 12
+
+   * - Parameter
+     - Type
+     - Default
+     - Description
+   * - **Top N clusters** (``top_n_clusters``)
+     - integer
+     - ``100``
+     - Number of best-scoring clusters to keep, per score set.
+   * - **Maximize score** (``maximize``)
+     - boolean
+     - ``False``
+     - If enabled, higher scores are better. By default lower scores are better, as with ProteinMPNN scores.
+   * - **Combine as** (``model_selection``)
+     - string list
+     - ``both``
+     - How to combine the two selections when both score sets are given. 'both' keeps the union; 'vanilla' or 'soluble' keep only that one. Choices: ``both``, ``vanilla``, ``soluble``.
+
+Outputs
+-------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 12
+
+   * - Output
+     - Type
+     - Format
+     - Description
+   * - **Selected models** (``selected_models_file``)
+     - file
+     - .json
+     - JSON list of the selected model names.
+   * - **Selected sequences** (``selected_sequences_file``)
+     - file
+     - .fasta
+     - FASTA of the selected sequences (only when a sequences file is given).
+   * - **Selected scores** (``selected_scores_file``)
+     - file
+     - .json
+     - JSON mapping each selected model to its score. With both score sets, the score from the set that selected it (the vanilla one, when both did).
+   * - **Origin** (``origin_file``)
+     - file
+     - .json
+     - JSON labelling each selected model 'vanilla only', 'soluble only' or 'common'. Feed this to the Pareto Selection block to colour its plot.
+   * - **Selection table** (``selection_table_file``)
+     - file
+     - .csv
+     - CSV of the selection: cluster, chosen model, score, cluster size and which score set chose it.

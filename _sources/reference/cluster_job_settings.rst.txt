@@ -1,0 +1,47 @@
+.. _cluster-job-settings:
+
+Cluster job settings
+====================
+
+Every block that can run as a SLURM job (ProteinMPNN Scoring, MMseqs2 Clustering, Rosetta Relax, BioEmu Sampling) has these settings, shown under *Slurm configuration* in the block. On the Local remote only **CPUs** matters: it sets how many jobs run in parallel. See :doc:`../remotes` for how to choose values.
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 4 12
+
+   * - Setting
+     - Type
+     - Default
+     - Description
+   * - **Script name** (``script_name``)
+     - string
+     - ``calculation_script.sh``
+     - Name of the generated job script. Change it only to run two calculations of the same block in one folder.
+   * - **Partition** (``partition``)
+     - string list
+     - ``gp_bscls``
+     - SLURM queue (QOS) to submit to. On MareNostrum 5, gp\_\* queues are the general-purpose CPU partition and acc\_\* the GPU partition; \*_debug queues start fast but are limited to short runs. Choices: ``gp_bscls``, ``gp_debug``, ``acc_bscls``, ``acc_debug``, ``debug``, ``bsc_ls``.
+   * - **CPUs** (``cpus``)
+     - integer
+     - ``1``
+     - Number of CPUs to use. On a cluster this sets the job's tasks/CPUs; running locally it sets how many jobs run in parallel (capped by the number of jobs).
+   * - **CPUs per task** (``cpus_per_task``)
+     - integer
+     - ``1``
+     - CPUs given to each task (OpenMP/threads). Most blocks use one; MMseqs2 uses it as its thread count.
+   * - **Walltime (hours)** (``time``)
+     - integer
+     - ``0``
+     - Wall clock limit in hours. bsc_calculations clamps this to the QOS cap (2h on the \*_debug queues), and a request far above what a job needs only makes it queue longer. 0 leaves the bsc_calculations default of 48h.
+   * - **Group jobs per array task** (``group_jobs_by``)
+     - integer
+     - ``0``
+     - Bundle this many jobs into each array task, run one after another. One array task per job is right for long jobs, but for jobs of a few minutes the queue wait dominates: ten one-minute jobs each wait separately. Setting this to the number of jobs runs them all in a single task. 0 keeps one task per job.
+   * - **Environment variables** (``environment_list``)
+     - list
+     - —
+     - Environment variables to set during the remote connection. Each entry has: ``environment_key`` (string), ``environment_value`` (string).
+   * - **Remove remote folder on finish** (``remove_folder_on_finish``)
+     - boolean
+     - ``True``
+     - Deletes the calculation folder on the remote on finish.

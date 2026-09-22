@@ -1,0 +1,119 @@
+.. _block-analyse_bioemu:
+
+Analyse BioEmu
+==============
+
+:Block id: ``protselect.analyse_bioemu``
+:Category: BioEmu
+:Runs on: the machine running Horus
+:Source: ``ProtSelect/Include/Blocks/analyse_bioemu.py``
+
+Compute the RMSD, RMSF, fraction of native contacts (Q) and folding free energy of a BioEmu ensemble, and display them in one table and plot.
+
+Inputs
+------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 3 12
+
+   * - Input
+     - Type
+     - Accepts
+     - Required
+     - Description
+   * - **Sequences file** (``sequences_file``)
+     - file
+     - .fasta, .fa, .faa, .json
+     - yes
+     - FASTA (or JSON {name: sequence}) with the sampled sequences.
+   * - **BioEmu folder** (``bioemu_folder``)
+     - folder
+     - —
+     - yes
+     - BioEmu sampling folder produced by the 'BioEmu Sampling' block.
+   * - **Reference models folder** (``models_folder``)
+     - folder
+     - —
+     - yes
+     - Folder with the reference structures (e.g. 'selected_models'), used as the RMSD/RMSF reference and as the native state for the contacts.
+
+Parameters
+----------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 4 12
+
+   * - Parameter
+     - Type
+     - Default
+     - Description
+   * - **Compute native contacts** (``compute_native_contacts``)
+     - boolean
+     - ``True``
+     - Compute the fraction of native contacts (Q) and the folding free energy. Requires SMOG; disable to get only RMSD and RMSF.
+   * - **Native contacts folder** (``native_contacts_folder``)
+     - string
+     - ``native_contacts``
+     - Working folder for the native-contacts calculation.
+   * - **Q method** (``q_method``)
+     - string
+     - ``hard``
+     - Method used to decide whether a native contact is formed.
+   * - **Contact inflation** (``inflation``)
+     - float
+     - ``1.2``
+     - Distance inflation factor applied to the native contact cutoff.
+   * - **Relative tolerance** (``rel_tolerance``)
+     - float
+     - ``0.2``
+     - Relative tolerance used by the soft contact criterion.
+   * - **Q threshold** (``q_threshold``)
+     - float
+     - ``0.8``
+     - Q value above which a conformation counts as folded.
+   * - **Temperature (K)** (``temperature``)
+     - float
+     - ``300.0``
+     - Temperature used for the folding free energy.
+   * - **Plot type** (``plot_type``)
+     - string
+     - ``violin``
+     - How to show the per-model RMSD and Q distributions.
+   * - **Max models in plot** (``max_models_plot``)
+     - integer
+     - ``60``
+     - Only this many models are drawn, keeping the x-axis readable. Set to 0 to plot every model.
+
+Outputs
+-------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 12
+
+   * - Output
+     - Type
+     - Format
+     - Description
+   * - **BioEmu metrics** (``metrics_file``)
+     - file
+     - .csv
+     - CSV with the combined per-model metrics (RMSD, RMSF, Q and dGf).
+   * - **RMSD values** (``rmsd_file``)
+     - file
+     - .json
+     - JSON mapping each model to its per-sample RMSD values.
+   * - **RMSF values** (``rmsf_file``)
+     - file
+     - .json
+     - JSON mapping each model to its per-residue RMSF values.
+   * - **Fraction of native contacts** (``q_file``)
+     - file
+     - .csv
+     - CSV with the per-model/pose fraction of native contacts (Q).
+   * - **Metrics plot** (``plot_file``)
+     - file
+     - .png
+     - PNG with the RMSD, RMSF, Q and folding free energy panels.

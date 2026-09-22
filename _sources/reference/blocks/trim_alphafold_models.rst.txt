@@ -1,0 +1,65 @@
+.. _block-trim_alphafold_models:
+
+Trim Alphafold models
+=====================
+
+:Block id: ``protselect.trim_alphafold_models``
+:Category: Structure Preparation
+:Runs on: the machine running Horus
+:Source: ``ProtSelect/Include/Blocks/trim_alphafold_models.py``
+
+Trim the Alphafold models
+
+Inputs
+------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 3 12
+
+   * - Input
+     - Type
+     - Accepts
+     - Required
+     - Description
+   * - **Models** (``results_folder``)
+     - folder
+     - —
+     - yes
+     - Folder containing the Alphafold output PDBs
+
+Parameters
+----------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 4 12
+
+   * - Parameter
+     - Type
+     - Default
+     - Description
+   * - **Confidence threshold** (``confidence_threshold``)
+     - float
+     - ``90.0``
+     - Threshold confidence indicates the maximumconfidence score at which to stop the trimming of terminal regions.
+
+Outputs
+-------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 12
+
+   * - Output
+     - Type
+     - Format
+     - Description
+   * - **First PDB** (``out_pdb``)
+     - file
+     - .pdb
+     - First PDB of the Alphafold.
+   * - **Trimmed models** (``trimmed_models``)
+     - folder
+     - —
+     - Folder containing the trimmed models

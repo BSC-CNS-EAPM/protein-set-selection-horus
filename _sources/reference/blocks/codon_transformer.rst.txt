@@ -1,0 +1,86 @@
+.. _block-codon_transformer:
+
+CodonTransformer
+================
+
+:Block id: ``protselect.codon_transformer``
+:Category: Design & Prediction
+:Runs on: the machine running Horus
+:Source: ``ProtSelect/Include/Blocks/codon_transformer.py``
+
+Codon-optimise protein sequences for expression in a host organism using CodonTransformer.
+
+Inputs
+------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 3 12
+
+   * - Input
+     - Type
+     - Accepts
+     - Required
+     - Description
+   * - **Protein sequences** (``sequences_file``)
+     - file
+     - .fasta, .fa, .faa, .json
+     - yes
+     - Protein sequences to codon-optimise. A FASTA file or a JSON {name: sequence} mapping.
+   * - **Models subset (optional)** (``models_file``)
+     - file
+     - .json
+     - yes
+     - Optional JSON list of model names (e.g. the Pareto selection) used to restrict the optimisation to those sequences.
+
+Parameters
+----------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 4 12
+
+   * - Parameter
+     - Type
+     - Default
+     - Description
+   * - **Host organism** (``organism``)
+     - string
+     - ``Escherichia coli general``
+     - Expression host whose codon usage is targeted.
+   * - **Device** (``device``)
+     - string
+     - ``cpu``
+     - Torch device used to run the model. Use 'cuda' when a GPU is available; 'cpu' works but is slower.
+   * - **CodonTransformer environment** (``codon_transformer_conda_env``)
+     - string
+     - —
+     - Environment holding CodonTransformer: an env name (looked up in the conda/micromamba roots), a path to the environment, or a path to its python. Leave empty to use the 'codontransformer_env' plugin configuration, and failing that the Horus backend's own interpreter.
+   * - **Add start methionine** (``add_start_methionine``)
+     - boolean
+     - ``True``
+     - Prepend a start methionine to sequences that lack one.
+
+Outputs
+-------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 12
+
+   * - Output
+     - Type
+     - Format
+     - Description
+   * - **Optimised DNA (FASTA)** (``dna_fasta_file``)
+     - file
+     - .fasta
+     - FASTA with the codon-optimised DNA sequences.
+   * - **Optimised DNA (JSON)** (``dna_json_file``)
+     - file
+     - .json
+     - JSON mapping each model to its optimised DNA sequence.
+   * - **Expression table** (``table_file``)
+     - file
+     - .csv
+     - CSV with the protein sequence, the optimised DNA and its length for each model.

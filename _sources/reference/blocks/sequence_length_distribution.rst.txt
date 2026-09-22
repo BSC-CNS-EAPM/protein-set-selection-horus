@@ -1,0 +1,77 @@
+.. _block-sequence_length_distribution:
+
+Sequence Length Distribution
+============================
+
+:Block id: ``protselect.sequence_length_distribution``
+:Category: Clustering & Selection
+:Runs on: the machine running Horus
+:Source: ``ProtSelect/Include/Blocks/sequence_length_distribution.py``
+
+Plot the length distribution of a set of sequences and export the per-model residue counts.
+
+Inputs
+------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 3 12
+
+   * - Input
+     - Type
+     - Accepts
+     - Required
+     - Description
+   * - **Sequences file** (``sequences_file``)
+     - file
+     - .fasta, .fa, .faa, .json
+     - yes
+     - Sequences to measure. A FASTA file or a JSON {name: sequence} mapping.
+
+Parameters
+----------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 4 12
+
+   * - Parameter
+     - Type
+     - Default
+     - Description
+   * - **Bins** (``bins``)
+     - integer
+     - ``30``
+     - Number of histogram bins.
+   * - **Show KDE** (``kde``)
+     - boolean
+     - ``True``
+     - Overlay a kernel density estimate on the histogram.
+   * - **Plot title** (``title``)
+     - string
+     - ``Protein Sequence Length Distribution``
+     - Title shown on the plot.
+
+Outputs
+-------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 12
+
+   * - Output
+     - Type
+     - Format
+     - Description
+   * - **Length histogram** (``plot_file``)
+     - file
+     - .png
+     - PNG histogram of the sequence length distribution.
+   * - **Sequence lengths** (``lengths_file``)
+     - file
+     - .json
+     - JSON mapping each model to its sequence length (residue count).
+   * - **Length statistics** (``stats_file``)
+     - file
+     - .json
+     - JSON with count, mean, median, standard deviation, min and max length.

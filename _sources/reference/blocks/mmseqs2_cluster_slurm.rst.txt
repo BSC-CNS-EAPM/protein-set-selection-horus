@@ -1,0 +1,104 @@
+.. _block-mmseqs2_cluster_slurm:
+
+MMseqs2 Clustering
+==================
+
+:Block id: ``protselect.mmseqs2_cluster_slurm``
+:Category: Clustering & Selection
+:Runs on: the Local remote or a SLURM cluster remote
+:Source: ``ProtSelect/Include/Blocks/mmseqs2_slurm.py``
+
+Cluster protein sequences by identity with MMseqs2 (easy-cluster). Submitted as a SLURM job on a cluster remote, or run on this machine on the Local remote.
+
+Inputs
+------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 3 12
+
+   * - Input
+     - Type
+     - Accepts
+     - Required
+     - Description
+   * - **Sequences file** (``sequences_file``)
+     - file
+     - .fasta, .fa, .faa, .json
+     - yes
+     - Sequences to cluster. Either a FASTA file or a JSON file mapping sequence name to sequence.
+
+Parameters
+----------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 4 12
+
+   * - Parameter
+     - Type
+     - Default
+     - Description
+   * - **Output folder name** (``folder_name``)
+     - string
+     - ``mmseqs_clustering``
+     - Name of the job folder holding the MMseqs2 input and results.
+   * - **Minimum sequence identity** (``min_seq_id``)
+     - float
+     - ``0.5``
+     - List matches above this sequence identity for clustering (--min-seq-id, range 0.0-1.0).
+   * - **Coverage** (``coverage``)
+     - float
+     - ``0.8``
+     - Minimum alignment coverage (-c, range 0.0-1.0).
+   * - **Coverage mode** (``cov_mode``)
+     - integer
+     - ``1``
+     - MMseqs2 coverage mode (--cov-mode). 0: bidirectional, 1: target coverage, 2: query coverage.
+   * - **Cluster modules** (``cluster_modules``)
+     - string
+     - ``bsc/1.0, mmseqs2/15-6f452``
+     - Comma-separated modules loaded before the job. MMseqs2 is not on PATH by default on MareNostrum; 'bsc/1.0, mmseqs2/15-6f452' provides it.
+   * - **Preamble** (``preamble``)
+     - text area
+     - —
+     - Extra shell lines run before MMseqs2, for anything the modules do not cover (sourcing a conda profile, exporting a licence path).
+   * - **MPI runner** (``mpi_runner``)
+     - string
+     - ``srun``
+     - Exported as RUNNER on the cluster, which MMseqs2 prefixes to its MPI-parallel steps. The MareNostrum module is an MPI build: without this, kmermatcher calls MPI_Init outside a launcher and aborts with 'PMI2_Job_GetId returned 14'. Clear it for a non-MPI build, where srun would instead start one full copy of each step per task. Not used when running locally.
+   * - **MMseqs2 command** (``mmseqs_command``)
+     - string
+     - ``mmseqs``
+     - The MMseqs2 executable to call. Leave as 'mmseqs' when a module puts it on PATH; when the block runs locally that default is replaced by the plugin's configured MMseqs2 path. Give an absolute path to override both.
+   * - **Remove existing results** (``remove_existing_results``)
+     - boolean
+     - ``False``
+     - Delete the existing results folder before running. Only applied when the run is started from this block: a run that reaches it through its connections keeps the results.
+
+
+As a cluster-capable block it also has the shared :ref:`cluster job settings <cluster-job-settings>` (CPUs, partition, walltime, job grouping, ...).
+
+Outputs
+-------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 12
+
+   * - Output
+     - Type
+     - Format
+     - Description
+   * - **Clusters file** (``clusters_file``)
+     - file
+     - .json
+     - JSON file mapping each cluster representative to the list of its members.
+   * - **Representatives FASTA** (``representatives_file``)
+     - file
+     - .fasta
+     - FASTA file with one representative sequence per cluster.
+   * - **MMseqs2 results folder** (``results_folder``)
+     - folder
+     - —
+     - Folder holding the raw MMseqs2 output (cluster TSV, representative and all-sequences FASTA).

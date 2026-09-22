@@ -1,0 +1,110 @@
+.. _block-analyse_rosetta_relax:
+
+Analyse Rosetta Relax
+=====================
+
+:Block id: ``protselect.analyse_rosetta_relax``
+:Category: Rosetta
+:Runs on: the machine running Horus
+:Source: ``ProtSelect/Include/Blocks/analyse_rosetta_relax.py``
+
+Extract the Rosetta relax scores, summarise them per model and display them in a table view.
+
+Inputs
+------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 3 12
+
+   * - Input
+     - Type
+     - Accepts
+     - Required
+     - Description
+   * - **Models folder** (``models_folder``)
+     - folder
+     - —
+     - yes
+     - Folder with the models that were relaxed (e.g. 'selected_models').
+   * - **Relax folder** (``relax_folder``)
+     - folder
+     - —
+     - yes
+     - Rosetta relax output folder produced by the 'Rosetta Relax' block.
+   * - **Sequence lengths (optional)** (``lengths_file``)
+     - file
+     - .json
+     - yes
+     - Optional JSON {model: length} (e.g. 'sequence_lengths.json' from the 'Sequence Length Distribution' block). Leave it empty and the lengths are read from the models folder instead, so the score-per-residue panel and the normalised score in the summary are produced either way.
+
+Parameters
+----------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 4 12
+
+   * - Parameter
+     - Type
+     - Default
+     - Description
+   * - **Skip finished** (``skip_finished``)
+     - boolean
+     - ``True``
+     - Only extract models whose scores are not extracted yet.
+   * - **Overwrite** (``overwrite``)
+     - boolean
+     - ``False``
+     - Force re-extraction of the Rosetta data.
+   * - **Energy by residue** (``energy_by_residue``)
+     - boolean
+     - ``False``
+     - Also extract per-residue energies (slower).
+   * - **Verbose** (``verbose``)
+     - boolean
+     - ``False``
+     - Show the extraction output in the logs.
+   * - **Rows per page** (``max_display_rows``)
+     - integer
+     - ``200``
+     - Number of rows shown per page in the 'Relax data' table. All the rows are available in the view, this only sets the page size.
+   * - **Plot type** (``plot_type``)
+     - string
+     - ``violin``
+     - How to show each model's score distribution.
+   * - **Max models in plot** (``max_models_plot``)
+     - integer
+     - ``60``
+     - Only the best-scoring N models are drawn, keeping the x-axis readable. Set to 0 to plot every model.
+
+
+As a cluster-capable block it also has the shared :ref:`cluster job settings <cluster-job-settings>` (CPUs, partition, walltime, job grouping, ...).
+
+Outputs
+-------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 12
+
+   * - Output
+     - Type
+     - Format
+     - Description
+   * - **Relax data** (``relax_data_file``)
+     - file
+     - .csv
+     - CSV with the full Rosetta relax data (one row per model/pose).
+   * - **Score summary** (``score_summary_file``)
+     - file
+     - .csv
+     - CSV with per-model score statistics (mean, min, max, std, count).
+   * - **Mean scores** (``mean_scores_file``)
+     - file
+     - .json
+     - JSON mapping each model to its average Rosetta score.
+   * - **Score plot** (``plot_file``)
+     - file
+     - .png
+     - PNG with the per-model Rosetta score distributions.

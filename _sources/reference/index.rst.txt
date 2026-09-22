@@ -1,0 +1,82 @@
+Block reference
+===============
+
+Generated from the block definitions in ``ProtSelect/Include/Blocks``. Blocks are listed in pipeline order; see :doc:`../workflow` for how they connect.
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 3 2 2
+
+   * - Block
+     - Category
+     - Runs on
+   * - :ref:`ProteinMPNN Scoring <block-proteinmpnn_scoring>`
+     - ProteinMPNN
+     - Local or SLURM
+   * - :ref:`Read ProteinMPNN Scores <block-read_proteinmpnn_scores>`
+     - ProteinMPNN
+     - Local
+   * - :ref:`MMseqs2 Clustering <block-mmseqs2_cluster_slurm>`
+     - Clustering & Selection
+     - Local or SLURM
+   * - :ref:`MMseqs2 Threshold Sweep <block-mmseqs2_threshold_sweep>`
+     - Clustering & Selection
+     - Local
+   * - :ref:`Select Cluster Representatives <block-select_cluster_representatives>`
+     - Clustering & Selection
+     - Local
+   * - :ref:`Sequence Length Distribution <block-sequence_length_distribution>`
+     - Clustering & Selection
+     - Local
+   * - :ref:`Trim Alphafold models <block-trim_alphafold_models>`
+     - Structure Preparation
+     - Local
+   * - :ref:`Collect Selected Structures <block-collect_selected_pdbs>`
+     - Structure Preparation
+     - Local
+   * - :ref:`Rosetta Relax <block-rosetta_relax>`
+     - Rosetta
+     - Local or SLURM
+   * - :ref:`Analyse Rosetta Relax <block-analyse_rosetta_relax>`
+     - Rosetta
+     - Local
+   * - :ref:`BioEmu Sampling <block-bioemu_sampling>`
+     - BioEmu
+     - Local or SLURM
+   * - :ref:`Analyse BioEmu <block-analyse_bioemu>`
+     - BioEmu
+     - Local
+   * - :ref:`Pareto Selection <block-pareto_selection>`
+     - Model Ranking
+     - Local
+   * - :ref:`CodonTransformer <block-codon_transformer>`
+     - Design & Prediction
+     - Local
+   * - :ref:`Multiple Sequence Alignment (MAFFT) <block-mafft_msa>`
+     - Sequence Alignment
+     - Local
+   * - :ref:`Phylogenetic Tree <block-phylogenetic_tree>`
+     - Sequence Alignment
+     - Local
+
+.. toctree::
+   :hidden:
+
+   blocks/proteinmpnn_scoring
+   blocks/read_proteinmpnn_scores
+   blocks/mmseqs2_cluster_slurm
+   blocks/mmseqs2_threshold_sweep
+   blocks/select_cluster_representatives
+   blocks/sequence_length_distribution
+   blocks/trim_alphafold_models
+   blocks/collect_selected_pdbs
+   blocks/rosetta_relax
+   blocks/analyse_rosetta_relax
+   blocks/bioemu_sampling
+   blocks/analyse_bioemu
+   blocks/pareto_selection
+   blocks/codon_transformer
+   blocks/mafft_msa
+   blocks/phylogenetic_tree
+   cluster_job_settings
+   configurations

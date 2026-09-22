@@ -1,0 +1,136 @@
+.. _configurations:
+
+Configurations
+==============
+
+Tool locations, set once per remote under the plugin's configuration in Horus (or filled in by the :doc:`Environment Setup page <../configuration>`). Each configuration has a check that runs when you save it and reports whether the tool was found.
+
+BioEmu environment
+------------------
+
+Configure the BioEmu conda environment and the optional SMOG installation used for native contacts
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 4 12
+
+   * - Setting
+     - Type
+     - Default
+     - Description
+   * - **BioEmu environment** (``bioemu_env``)
+     - string
+     - ``bioemu``
+     - Name or path of the conda environment holding BioEmu. On a cluster this is set per-block instead, so it can be left empty here.
+   * - **SMOG executable (optional)** (``smog_path``)
+     - file
+     - —
+     - Path to the SMOG 2 executable, used for native contacts (Q and the folding free energy). Leave empty to skip that analysis phase.
+
+CodonTransformer environment
+----------------------------
+
+Configure the conda environment used for codon optimisation
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 4 12
+
+   * - Setting
+     - Type
+     - Default
+     - Description
+   * - **CodonTransformer environment** (``codontransformer_env``)
+     - string
+     - ``codontransformer``
+     - Name of the conda environment holding CodonTransformer, a path to it, or a path to its python interpreter.
+
+MAFFT executable
+----------------
+
+Configure the path to the MAFFT executable for performing protein alignments
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 4 12
+
+   * - Setting
+     - Type
+     - Default
+     - Description
+   * - **MAFFT path** (``mafft_path``)
+     - file
+     - ``MAFFT``
+     - Path to the MAFFT executable
+
+MMseqs2 executable
+------------------
+
+Configure the path to the MMseqs2 executable for sequence clustering
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 4 12
+
+   * - Setting
+     - Type
+     - Default
+     - Description
+   * - **MMseqs2 path** (``mmseqs_path``)
+     - file
+     - ``mmseqs``
+     - Path to the MMseqs2 executable (or the command name if it is on the PATH)
+
+ProteinMPNN interpreter
+-----------------------
+
+Configure the Python interpreter used to run ProteinMPNN locally
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 4 12
+
+   * - Setting
+     - Type
+     - Default
+     - Description
+   * - **ProteinMPNN Python interpreter** (``proteinmpnn_python``)
+     - file
+     - —
+     - Python interpreter with torch installed, used to run ProteinMPNN on the local machine. Leave empty to use the interpreter running Horus.
+
+PyRosetta python
+----------------
+
+Configure the python interpreter used to run the Rosetta analysis scripts
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 4 12
+
+   * - Setting
+     - Type
+     - Default
+     - Description
+   * - **PyRosetta python** (``pyrosetta_python``)
+     - file
+     - ``python``
+     - Path to the python interpreter that has PyRosetta installed. It is used to run the Rosetta analysis scripts.
+
+Rosetta executable
+------------------
+
+Configure the path to the rosetta_scripts executable used for relax
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 4 12
+
+   * - Setting
+     - Type
+     - Default
+     - Description
+   * - **Rosetta executable** (``rosetta_path``)
+     - file
+     - —
+     - Path to the rosetta_scripts executable, for example <rosetta>/main/source/bin/rosetta_scripts.mpi.linuxgccrelease. On a cluster this can be left empty and supplied by the loaded module instead.

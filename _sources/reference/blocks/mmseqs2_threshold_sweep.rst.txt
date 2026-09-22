@@ -1,0 +1,98 @@
+.. _block-mmseqs2_threshold_sweep:
+
+MMseqs2 Threshold Sweep
+=======================
+
+:Block id: ``protselect.mmseqs2_threshold_sweep``
+:Category: Clustering & Selection
+:Runs on: the machine running Horus
+:Source: ``ProtSelect/Include/Blocks/mmseqs_threshold_sweep.py``
+
+Cluster sequences across a range of MMseqs2 identity thresholds and plot the top-N representatives' score distribution to help choose a threshold.
+
+Inputs
+------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 3 12
+
+   * - Input
+     - Type
+     - Accepts
+     - Required
+     - Description
+   * - **Sequences file** (``sequences_file``)
+     - file
+     - .fasta, .fa, .faa, .json
+     - yes
+     - Sequences to cluster. Either a FASTA file or a JSON file mapping sequence name to sequence.
+   * - **Scores file** (``scores_file``)
+     - file
+     - .json, .csv
+     - yes
+     - Per-model scores. Either a JSON file mapping model name to score, or a CSV with a name column and a score column (e.g. 'mean_score').
+
+Parameters
+----------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 4 12
+
+   * - Parameter
+     - Type
+     - Default
+     - Description
+   * - **min_seq_id start** (``min_seq_id_start``)
+     - float
+     - ``0.2``
+     - First --min-seq-id value in the sweep (inclusive).
+   * - **min_seq_id stop** (``min_seq_id_stop``)
+     - float
+     - ``1.0``
+     - End of the --min-seq-id sweep (exclusive, as in numpy.arange).
+   * - **min_seq_id step** (``min_seq_id_step``)
+     - float
+     - ``0.05``
+     - Step between consecutive --min-seq-id values.
+   * - **Top N clusters** (``top_n_clusters``)
+     - integer
+     - ``100``
+     - Number of best-scoring clusters kept at each threshold.
+   * - **Coverage** (``coverage``)
+     - float
+     - ``0.8``
+     - Minimum alignment coverage (-c, 0.0-1.0).
+   * - **Coverage mode** (``cov_mode``)
+     - integer
+     - ``1``
+     - MMseqs2 coverage mode (--cov-mode).
+   * - **Maximize score** (``maximize``)
+     - boolean
+     - ``False``
+     - If enabled, higher scores are better. By default lower scores are better, as with ProteinMPNN scores.
+
+Outputs
+-------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 12
+
+   * - Output
+     - Type
+     - Format
+     - Description
+   * - **Boxplot** (``plot_file``)
+     - file
+     - .png
+     - PNG boxplot of the best-model score distributions across thresholds.
+   * - **Score distributions** (``score_distributions_file``)
+     - file
+     - .json
+     - JSON mapping each threshold to the list of selected representatives' scores.
+   * - **Selected models per threshold** (``selected_per_threshold_file``)
+     - file
+     - .json
+     - JSON mapping each threshold to the list of selected representative models.

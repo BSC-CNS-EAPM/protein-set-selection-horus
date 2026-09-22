@@ -1,0 +1,86 @@
+.. _block-collect_selected_pdbs:
+
+Collect Selected Structures
+===========================
+
+:Block id: ``protselect.collect_selected_pdbs``
+:Category: Structure Preparation
+:Runs on: the machine running Horus
+:Source: ``ProtSelect/Include/Blocks/collect_selected_pdbs.py``
+
+Copy the structures of a selected set of models from a source folder into a dedicated working folder.
+
+Inputs
+------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 3 12
+
+   * - Input
+     - Type
+     - Accepts
+     - Required
+     - Description
+   * - **Source structures folder** (``source_folder``)
+     - folder
+     - —
+     - yes
+     - Folder holding the structures of all models (e.g. 'AF_truncated').
+   * - **Selected models** (``models_file``)
+     - file
+     - .json, .fasta, .fa, .faa
+     - yes
+     - The selection to collect. A JSON list of model names, a JSON {name: sequence} mapping, or a FASTA file.
+
+Parameters
+----------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 4 12
+
+   * - Parameter
+     - Type
+     - Default
+     - Description
+   * - **Output folder** (``output_folder``)
+     - string
+     - ``selected_models``
+     - Name of the folder the selected structures are copied into.
+   * - **Structure extension** (``extension``)
+     - string
+     - ``pdb``
+     - Extension of the structure files in the source folder.
+   * - **Overwrite existing** (``overwrite``)
+     - boolean
+     - ``False``
+     - Re-copy structures that are already present in the output folder. Disabled by default, so structures already copied are skipped.
+   * - **Ignore missing structures** (``ignore_missing``)
+     - boolean
+     - ``False``
+     - Warn and continue when a selected model has no structure in the source folder. Disabled by default, so a missing structure is an error.
+
+Outputs
+-------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 12
+
+   * - Output
+     - Type
+     - Format
+     - Description
+   * - **Selected models folder** (``models_folder``)
+     - folder
+     - —
+     - Folder containing the collected structures of the selected models.
+   * - **Collected models** (``collected_models_file``)
+     - file
+     - .json
+     - JSON list of the models present in the output folder.
+   * - **Missing models** (``missing_models_file``)
+     - file
+     - .json
+     - JSON list of selected models that had no structure in the source folder (only written when 'Ignore missing structures' is enabled).

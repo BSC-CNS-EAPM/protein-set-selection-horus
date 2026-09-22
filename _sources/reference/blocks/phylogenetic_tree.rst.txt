@@ -1,0 +1,82 @@
+.. _block-phylogenetic_tree:
+
+Phylogenetic Tree
+=================
+
+:Block id: ``protselect.phylogenetic_tree``
+:Category: Sequence Alignment
+:Runs on: the machine running Horus
+:Source: ``ProtSelect/Include/Blocks/phylogenetic_tree.py``
+
+Build a neighbour-joining or UPGMA tree from a multiple sequence alignment and render it as Newick, ASCII and a figure.
+
+Inputs
+------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 3 12
+
+   * - Input
+     - Type
+     - Accepts
+     - Required
+     - Description
+   * - **Alignment file** (``msa_file``)
+     - file
+     - .fasta, .fa, .aln, .clustal, .maf, .phy, .sto
+     - yes
+     - Multiple sequence alignment (FASTA, Clustal, Phylip, Stockholm...). The format is guessed from the extension unless one is set below.
+   * - **Labels file (optional)** (``labels_file``)
+     - file
+     - .json
+     - yes
+     - Optional JSON {sequence_id: label} used to annotate the leaves, e.g. an organism per model. Leaves become 'id (label)'.
+
+Parameters
+----------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 4 12
+
+   * - Parameter
+     - Type
+     - Default
+     - Description
+   * - **Tree method** (``method``)
+     - string
+     - ``nj``
+     - Tree construction method.
+   * - **Distance model** (``model``)
+     - string
+     - ``blosum62``
+     - Substitution model used for the pairwise distances.
+   * - **Alignment format** (``alignment_format``)
+     - string
+     - ``auto``
+     - Force the alignment format instead of guessing from the extension.
+
+Outputs
+-------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 12
+
+   * - Output
+     - Type
+     - Format
+     - Description
+   * - **Newick tree** (``newick_file``)
+     - file
+     - .nwk
+     - The tree in Newick format.
+   * - **ASCII tree** (``ascii_file``)
+     - file
+     - .txt
+     - Text rendering of the tree.
+   * - **Tree plot** (``plot_file``)
+     - file
+     - .png
+     - PNG rendering of the tree.

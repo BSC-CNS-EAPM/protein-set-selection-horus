@@ -1,0 +1,77 @@
+.. _block-mafft_msa:
+
+Multiple Sequence Alignment (MAFFT)
+===================================
+
+:Block id: ``protselect.mafft_msa``
+:Category: Sequence Alignment
+:Runs on: the machine running Horus
+:Source: ``ProtSelect/Include/Blocks/mafft.py``
+
+Align a set of sequences with MAFFT, writing both FASTA and Clustal.
+
+Inputs
+------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 3 12
+
+   * - Input
+     - Type
+     - Accepts
+     - Required
+     - Description
+   * - **Sequences file** (``sequences_file``)
+     - file
+     - .fasta, .fa, .faa, .json
+     - yes
+     - Sequences to align. A FASTA file or a JSON {name: sequence} mapping.
+
+Parameters
+----------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 4 12
+
+   * - Parameter
+     - Type
+     - Default
+     - Description
+   * - **Method** (``method``)
+     - string list
+     - ``auto``
+     - MAFFT strategy. 'auto' lets MAFFT choose; linsi is the most accurate and slowest, and fftns the fastest. Choices: ``auto``, ``linsi``, ``ginsi``, ``einsi``, ``fftns``, ``fftnsi``.
+   * - **Allow any symbol** (``anysymbol``)
+     - boolean
+     - ``True``
+     - Pass --anysymbol, so unusual residue codes (X, U, B, Z) do not abort the alignment.
+   * - **Max iterations** (``maxiterate``)
+     - integer
+     - ``0``
+     - Number of iterative refinement cycles. 0 leaves it to MAFFT.
+   * - **Threads** (``threads``)
+     - integer
+     - ``0``
+     - Threads MAFFT may use. 0 leaves it to MAFFT.
+
+Outputs
+-------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 12
+
+   * - Output
+     - Type
+     - Format
+     - Description
+   * - **MSA (FASTA)** (``msa_file``)
+     - file
+     - .fasta
+     - The alignment in aligned FASTA format.
+   * - **MSA (Clustal)** (``msa_clustal_file``)
+     - file
+     - .aln
+     - The same alignment in Clustal format.

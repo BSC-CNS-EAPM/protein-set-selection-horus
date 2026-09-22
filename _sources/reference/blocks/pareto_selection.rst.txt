@@ -1,0 +1,87 @@
+.. _block-pareto_selection:
+
+Pareto Selection
+================
+
+:Block id: ``protselect.pareto_selection``
+:Category: Model Ranking
+:Runs on: the machine running Horus
+:Source: ``ProtSelect/Include/Blocks/pareto_selection.py``
+
+Rank models by Pareto dominance over any number of objectives and select the best N using crowding distance.
+
+Inputs
+------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 3 12
+
+   * - Input
+     - Type
+     - Accepts
+     - Required
+     - Description
+   * - **Metrics file** (``metrics_file``)
+     - file
+     - .csv
+     - yes
+     - CSV of per-model metrics indexed by model (e.g. 'bioemu_metrics.csv').
+   * - **Extra metrics file (optional)** (``extra_metrics_file``)
+     - file
+     - .csv
+     - yes
+     - A second per-model CSV merged on the model name (e.g. 'rosetta_score_summary.csv', which carries score_per_residue and length).
+   * - **Model origin (optional)** (``origin_file``)
+     - file
+     - .json
+     - yes
+     - JSON {model: origin} from Select Cluster Representatives, labelling each model 'vanilla only', 'soluble only' or 'common'. Added as a Model_Origin column for reference.
+
+Parameters
+----------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 4 12
+
+   * - Parameter
+     - Type
+     - Default
+     - Description
+   * - **Objectives** (``objectives``)
+     - list
+     - objective_column=``Q_Average``, objective_maximize=``True``; objective_column=``score_per_residue``, objective_maximize=``False``
+     - Metrics to optimise. Defaults to the reference workflow's pair: Q_Average maximised and score_per_residue minimised. Each entry has: ``objective_column`` (string), ``objective_maximize`` (boolean).
+   * - **Models to select** (``n_select``)
+     - integer
+     - ``10``
+     - How many models to select by Pareto rank and crowding distance.
+
+Outputs
+-------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 12
+
+   * - Output
+     - Type
+     - Format
+     - Description
+   * - **Ranked models** (``ranked_file``)
+     - file
+     - .csv
+     - CSV with every model, its Pareto_Rank and whether it was selected.
+   * - **Selected models table** (``selected_file``)
+     - file
+     - .csv
+     - CSV with the selected models and all their metrics.
+   * - **Selected models** (``selected_models_file``)
+     - file
+     - .json
+     - JSON list with the names of the selected models.
+   * - **Pareto plot** (``plot_file``)
+     - file
+     - .png
+     - PNG comparing the objectives against the other metrics, coloured by Pareto rank with the selected models highlighted.

@@ -1,0 +1,104 @@
+.. _block-rosetta_relax:
+
+Rosetta Relax
+=============
+
+:Block id: ``protselect.rosetta_relax``
+:Category: Rosetta
+:Runs on: the Local remote or a SLURM cluster remote
+:Source: ``ProtSelect/Include/Blocks/rosetta_relax.py``
+
+Set up and run a Rosetta relax optimization on a folder of models as a SLURM job on a cluster remote, or on the Local remote.
+
+Inputs
+------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 3 12
+
+   * - Input
+     - Type
+     - Accepts
+     - Required
+     - Description
+   * - **Models folder** (``models_folder``)
+     - folder
+     - —
+     - yes
+     - Folder with the structures to relax (e.g. the 'selected_models' folder produced by 'Collect Selected Structures').
+
+Parameters
+----------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 4 12
+
+   * - Parameter
+     - Type
+     - Default
+     - Description
+   * - **Relax folder** (``folder_name``)
+     - string
+     - ``relax_selected_models``
+     - Name of the folder where the relax calculation will be stored.
+   * - **nstruct** (``nstruct``)
+     - integer
+     - ``100``
+     - Number of relaxed structures generated per model.
+   * - **Relax cycles** (``relax_cycles``)
+     - integer
+     - ``5``
+     - Number of relax cycles.
+   * - **Constraint optimization** (``cst_optimization``)
+     - boolean
+     - ``False``
+     - Run a constrained optimization. Disabled in the reference workflow; note that the prepare_proteins default is enabled.
+   * - **Cartesian** (``cartesian``)
+     - boolean
+     - ``False``
+     - Run a cartesian-space relax.
+   * - **CA constraint** (``ca_constraint``)
+     - boolean
+     - ``False``
+     - Apply constraints on the CA atoms.
+   * - **Skip finished** (``skip_finished``)
+     - boolean
+     - ``True``
+     - Only submit models that do not yet have all their structures, so an interrupted run resumes where it stopped.
+   * - **Rosetta executable** (``executable``)
+     - string
+     - ``rosetta_scripts.mpi.linuxgccrelease``
+     - Rosetta scripts executable used on the cluster.
+   * - **Rosetta path** (``rosetta_path``)
+     - string
+     - —
+     - Path to the Rosetta installation. Leave empty to use the cluster's module / environment default.
+   * - **Param files** (``param_files``)
+     - string
+     - —
+     - Optional Rosetta .params files (e.g. for ligands), comma separated.
+   * - **Remove existing results** (``remove_existing_results``)
+     - boolean
+     - ``False``
+     - Delete the existing results folder before running. Only applied when the run is started from this block: a run that reaches it through its connections keeps the results.
+
+
+As a cluster-capable block it also has the shared :ref:`cluster job settings <cluster-job-settings>` (CPUs, partition, walltime, job grouping, ...).
+
+Outputs
+-------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 12
+
+   * - Output
+     - Type
+     - Format
+     - Description
+   * - **Relax folder** (``relax_folder``)
+     - folder
+     - —
+     - Folder holding the Rosetta relax output (feed this into 'Analyse Rosetta Relax').

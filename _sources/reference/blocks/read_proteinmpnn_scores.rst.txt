@@ -1,0 +1,86 @@
+.. _block-read_proteinmpnn_scores:
+
+Read ProteinMPNN Scores
+=======================
+
+:Block id: ``protselect.read_proteinmpnn_scores``
+:Category: ProteinMPNN
+:Runs on: the machine running Horus
+:Source: ``ProtSelect/Include/Blocks/read_proteinmpnn_scores.py``
+
+Aggregate a ProteinMPNN run into a per-model scores file for the clustering and selection blocks.
+
+Inputs
+------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 3 12
+
+   * - Input
+     - Type
+     - Accepts
+     - Required
+     - Description
+   * - **ProteinMPNN folder** (``pmpnn_folder``)
+     - folder
+     - —
+     - yes
+     - Folder produced by the ProteinMPNN Scoring block.
+   * - **Sequences file (optional)** (``sequences_file``)
+     - file
+     - .fasta, .fa, .faa, .json
+     - no
+     - Restrict the output to models present in this sequences file. Useful when the structures folder held more models than the dataset.
+
+Parameters
+----------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 4 12
+
+   * - Parameter
+     - Type
+     - Default
+     - Description
+   * - **Aggregation** (``aggregation``)
+     - string list
+     - ``mean``
+     - How to reduce the per-sample scores to one value per model. The reference workflow uses the mean; 'min' takes the single best sample. Choices: ``mean``, ``min``, ``median``, ``max``, ``first``, ``last``.
+   * - **Score column** (``score_column``)
+     - string list
+     - ``mean_score``
+     - Which ProteinMPNN score to read. 'mean_score' is the per-sample mean negative log-likelihood; lower is better. Choices: ``mean_score``, ``global_mean_score``.
+   * - **Source filter** (``source_filter``)
+     - string list
+     - ``all``
+     - Which rows to keep. 'score_only' rows are the scored input sequences; 'designed' rows are newly sampled sequences. 'all' keeps both. Choices: ``all``, ``score_only``, ``designed``.
+   * - **Read at most N files** (``read_until``)
+     - integer
+     - ``0``
+     - Stop after reading this many score files. 0 reads all of them; use a small number to peek at a large run in progress.
+
+Outputs
+-------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 12
+
+   * - Output
+     - Type
+     - Format
+     - Description
+   * - **Vanilla scores** (``vanilla_scores_file``)
+     - file
+     - .json
+     - JSON mapping each model to its aggregated score under the vanilla ProteinMPNN weights. Set when the scoring run included the vanilla set.
+   * - **Soluble scores** (``soluble_scores_file``)
+     - file
+     - .json
+     - JSON mapping each model to its aggregated score under the soluble ProteinMPNN weights. Set when the scoring run included the soluble set.
+   * - **Scores table** (``scores_table_file``)
+     - file
+     - .csv
+     - CSV of the full per-sample ProteinMPNN table, for inspection.

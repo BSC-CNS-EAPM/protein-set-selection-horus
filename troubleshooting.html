@@ -1,0 +1,648 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Troubleshooting &#8212; Protein Set Selection</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=60d9f863" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=2709fde1"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'troubleshooting';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Block reference" href="reference/index.html" />
+    <link rel="prev" title="The workflow" href="workflow.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Protein Set Selection</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="configuration.html">
+    Tools and configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="remotes.html">
+    Remotes and clusters
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="example_data.html">
+    Example data
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="workflow.html">
+    The workflow
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" current active">
+  <a class="nav-link dropdown-item nav-internal" href="#">
+    Troubleshooting
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="reference/index.html">
+    Block reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/BSC-CNS-EAPM/protein-set-selection-horus" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.bsc.es/" title="Barcelona Supercomputing Center" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa fa-globe fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Barcelona Supercomputing Center</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="configuration.html">
+    Tools and configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="remotes.html">
+    Remotes and clusters
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="example_data.html">
+    Example data
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="workflow.html">
+    The workflow
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    Troubleshooting
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="reference/index.html">
+    Block reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/BSC-CNS-EAPM/protein-set-selection-horus" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.bsc.es/" title="Barcelona Supercomputing Center" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa fa-globe fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Barcelona Supercomputing Center</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">Troubleshooting</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="troubleshooting">
+<h1>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading">#</a></h1>
+<section id="the-job-finished-on-the-cluster-but-the-block-says-it-failed">
+<h2>The job finished on the cluster but the block says it failed<a class="headerlink" href="#the-job-finished-on-the-cluster-but-the-block-says-it-failed" title="Link to this heading">#</a></h2>
+<p>If the job's output on the cluster is complete (check with <code class="docutils literal notranslate"><span class="pre">sacct</span></code> or the job
+folder), use the block's <strong>Continue</strong> action. It downloads the results and runs
+the rest of the flow. <strong>Run</strong> would submit the job again.</p>
+<p>Older Horus versions reported finished <strong>job arrays</strong> as failed (status
+UNKNOWN) when they checked them after the job had left the SLURM queue, for
+example after reopening a paused flow. Continue recovers from that too.</p>
+</section>
+<section id="a-cluster-job-ran-out-of-time">
+<h2>A cluster job ran out of time<a class="headerlink" href="#a-cluster-job-ran-out-of-time" title="Link to this heading">#</a></h2>
+<p>Rerun the block with <strong>Skip finished</strong> on. Only the models without results are
+submitted. For Rosetta, give each model its own array task
+(<code class="docutils literal notranslate"><span class="pre">group_jobs_by</span></code> 0) and <strong>CPUs</strong> = <code class="docutils literal notranslate"><span class="pre">nstruct</span> <span class="pre">+</span> <span class="pre">1</span></code>: grouped models run one
+after another, which is the usual reason a relax runs out of time. See
+<a class="reference internal" href="remotes.html"><span class="doc">Remotes and clusters</span></a>.</p>
+</section>
+<section id="numpy-core-multiarray-umath-numpy-fails-to-import">
+<h2><code class="docutils literal notranslate"><span class="pre">numpy._core._multiarray_umath</span></code> / numpy fails to import<a class="headerlink" href="#numpy-core-multiarray-umath-numpy-fails-to-import" title="Link to this heading">#</a></h2>
+<p>A tool running in another Python environment picked up Horus's own Python
+packages. The plugin removes Horus's <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code> for PyRosetta,
+CodonTransformer, BioEmu and ProteinMPNN. If you see this, update the plugin.
+If it persists, report which block raised it.</p>
+</section>
+<section id="pyrosetta-was-not-found-in-your-python-environment">
+<h2>&quot;PyRosetta was not found in your Python environment&quot;<a class="headerlink" href="#pyrosetta-was-not-found-in-your-python-environment" title="Link to this heading">#</a></h2>
+<p>Analyse Rosetta Relax could not extract the scores of some model and fell back
+to PyRosetta inside Horus, which does not have it. Check that <code class="docutils literal notranslate"><span class="pre">pyrosetta_python</span></code>
+points at a Python with PyRosetta, and look above this message in the block log
+for the first failing extraction job.</p>
+</section>
+<section id="mmseqs-not-found-or-mmseqs2-fails-on-the-cluster">
+<h2>&quot;mmseqs: not found&quot; or MMseqs2 fails on the cluster<a class="headerlink" href="#mmseqs-not-found-or-mmseqs2-fails-on-the-cluster" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Locally:</strong> set the <code class="docutils literal notranslate"><span class="pre">mmseqs_path</span></code> configuration (see <a class="reference internal" href="configuration.html"><span class="doc">Tools and configuration</span></a>).</p></li>
+<li><p><strong>On MareNostrum:</strong> keep <strong>Cluster modules</strong> at <code class="docutils literal notranslate"><span class="pre">bsc/1.0,</span> <span class="pre">mmseqs2/15-6f452</span></code>
+and <strong>MPI runner</strong> at <code class="docutils literal notranslate"><span class="pre">srun</span></code>. Without <code class="docutils literal notranslate"><span class="pre">srun</span></code> the MPI build aborts with
+<code class="docutils literal notranslate"><span class="pre">PMI2_Job_GetId</span></code>.</p></li>
+</ul>
+</section>
+<section id="rosetta-cannot-find-its-module-bioemu-cannot-find-the-gpu-environment">
+<h2>Rosetta cannot find its module / BioEmu cannot find the GPU environment<a class="headerlink" href="#rosetta-cannot-find-its-module-bioemu-cannot-find-the-gpu-environment" title="Link to this heading">#</a></h2>
+<p>The job was submitted from the wrong kind of login node. On MareNostrum 5, GPU
+software (BioEmu, ProteinMPNN) needs an <code class="docutils literal notranslate"><span class="pre">alogin</span></code> remote and Rosetta a
+<code class="docutils literal notranslate"><span class="pre">glogin</span></code> remote. See <a class="reference internal" href="remotes.html"><span class="doc">Remotes and clusters</span></a>.</p>
+</section>
+<section id="the-folder-holds-a-clustering-of-different-sequences-other-settings">
+<h2>&quot;The folder ... holds a clustering of different sequences / other settings&quot;<a class="headerlink" href="#the-folder-holds-a-clustering-of-different-sequences-other-settings" title="Link to this heading">#</a></h2>
+<p>MMseqs2 Clustering refuses to reuse a clustering made with other input. Change
+<strong>Output folder name</strong>, or run the block itself with <strong>Remove existing results</strong>
+on.</p>
+</section>
+<section id="a-block-shows-as-a-ghost-missing-block">
+<h2>A block shows as a ghost / missing block<a class="headerlink" href="#a-block-shows-as-a-ghost-missing-block" title="Link to this heading">#</a></h2>
+<p>The flow uses a block that this version of the plugin does not have. The local
+MMseqs2 Clustering block (<code class="docutils literal notranslate"><span class="pre">mmseqs2_cluster</span></code>) was merged into the SLURM one;
+replace it with <strong>MMseqs2 Clustering</strong>, which runs locally or on a cluster.</p>
+</section>
+<section id="no-dgf-column-in-the-bioemu-metrics">
+<h2>No dGf column in the BioEmu metrics<a class="headerlink" href="#no-dgf-column-in-the-bioemu-metrics" title="Link to this heading">#</a></h2>
+<p>Every BioEmu sample was folded (Q above <code class="docutils literal notranslate"><span class="pre">q_threshold</span></code>), so the folding free
+energy cannot be computed. Expected with few samples. Use more samples (the
+default 10,000) to get unfolded frames.</p>
+</section>
+<section id="pareto-selection-drops-models">
+<h2>Pareto Selection drops models<a class="headerlink" href="#pareto-selection-drops-models" title="Link to this heading">#</a></h2>
+<p>A model needs a value for every objective. Models sampled by BioEmu but not
+relaxed (or the reverse) have no <code class="docutils literal notranslate"><span class="pre">score_per_residue</span></code> (or no <code class="docutils literal notranslate"><span class="pre">Q_Average</span></code>)
+and are dropped, with a warning. Feed BioEmu the selected sequences so both
+branches see the same models.</p>
+</section>
+<section id="a-value-typed-into-a-block-was-not-saved">
+<h2>A value typed into a block was not saved<a class="headerlink" href="#a-value-typed-into-a-block-was-not-saved" title="Link to this heading">#</a></h2>
+<p>Number fields commit their value when they lose focus. Press Enter or click
+elsewhere before saving the flow, or before running a block.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="workflow.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">The workflow</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="reference/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Block reference</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-job-finished-on-the-cluster-but-the-block-says-it-failed">The job finished on the cluster but the block says it failed</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-cluster-job-ran-out-of-time">A cluster job ran out of time</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#numpy-core-multiarray-umath-numpy-fails-to-import"><code class="docutils literal notranslate"><span class="pre">numpy._core._multiarray_umath</span></code> / numpy fails to import</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pyrosetta-was-not-found-in-your-python-environment">"PyRosetta was not found in your Python environment"</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mmseqs-not-found-or-mmseqs2-fails-on-the-cluster">"mmseqs: not found" or MMseqs2 fails on the cluster</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#rosetta-cannot-find-its-module-bioemu-cannot-find-the-gpu-environment">Rosetta cannot find its module / BioEmu cannot find the GPU environment</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-folder-holds-a-clustering-of-different-sequences-other-settings">"The folder ... holds a clustering of different sequences / other settings"</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-block-shows-as-a-ghost-missing-block">A block shows as a ghost / missing block</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#no-dgf-column-in-the-bioemu-metrics">No dGf column in the BioEmu metrics</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pareto-selection-drops-models">Pareto Selection drops models</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-value-typed-into-a-block-was-not-saved">A value typed into a block was not saved</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, BSC | Barcelona Supercomputing Center.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

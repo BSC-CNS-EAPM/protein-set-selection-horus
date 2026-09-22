@@ -1,0 +1,137 @@
+.. _block-proteinmpnn_scoring:
+
+ProteinMPNN Scoring
+===================
+
+:Block id: ``protselect.proteinmpnn_scoring``
+:Category: ProteinMPNN
+:Runs on: the Local remote or a SLURM cluster remote
+:Source: ``ProtSelect/Include/Blocks/proteinmpnn.py``
+
+Score a folder of structures with ProteinMPNN, with the vanilla weights, the soluble weights, or both.
+
+Inputs
+------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 3 12
+
+   * - Input
+     - Type
+     - Accepts
+     - Required
+     - Description
+   * - **Structures folder** (``pdbs_folder``)
+     - folder
+     - —
+     - yes
+     - Folder of PDB structures to score.
+   * - **Sequences file (optional)** (``sequences_file``)
+     - file
+     - .fasta, .fa, .faa, .json
+     - no
+     - Extra sequences to evaluate against each backbone, as a FASTA file or a JSON {name: sequence} mapping. Leave empty to score the sequence each structure already carries.
+
+Parameters
+----------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 4 12
+
+   * - Parameter
+     - Type
+     - Default
+     - Description
+   * - **GPUs** (``gpus``)
+     - integer
+     - ``1``
+     - Number of GPUs to request per job (--gres gpu:N). Only honoured on GPU partitions (the 'acc\_\*' queues on MareNostrum); set the CPUs per task variable to choose how many CPUs go with them.
+   * - **Output folder name** (``folder_name``)
+     - string
+     - ``proteinmpnn``
+     - Name of the job folder. Each weight set is written to a subfolder named after it (vanilla/, soluble/).
+   * - **Weight set** (``weights``)
+     - string list
+     - ``both``
+     - Which ProteinMPNN weights to score with. The soluble weights exclude membrane proteins and favour solubly expressing sequences. Each set is written to a subfolder named after it; 'both' runs the two in turn, which is what the reference workflow compares. Choices: ``vanilla``, ``soluble``, ``both``.
+   * - **Sequences per target** (``num_seq_per_target``)
+     - integer
+     - ``100``
+     - Number of sequences sampled per structure.
+   * - **Evaluate the PDB sequence** (``evaluate_pdb_sequence``)
+     - boolean
+     - ``True``
+     - Score the sequence already present in each structure. This is what produces the per-model score the selection blocks consume.
+   * - **Score only** (``score_only``)
+     - boolean
+     - ``True``
+     - Only score the given sequences instead of designing new ones.
+   * - **Model weights** (``model_name``)
+     - string list
+     - ``v_48_020``
+     - Which ProteinMPNN weight file to use. The number is the training noise level in hundredths of an Angstrom; v_48_020 is the usual default. Choices: ``v_48_002``, ``v_48_010``, ``v_48_020``, ``v_48_030``.
+   * - **Sampling temperature** (``sampling_temp``)
+     - float
+     - ``0.1``
+     - Sampling temperature for sequence design. Lower values give more conservative sequences.
+   * - **Batch size** (``batch_size``)
+     - integer
+     - ``1``
+     - Number of sequences generated per forward pass. Raise it to use a large GPU more fully; it must not exceed the sequences per target.
+   * - **Backbone noise** (``backbone_noise``)
+     - float
+     - ``0.0``
+     - Standard deviation of the Gaussian noise added to backbone atoms.
+   * - **Random seed** (``seed``)
+     - integer
+     - ``0``
+     - Seed for reproducible sampling.
+   * - **Skip finished** (``skip_finished``)
+     - boolean
+     - ``True``
+     - Skip models that already have results in the output folder.
+   * - **Overwrite** (``overwrite``)
+     - boolean
+     - ``False``
+     - Overwrite existing per-model results.
+   * - **Local GPUs** (``local_gpus``)
+     - integer
+     - ``2``
+     - When running locally, how many GPUs to spread the jobs over. Set 1 on a machine with a single GPU or no GPU at all.
+   * - **Local jobs per GPU** (``local_parallel``)
+     - integer
+     - ``4``
+     - When running locally, how many jobs to run at once on each GPU.
+   * - **Cluster environment** (``cluster_env``)
+     - string
+     - ``/gpfs/projects/bsc72/conda_envs/ligandmpnn``
+     - Path to the conda environment providing torch on the cluster. bsc_calculations has no ProteinMPNN preset, so the environment is given explicitly; the LigandMPNN environment serves, being a torch environment.
+   * - **Cluster modules** (``cluster_modules``)
+     - string
+     - ``bsc/1.0, anaconda``
+     - Comma-separated modules to load on the cluster before the job.
+   * - **Remove existing results** (``remove_existing_results``)
+     - boolean
+     - ``False``
+     - Delete the existing results folder before running. Only applied when the run is started from this block: a run that reaches it through its connections keeps the results.
+
+
+As a cluster-capable block it also has the shared :ref:`cluster job settings <cluster-job-settings>` (CPUs, partition, walltime, job grouping, ...).
+
+Outputs
+-------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 12
+
+   * - Output
+     - Type
+     - Format
+     - Description
+   * - **ProteinMPNN folder** (``pmpnn_folder``)
+     - folder
+     - —
+     - Folder holding the ProteinMPNN job and its per-model score files.

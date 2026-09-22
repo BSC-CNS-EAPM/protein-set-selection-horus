@@ -1,0 +1,136 @@
+.. _block-bioemu_sampling:
+
+BioEmu Sampling
+===============
+
+:Block id: ``protselect.bioemu_sampling``
+:Category: BioEmu
+:Runs on: the Local remote or a SLURM cluster remote
+:Source: ``ProtSelect/Include/Blocks/bioemu.py``
+
+Sample conformational ensembles with BioEmu as a SLURM job on a GPU cluster remote, or on the Local remote.
+
+Inputs
+------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 3 12
+
+   * - Input
+     - Type
+     - Accepts
+     - Required
+     - Description
+   * - **Sequences file** (``sequences_file``)
+     - file
+     - .fasta, .fa, .faa, .json
+     - yes
+     - Sequences to sample: usually the selected sequences from Select Cluster Representatives. A FASTA file or a JSON {name: sequence} mapping.
+
+Parameters
+----------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 4 12
+
+   * - Parameter
+     - Type
+     - Default
+     - Description
+   * - **GPUs** (``gpus``)
+     - integer
+     - ``1``
+     - Number of GPUs to request per job (--gres gpu:N). Only honoured on GPU partitions (the 'acc\_\*' queues on MareNostrum); set the CPUs per task variable to choose how many CPUs go with them.
+   * - **BioEmu folder** (``folder_name``)
+     - string
+     - ``bioemu_sampling``
+     - Name of the folder where the BioEmu sampling will be stored.
+   * - **Number of samples** (``num_samples``)
+     - integer
+     - ``10000``
+     - Number of conformations sampled per model.
+   * - **Batch size (per 100 residues)** (``batch_size_100``)
+     - integer
+     - ``200``
+     - BioEmu batch size normalised to 100 residues. The reference workflow uses 200; the prepare_proteins default is 20. Lower it if you hit GPU memory limits.
+   * - **BioEmu environment** (``bioemu_env``)
+     - string
+     - ``bioemu``
+     - Name of the conda environment holding BioEmu.
+   * - **Cluster BioEmu environment** (``cluster_env``)
+     - string
+     - ``/gpfs/projects/bsc72/conda_envs/bioemu``
+     - Conda environment activated by the job on the cluster, as a path or a name. Leave it empty to use the one bsc_calculations hardcodes for BioEmu (/gpfs/projects/bsc72/conda_envs/bioemu).
+   * - **Cluster modules** (``cluster_modules``)
+     - string
+     - ``bsc/1.0, anaconda, intel/2025.1``
+     - Comma-separated modules loaded by the job before activating the environment.
+   * - **ColabFold bin folder** (``colabfold_bin``)
+     - string
+     - ``/gpfs/projects/bsc72/conda_envs/bioemu/colabfold/localcolabfold/colabfold-conda/bin``
+     - Folder holding 'colabfold_search', prepended to the job's PATH. Adapt it to the ColabFold installation that goes with your environment.
+   * - **COLABFOLD_DIR** (``colabfold_dir``)
+     - string
+     - —
+     - Exported as COLABFOLD_DIR when set. Leave it empty if your ColabFold installation does not need it.
+   * - **HuggingFace cache** (``hf_cache``)
+     - string
+     - ``/gpfs/projects/bsc72/bioemu_hf_cache``
+     - Pre-populated HuggingFace cache holding the BioEmu checkpoints. Exported as HF_HOME (with HF_HUB_CACHE=<cache>/hub) together with the offline flags, so the compute node never reaches out for the model weights. Empty disables the exports, which needs the node to have internet access.
+   * - **conda.sh path** (``conda_sh``)
+     - string
+     - ``~/miniconda3/etc/profile.d/conda.sh``
+     - Path to the conda profile script used to activate the environment.
+   * - **Local GPU** (``gpu_local``)
+     - boolean
+     - ``False``
+     - Build the commands for a local GPU run instead of a cluster job.
+   * - **Filter samples** (``filter_samples``)
+     - boolean
+     - ``True``
+     - Apply BioEmu's sample filtering.
+   * - **MSA calculation** (``msa_calculation``)
+     - boolean
+     - ``False``
+     - Build the MSA on the cluster with colabfold_search against a local database. Leave it off only if the compute nodes have internet access: BioEmu otherwise queries the ColabFold web API to align the raw sequence.
+   * - **MMseqs2 binary** (``mmseqs_path``)
+     - string
+     - ``/apps/ACC/MMSEQS2/17-b804f/GCC/OPENMPI/bin/mmseqs``
+     - Path to the MMseqs2 executable used by colabfold_search (only used when 'MSA calculation' is enabled).
+   * - **ColabFold database** (``msa_database``)
+     - string
+     - ``/gpfs/apps/MN5/ACC/COLABFOLD/SRC/database/FULL``
+     - Path to the local ColabFold/MMseqs2 database searched for the MSA (only used when 'MSA calculation' is enabled).
+   * - **Persistent MSA folder** (``cluster_msa_folder``)
+     - string
+     - —
+     - Absolute folder on the cluster where the alignments are kept, one subfolder per model. Living outside the folder uploaded on each launch, an alignment found there is reused and colabfold_search is skipped. Empty keeps them inside the run folder, so every launch searches again.
+   * - **Skip finished** (``skip_finished``)
+     - boolean
+     - ``True``
+     - Do not regenerate jobs whose sampling already completed.
+   * - **Remove existing results** (``remove_existing_results``)
+     - boolean
+     - ``False``
+     - Delete the existing results folder before running. Only applied when the run is started from this block: a run that reaches it through its connections keeps the results.
+
+
+As a cluster-capable block it also has the shared :ref:`cluster job settings <cluster-job-settings>` (CPUs, partition, walltime, job grouping, ...).
+
+Outputs
+-------
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 6 3 3 12
+
+   * - Output
+     - Type
+     - Format
+     - Description
+   * - **BioEmu folder** (``bioemu_folder``)
+     - folder
+     - —
+     - Folder holding the BioEmu sampling output (feed this into the BioEmu analysis blocks).
