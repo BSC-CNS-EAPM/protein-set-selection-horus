@@ -41,16 +41,18 @@ for the first failing extraction job.
 ---------------------------------------------------
 
 - **Locally:** set the ``mmseqs_path`` configuration (see :doc:`configuration`).
-- **On MareNostrum:** keep **Cluster modules** at ``bsc/1.0, mmseqs2/15-6f452``
-  and **MPI runner** at ``srun``. Without ``srun`` the MPI build aborts with
-  ``PMI2_Job_GetId``.
+- **On a cluster:** check that **Cluster modules** names a module that provides
+  MMseqs2 on that cluster. An MPI build needs **MPI runner** at ``srun``:
+  without it, it aborts with ``PMI2_Job_GetId``.
 
 Rosetta cannot find its module / BioEmu cannot find the GPU environment
 -----------------------------------------------------------------------
 
-The job was submitted from the wrong kind of login node. On MareNostrum 5, GPU
-software (BioEmu, ProteinMPNN) needs an ``alogin`` remote and Rosetta a
-``glogin`` remote. See :doc:`remotes`.
+Either the block's cluster software settings do not match your site (see
+:ref:`remotes:Software on the cluster`), or the job was submitted from a login
+node that cannot see that software: on a cluster with separate GPU and CPU
+login nodes, submit the GPU blocks from the GPU remote and Rosetta from the CPU
+one. See :doc:`remotes`.
 
 "The folder ... holds a clustering of different sequences / other settings"
 ---------------------------------------------------------------------------

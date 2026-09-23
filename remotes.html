@@ -463,6 +463,16 @@ document.write(`
 running Horus) or an SSH connection to another machine, typically a SLURM
 cluster login node. You choose the remote per block, in the drop-down at the
 bottom of the block.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>Cluster jobs are written by <code class="docutils literal notranslate"><span class="pre">bsc_calculations</span></code>, which this plugin drives
+for <strong>MareNostrum 5 login nodes</strong> (hosts containing <code class="docutils literal notranslate"><span class="pre">glogin</span></code> or
+<code class="docutils literal notranslate"><span class="pre">alogin</span></code>). A cluster remote whose host is neither is refused with a clear
+error, and everything else runs on the Local remote. Several block defaults
+(module names, environment paths) also point at that installation; change
+them for your own site. Support for other SLURM clusters means extending
+<code class="docutils literal notranslate"><span class="pre">ProtSelect/Include/utils.py</span></code>.</p>
+</div>
 <section id="which-blocks-can-run-where">
 <h2>Which blocks can run where<a class="headerlink" href="#which-blocks-can-run-where" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="table">
@@ -480,22 +490,22 @@ bottom of the block.</p>
 <tbody>
 <tr class="row-even"><td><p>ProteinMPNN Scoring</p></td>
 <td><p>Local or cluster</p></td>
-<td><p>GPU cluster remote. Locally it runs on CPU or local GPUs; fine for a few
-small proteins.</p></td>
+<td><p>A GPU remote. Locally it runs on CPU or local GPUs; fine for a few small
+proteins.</p></td>
 </tr>
 <tr class="row-odd"><td><p>MMseqs2 Clustering</p></td>
 <td><p>Local or cluster</p></td>
-<td><p>Local for up to a few thousand sequences; CPU cluster remote for large
+<td><p>Local for up to a few thousand sequences; a CPU remote for large
 families.</p></td>
 </tr>
 <tr class="row-even"><td><p>Rosetta Relax</p></td>
 <td><p>Local or cluster</p></td>
-<td><p>CPU cluster remote. A relax of 100 structures per model is hours of CPU
-per model.</p></td>
+<td><p>A CPU remote. A relax of 100 structures per model is hours of CPU per
+model.</p></td>
 </tr>
 <tr class="row-odd"><td><p>BioEmu Sampling</p></td>
 <td><p>Local or cluster</p></td>
-<td><p>GPU cluster remote.</p></td>
+<td><p>A GPU remote.</p></td>
 </tr>
 <tr class="row-even"><td><p>Every other block</p></td>
 <td><p>Local</p></td>
@@ -524,7 +534,7 @@ per model.</p></td>
 <td><p>Any name. You pick it in the block's drop-down.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Host</p></td>
-<td><p>The login node, e.g. <code class="docutils literal notranslate"><span class="pre">glogin2.bsc.es</span></code>.</p></td>
+<td><p>The cluster login node.</p></td>
 </tr>
 <tr class="row-even"><td><p>Username, Port</p></td>
 <td><p>Your cluster account and the SSH port (22).</p></td>
@@ -536,9 +546,8 @@ per model.</p></td>
 <td><p>Only if you reach the cluster through a jump host.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Working directory</p></td>
-<td><p>A folder on the cluster where Horus creates one sub-folder per job, e.g.
-<code class="docutils literal notranslate"><span class="pre">/gpfs/projects/&lt;group&gt;/&lt;user&gt;/horus_work</span></code>. Put it on a file system
-with space for BioEmu and Rosetta output.</p></td>
+<td><p>A folder on the cluster where Horus creates one sub-folder per job. Put
+it on a file system with space for BioEmu and Rosetta output.</p></td>
 </tr>
 <tr class="row-even"><td><p>Load profile</p></td>
 <td><p>Source your shell profile before each command. Enable it if you need
@@ -548,34 +557,38 @@ your <code class="docutils literal notranslate"><span class="pre">.bashrc</span>
 </table>
 </div>
 </section>
-<section id="marenostrum-5-one-remote-for-gpu-one-for-cpu">
-<h2>MareNostrum 5: one remote for GPU, one for CPU<a class="headerlink" href="#marenostrum-5-one-remote-for-gpu-one-for-cpu" title="Link to this heading">#</a></h2>
-<p>On MareNostrum 5, create <strong>two remotes</strong>:</p>
+<section id="one-remote-for-gpu-one-for-cpu">
+<h2>One remote for GPU, one for CPU<a class="headerlink" href="#one-remote-for-gpu-one-for-cpu" title="Link to this heading">#</a></h2>
+<p>A job submitted with <code class="docutils literal notranslate"><span class="pre">sbatch</span></code> inherits the environment of the login node it
+was submitted from, including which modules it can load. On a cluster whose GPU
+and CPU partitions are served by different login nodes with different module
+trees, one remote cannot reach both: the GPU software is visible from one and
+Rosetta from the other.</p>
+<p>Create <strong>two remotes</strong> on such a cluster, and give each block the one that can
+see the software it needs:</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
-<tr class="row-odd"><th class="head"><p>Remote name (suggestion)</p></th>
+<tr class="row-odd"><th class="head"><p>Remote</p></th>
 <th class="head"><p>Host</p></th>
 <th class="head"><p>Use for</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">acc</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">alogin2.bsc.es</span></code> (or another <code class="docutils literal notranslate"><span class="pre">alogin</span></code> node)</p></td>
-<td><p>ProteinMPNN Scoring, BioEmu Sampling (GPU, <code class="docutils literal notranslate"><span class="pre">acc_*</span></code> partitions)</p></td>
+<tr class="row-even"><td><p>a GPU remote</p></td>
+<td><p>the login node serving the GPU partitions</p></td>
+<td><p>ProteinMPNN Scoring, BioEmu Sampling</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mn</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">glogin2.bsc.es</span></code> (or another <code class="docutils literal notranslate"><span class="pre">glogin</span></code> node)</p></td>
-<td><p>MMseqs2 Clustering, Rosetta Relax (CPU, <code class="docutils literal notranslate"><span class="pre">gp_*</span></code> partitions)</p></td>
+<tr class="row-odd"><td><p>a CPU remote</p></td>
+<td><p>the login node serving the general-purpose partitions</p></td>
+<td><p>MMseqs2 Clustering, Rosetta Relax</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>A job submitted with <code class="docutils literal notranslate"><span class="pre">sbatch</span></code> inherits the module environment of the login
-node it was submitted from. GPU software is in the ACC login nodes' module tree
-and Rosetta in the general-purpose one, so a single remote would fail for one of
-the two partitions.</p>
-<p>Use the same working directory for both remotes if you like; each job gets its
-own folder.</p>
+<p>On MareNostrum 5 those are the <code class="docutils literal notranslate"><span class="pre">alogin</span></code> and <code class="docutils literal notranslate"><span class="pre">glogin</span></code> nodes; the plugin was
+tested with one remote for each. Where a single login node serves everything,
+one remote is enough.</p>
+<p>The two remotes can share a working directory; each job gets its own folder.</p>
 </section>
 <section id="assigning-remotes-in-the-preset">
 <h2>Assigning remotes in the preset<a class="headerlink" href="#assigning-remotes-in-the-preset" title="Link to this heading">#</a></h2>
@@ -583,11 +596,10 @@ own folder.</p>
 remote names differ between installations. Before running it on a cluster,
 change the remote of these four blocks:</p>
 <ul class="simple">
-<li><p><strong>ProteinMPNN Scoring</strong>: your GPU remote (<code class="docutils literal notranslate"><span class="pre">acc</span></code>);</p></li>
-<li><p><strong>BioEmu Sampling</strong>: your GPU remote (<code class="docutils literal notranslate"><span class="pre">acc</span></code>);</p></li>
-<li><p><strong>MMseqs2 Clustering</strong>: your CPU remote (<code class="docutils literal notranslate"><span class="pre">mn</span></code>), or leave it Local for small
-sets;</p></li>
-<li><p><strong>Rosetta Relax</strong>: your CPU remote (<code class="docutils literal notranslate"><span class="pre">mn</span></code>).</p></li>
+<li><p><strong>ProteinMPNN Scoring</strong>: your GPU remote;</p></li>
+<li><p><strong>BioEmu Sampling</strong>: your GPU remote;</p></li>
+<li><p><strong>MMseqs2 Clustering</strong>: your CPU remote, or leave it Local for small sets;</p></li>
+<li><p><strong>Rosetta Relax</strong>: your CPU remote.</p></li>
 </ul>
 <p>Leave all the other blocks on Local.</p>
 </section>
@@ -608,8 +620,10 @@ matter most:</p>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>Partition</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">acc_*</span></code> for GPU blocks, <code class="docutils literal notranslate"><span class="pre">gp_*</span></code> for CPU blocks. <code class="docutils literal notranslate"><span class="pre">*_debug</span></code> queues
-start fast but only allow short runs; use them to test a flow.</p></td>
+<td><p>The queue (QOS) to submit to: a GPU queue for the GPU blocks, a
+general-purpose one for the others. Debug queues start fast but only
+allow short runs; use them to test a flow. The choices listed are
+MareNostrum 5's.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Walltime (<code class="docutils literal notranslate"><span class="pre">time</span></code>, hours)</p></td>
 <td><p>Leave it at 0 for the 48 h default, or set it close to the real run time:
@@ -633,30 +647,44 @@ Disable it to keep a cluster-side copy.</p></td>
 </tbody>
 </table>
 </div>
+<section id="software-on-the-cluster">
+<h3>Software on the cluster<a class="headerlink" href="#software-on-the-cluster" title="Link to this heading">#</a></h3>
+<p>The plugin's local tool configuration (<a class="reference internal" href="configuration.html"><span class="doc">Tools and configuration</span></a>) does not apply to
+cluster jobs: there the job loads its own software. Each cluster-capable block
+has parameters for that, and their defaults are the ones used during
+development, so check them against your site:</p>
+<ul class="simple">
+<li><p><strong>Cluster modules</strong>: modules loaded before the job runs;</p></li>
+<li><p><strong>Cluster environment</strong> (ProteinMPNN, BioEmu): the conda environment the job
+activates, as a path or a name;</p></li>
+<li><p><strong>Preamble</strong> (MMseqs2): free-text lines for anything a module does not cover.</p></li>
+</ul>
+<p>Rosetta Relax is the exception: <code class="docutils literal notranslate"><span class="pre">bsc_calculations</span></code> loads its own Rosetta
+module for that job, so the module must exist on the cluster you submit from.</p>
+</section>
 <section id="per-block-advice">
 <h3>Per-block advice<a class="headerlink" href="#per-block-advice" title="Link to this heading">#</a></h3>
-<p><strong>ProteinMPNN Scoring.</strong> GPU partition, <strong>GPUs</strong> 1, jobs grouped into one task,
-walltime of an hour or two. The job activates <strong>Cluster environment</strong>, a conda
-environment with torch, after loading <strong>Cluster modules</strong>.</p>
-<p><strong>MMseqs2 Clustering.</strong> CPU partition. <strong>CPUs per task</strong> is MMseqs2's thread
-count. MareNostrum's module (<code class="docutils literal notranslate"><span class="pre">mmseqs2/15-6f452</span></code>) is an MPI build: keep <strong>MPI
-runner</strong> at <code class="docutils literal notranslate"><span class="pre">srun</span></code> there. Clear it for a non-MPI build. Locally, MMseqs2 uses
-every core.</p>
+<p><strong>ProteinMPNN Scoring.</strong> GPU queue, <strong>GPUs</strong> 1, jobs grouped into one task,
+walltime of an hour or two. The job activates <strong>Cluster environment</strong>, which
+must have torch.</p>
+<p><strong>MMseqs2 Clustering.</strong> CPU queue. <strong>CPUs per task</strong> is MMseqs2's thread count.
+An MPI build of MMseqs2 must be started through a launcher: keep <strong>MPI runner</strong>
+at <code class="docutils literal notranslate"><span class="pre">srun</span></code>, which MMseqs2 uses for its MPI-parallel steps. Clear it for a
+non-MPI build, where it would run a full copy of each step per task. Locally,
+MMseqs2 uses every core.</p>
 <p><strong>Rosetta Relax.</strong> The block runs <code class="docutils literal notranslate"><span class="pre">rosetta_scripts</span></code> with MPI: one rank
 coordinates and each other rank relaxes one structure at a time. Set <strong>CPUs</strong>
 to <code class="docutils literal notranslate"><span class="pre">nstruct</span> <span class="pre">+</span> <span class="pre">1</span></code>, for example 101 for nstruct 100, and keep
 <code class="docutils literal notranslate"><span class="pre">group_jobs_by</span></code> at 0 so each model gets its own array task and all models run
 in parallel. A single structure cannot use more than one CPU, so adding CPUs
-beyond <code class="docutils literal notranslate"><span class="pre">nstruct</span> <span class="pre">+</span> <span class="pre">1</span></code> does not help. Grouping models in one task makes them run
-one after another. Rosetta itself comes from the <code class="docutils literal notranslate"><span class="pre">rosetta</span></code> module that
-bsc_calculations loads (<code class="docutils literal notranslate"><span class="pre">gcc/12.3.0</span></code>, <code class="docutils literal notranslate"><span class="pre">rosetta/3.14</span></code> on MareNostrum 5), so
-it must run on a general-purpose login node.</p>
-<p><strong>BioEmu Sampling.</strong> GPU partition, <strong>GPUs</strong> 1. The job activates <strong>Cluster
-BioEmu environment</strong>. On clusters whose compute nodes have no internet access
-(MareNostrum), enable <strong>MSA calculation</strong>, which builds the MSA with
-<code class="docutils literal notranslate"><span class="pre">colabfold_search</span></code> against a local database. Otherwise BioEmu tries to reach
-the ColabFold web server and fails. <strong>Persistent MSA folder</strong> keeps the MSAs
-between runs.</p>
+beyond <code class="docutils literal notranslate"><span class="pre">nstruct</span> <span class="pre">+</span> <span class="pre">1</span></code> does not help, and grouping models in one task makes them
+run one after another.</p>
+<p><strong>BioEmu Sampling.</strong> GPU queue, <strong>GPUs</strong> 1. The job activates <strong>Cluster BioEmu
+environment</strong>. On clusters whose compute nodes have no internet access, enable
+<strong>MSA calculation</strong>, which builds the MSA with <code class="docutils literal notranslate"><span class="pre">colabfold_search</span></code> against a
+local database; set <strong>ColabFold bin folder</strong>, <strong>ColabFold database</strong> and the
+MMseqs2 path for your site. Otherwise BioEmu tries to reach the ColabFold web
+server and fails. <strong>Persistent MSA folder</strong> keeps the MSAs between runs.</p>
 </section>
 </section>
 </section>
@@ -709,9 +737,10 @@ between runs.</p>
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#which-blocks-can-run-where">Which blocks can run where</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#creating-a-remote">Creating a remote</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#marenostrum-5-one-remote-for-gpu-one-for-cpu">MareNostrum 5: one remote for GPU, one for CPU</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#one-remote-for-gpu-one-for-cpu">One remote for GPU, one for CPU</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#assigning-remotes-in-the-preset">Assigning remotes in the preset</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sizing-the-cluster-jobs">Sizing the cluster jobs</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#software-on-the-cluster">Software on the cluster</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#per-block-advice">Per-block advice</a></li>
 </ul>
 </li>

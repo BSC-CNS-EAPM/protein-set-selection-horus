@@ -40,7 +40,7 @@ Each dataset has the same layout:
 Start with **lysozyme** to check that a flow is connected. Use **hmfo** to see
 the pipeline behave at a realistic size: there ProteinMPNN takes minutes on a
 CPU and the Rosetta relax is a cluster job. The HMFO set is the one the
-pipeline was tested on end to end on MareNostrum 5.
+pipeline was tested on end to end on a SLURM cluster.
 
 Using your own data
 -------------------

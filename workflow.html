@@ -623,7 +623,8 @@ one short job.</p>
 block, select the sequences file (FASTA or JSON, keyed by the structure file
 names). To try it, use <code class="docutils literal notranslate"><span class="pre">ExampleData/hmfo</span></code>; see <a class="reference internal" href="example_data.html"><span class="doc">Example data</span></a>.</p></li>
 <li><p>Assign the remotes: ProteinMPNN and BioEmu to your GPU remote, MMseqs2 and
-Rosetta to your CPU remote (see <a class="reference internal" href="remotes.html"><span class="doc">Remotes and clusters</span></a>). Leave the rest on Local.</p></li>
+Rosetta to your CPU remote, and check the blocks' cluster software settings
+against your site (see <a class="reference internal" href="remotes.html"><span class="doc">Remotes and clusters</span></a>). Leave the rest on Local.</p></li>
 <li><p>For a quick test, reduce the expensive settings first: Rosetta <code class="docutils literal notranslate"><span class="pre">nstruct</span></code> 2
 (and <strong>CPUs</strong> 3), BioEmu <code class="docutils literal notranslate"><span class="pre">num_samples</span></code> 10, Pareto <code class="docutils literal notranslate"><span class="pre">n_select</span></code> below the
 number of representatives.</p></li>

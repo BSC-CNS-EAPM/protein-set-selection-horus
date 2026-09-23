@@ -494,16 +494,18 @@ for the first failing extraction job.</p>
 <h2>&quot;mmseqs: not found&quot; or MMseqs2 fails on the cluster<a class="headerlink" href="#mmseqs-not-found-or-mmseqs2-fails-on-the-cluster" title="Link to this heading">#</a></h2>
 <ul class="simple">
 <li><p><strong>Locally:</strong> set the <code class="docutils literal notranslate"><span class="pre">mmseqs_path</span></code> configuration (see <a class="reference internal" href="configuration.html"><span class="doc">Tools and configuration</span></a>).</p></li>
-<li><p><strong>On MareNostrum:</strong> keep <strong>Cluster modules</strong> at <code class="docutils literal notranslate"><span class="pre">bsc/1.0,</span> <span class="pre">mmseqs2/15-6f452</span></code>
-and <strong>MPI runner</strong> at <code class="docutils literal notranslate"><span class="pre">srun</span></code>. Without <code class="docutils literal notranslate"><span class="pre">srun</span></code> the MPI build aborts with
-<code class="docutils literal notranslate"><span class="pre">PMI2_Job_GetId</span></code>.</p></li>
+<li><p><strong>On a cluster:</strong> check that <strong>Cluster modules</strong> names a module that provides
+MMseqs2 on that cluster. An MPI build needs <strong>MPI runner</strong> at <code class="docutils literal notranslate"><span class="pre">srun</span></code>:
+without it, it aborts with <code class="docutils literal notranslate"><span class="pre">PMI2_Job_GetId</span></code>.</p></li>
 </ul>
 </section>
 <section id="rosetta-cannot-find-its-module-bioemu-cannot-find-the-gpu-environment">
 <h2>Rosetta cannot find its module / BioEmu cannot find the GPU environment<a class="headerlink" href="#rosetta-cannot-find-its-module-bioemu-cannot-find-the-gpu-environment" title="Link to this heading">#</a></h2>
-<p>The job was submitted from the wrong kind of login node. On MareNostrum 5, GPU
-software (BioEmu, ProteinMPNN) needs an <code class="docutils literal notranslate"><span class="pre">alogin</span></code> remote and Rosetta a
-<code class="docutils literal notranslate"><span class="pre">glogin</span></code> remote. See <a class="reference internal" href="remotes.html"><span class="doc">Remotes and clusters</span></a>.</p>
+<p>Either the block's cluster software settings do not match your site (see
+<a class="reference internal" href="remotes.html#software-on-the-cluster"><span class="std std-ref">Software on the cluster</span></a>), or the job was submitted from a login
+node that cannot see that software: on a cluster with separate GPU and CPU
+login nodes, submit the GPU blocks from the GPU remote and Rosetta from the CPU
+one. See <a class="reference internal" href="remotes.html"><span class="doc">Remotes and clusters</span></a>.</p>
 </section>
 <section id="the-folder-holds-a-clustering-of-different-sequences-other-settings">
 <h2>&quot;The folder ... holds a clustering of different sequences / other settings&quot;<a class="headerlink" href="#the-folder-holds-a-clustering-of-different-sequences-other-settings" title="Link to this heading">#</a></h2>

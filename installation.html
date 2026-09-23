@@ -468,9 +468,10 @@ or web app).</p></li>
 ProteinMPNN), Rosetta and PyRosetta, BioEmu, CodonTransformer and, optionally,
 SMOG2. Which ones you need depends on the blocks you use and where they run;
 see <a class="reference internal" href="configuration.html"><span class="doc">Tools and configuration</span></a>.</p></li>
-<li><p><strong>A SLURM cluster</strong> is optional but recommended for anything beyond a small
-test: ProteinMPNN and BioEmu want a GPU, and a Rosetta relax of many models is
-a cluster job. See <a class="reference internal" href="remotes.html"><span class="doc">Remotes and clusters</span></a>.</p></li>
+<li><p><strong>A SLURM cluster</strong> is recommended for anything beyond a small test:
+ProteinMPNN and BioEmu want a GPU, and a Rosetta relax of many models is a
+cluster job. Cluster submission currently targets MareNostrum 5 login nodes;
+everything else runs on the machine running Horus. See <a class="reference internal" href="remotes.html"><span class="doc">Remotes and clusters</span></a>.</p></li>
 </ul>
 </section>
 <section id="installing-the-plugin">
