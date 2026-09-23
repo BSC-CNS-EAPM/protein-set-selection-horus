@@ -79,6 +79,14 @@ Parameters
      - string
      - —
      - Optional Rosetta .params files (e.g. for ligands), comma separated.
+   * - **Cluster modules** (``cluster_modules``)
+     - string
+     - —
+     - Comma-separated modules that provide Rosetta on the cluster, for example 'gcc/12.3.0, rosetta/3.14'. Leave empty on MareNostrum 5, where bsc_calculations loads its own Rosetta modules; on any other cluster this is how the job finds Rosetta.
+   * - **Cluster environment** (``cluster_env``)
+     - string
+     - —
+     - Conda environment the job activates before running, when Rosetta comes from one instead of a module. Leave empty to use modules alone.
    * - **Remove existing results** (``remove_existing_results``)
      - boolean
      - ``False``

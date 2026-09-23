@@ -602,6 +602,16 @@ document.write(`
 <td><p>—</p></td>
 <td><p>Optional Rosetta .params files (e.g. for ligands), comma separated.</p></td>
 </tr>
+<tr class="row-even"><td><p><strong>Cluster modules</strong> (<code class="docutils literal notranslate"><span class="pre">cluster_modules</span></code>)</p></td>
+<td><p>string</p></td>
+<td><p>—</p></td>
+<td><p>Comma-separated modules that provide Rosetta on the cluster, for example 'gcc/12.3.0, rosetta/3.14'. Leave empty on MareNostrum 5, where bsc_calculations loads its own Rosetta modules; on any other cluster this is how the job finds Rosetta.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Cluster environment</strong> (<code class="docutils literal notranslate"><span class="pre">cluster_env</span></code>)</p></td>
+<td><p>string</p></td>
+<td><p>—</p></td>
+<td><p>Conda environment the job activates before running, when Rosetta comes from one instead of a module. Leave empty to use modules alone.</p></td>
+</tr>
 <tr class="row-even"><td><p><strong>Remove existing results</strong> (<code class="docutils literal notranslate"><span class="pre">remove_existing_results</span></code>)</p></td>
 <td><p>boolean</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>

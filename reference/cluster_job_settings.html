@@ -508,10 +508,20 @@ document.write(`
 <td><p><code class="docutils literal notranslate"><span class="pre">calculation_script.sh</span></code></p></td>
 <td><p>Name of the generated job script. Change it only to run two calculations of the same block in one folder.</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Partition</strong> (<code class="docutils literal notranslate"><span class="pre">partition</span></code>)</p></td>
-<td><p>string list</p></td>
+<tr class="row-odd"><td><p><strong>Partition / QOS</strong> (<code class="docutils literal notranslate"><span class="pre">partition</span></code>)</p></td>
+<td><p>string</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">gp_bscls</span></code></p></td>
-<td><p>SLURM queue (QOS) to submit to. On MareNostrum 5, gp_* queues are the general-purpose CPU partition and acc_* the GPU partition; *_debug queues start fast but are limited to short runs. Choices: <code class="docutils literal notranslate"><span class="pre">gp_bscls</span></code>, <code class="docutils literal notranslate"><span class="pre">gp_debug</span></code>, <code class="docutils literal notranslate"><span class="pre">acc_bscls</span></code>, <code class="docutils literal notranslate"><span class="pre">acc_debug</span></code>, <code class="docutils literal notranslate"><span class="pre">debug</span></code>, <code class="docutils literal notranslate"><span class="pre">bsc_ls</span></code>.</p></td>
+<td><p>Queue to submit to, as your cluster names it. On MareNostrum 5 it is the QOS: gp_* for general-purpose CPU, acc_* for GPU, *_debug for short test runs. Elsewhere it is written as --partition, unless it is given as 'qos:&lt;name&gt;'.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Account</strong> (<code class="docutils literal notranslate"><span class="pre">account</span></code>)</p></td>
+<td><p>string</p></td>
+<td><p>—</p></td>
+<td><p>Account (project) to charge the job to, when the cluster needs one. Leave empty to let the cluster pick your default; on MareNostrum 5 the bsc_calculations default is used instead.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Extra SBATCH lines</strong> (<code class="docutils literal notranslate"><span class="pre">sbatch_extra</span></code>)</p></td>
+<td><p>string</p></td>
+<td><p>—</p></td>
+<td><p>Additional SBATCH directives for clusters other than MareNostrum, one per line and without the '#SBATCH' prefix, for example '--mem-per-cpu=4G' or '--nodes=1'.</p></td>
 </tr>
 <tr class="row-even"><td><p><strong>CPUs</strong> (<code class="docutils literal notranslate"><span class="pre">cpus</span></code>)</p></td>
 <td><p>integer</p></td>

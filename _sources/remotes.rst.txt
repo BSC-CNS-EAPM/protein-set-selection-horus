@@ -6,15 +6,12 @@ running Horus) or an SSH connection to another machine, typically a SLURM
 cluster login node. You choose the remote per block, in the drop-down at the
 bottom of the block.
 
-.. important::
-
-   Cluster jobs are written by ``bsc_calculations``, which this plugin drives
-   for **MareNostrum 5 login nodes** (hosts containing ``glogin`` or
-   ``alogin``). A cluster remote whose host is neither is refused with a clear
-   error, and everything else runs on the Local remote. Several block defaults
-   (module names, environment paths) also point at that installation; change
-   them for your own site. Support for other SLURM clusters means extending
-   ``ProtSelect/Include/utils.py``.
+Any SLURM cluster works. Jobs for **MareNostrum 5** login nodes (hosts
+containing ``glogin`` or ``alogin``) are written by ``bsc_calculations``, which
+knows that site's queues and software; every other host gets a plain SLURM
+array script built from the block's own settings, so nothing is assumed about
+your cluster. Several block defaults (module names, environment paths) point at
+MareNostrum 5, so check them for your site: see `Software on the cluster`_.
 
 Which blocks can run where
 --------------------------
@@ -133,11 +130,20 @@ matter most:
 
    * - Setting
      - How to choose it
-   * - Partition
-     - The queue (QOS) to submit to: a GPU queue for the GPU blocks, a
-       general-purpose one for the others. Debug queues start fast but only
-       allow short runs; use them to test a flow. The choices listed are
-       MareNostrum 5's.
+   * - Partition / QOS
+     - The queue to submit to, as your cluster names it: a GPU queue for the GPU
+       blocks, a general-purpose one for the others. Written as
+       ``--partition``, or as ``--qos`` if you enter it as ``qos:<name>``. On
+       MareNostrum 5 it is the QOS (``gp_bscls``, ``acc_bscls``, the ``*_debug``
+       queues for short test runs).
+   * - Account
+     - The project to charge the job to, when your cluster requires one. Left
+       empty, the cluster's default for your account is used; on MareNostrum 5
+       ``bsc_calculations`` supplies its own default.
+   * - Extra SBATCH lines
+     - Any other directives your cluster needs, one per line without the
+       ``#SBATCH`` prefix, for example ``--mem-per-cpu=4G`` or ``--nodes=1``.
+       Used on clusters other than MareNostrum 5.
    * - Walltime (``time``, hours)
      - Leave it at 0 for the 48 h default, or set it close to the real run time:
        shorter jobs usually wait less in the queue. The plugin cannot extend a
@@ -163,12 +169,14 @@ has parameters for that, and their defaults are the ones used during
 development, so check them against your site:
 
 - **Cluster modules**: modules loaded before the job runs;
-- **Cluster environment** (ProteinMPNN, BioEmu): the conda environment the job
-  activates, as a path or a name;
+- **Cluster environment**: the conda environment the job activates
+  (``source activate``), as a path or a name;
 - **Preamble** (MMseqs2): free-text lines for anything a module does not cover.
 
-Rosetta Relax is the exception: ``bsc_calculations`` loads its own Rosetta
-module for that job, so the module must exist on the cluster you submit from.
+Rosetta Relax has the same two settings. Left empty, the job loads the Rosetta
+modules ``bsc_calculations`` knows on MareNostrum 5; on any other cluster, name
+the module that provides ``rosetta_scripts`` there, or the environment holding
+it.
 
 Per-block advice
 ~~~~~~~~~~~~~~~~

@@ -17,10 +17,18 @@ Every block that can run as a SLURM job (ProteinMPNN Scoring, MMseqs2 Clustering
      - string
      - ``calculation_script.sh``
      - Name of the generated job script. Change it only to run two calculations of the same block in one folder.
-   * - **Partition** (``partition``)
-     - string list
+   * - **Partition / QOS** (``partition``)
+     - string
      - ``gp_bscls``
-     - SLURM queue (QOS) to submit to. On MareNostrum 5, gp\_\* queues are the general-purpose CPU partition and acc\_\* the GPU partition; \*_debug queues start fast but are limited to short runs. Choices: ``gp_bscls``, ``gp_debug``, ``acc_bscls``, ``acc_debug``, ``debug``, ``bsc_ls``.
+     - Queue to submit to, as your cluster names it. On MareNostrum 5 it is the QOS: gp\_\* for general-purpose CPU, acc\_\* for GPU, \*_debug for short test runs. Elsewhere it is written as --partition, unless it is given as 'qos:<name>'.
+   * - **Account** (``account``)
+     - string
+     - —
+     - Account (project) to charge the job to, when the cluster needs one. Leave empty to let the cluster pick your default; on MareNostrum 5 the bsc_calculations default is used instead.
+   * - **Extra SBATCH lines** (``sbatch_extra``)
+     - string
+     - —
+     - Additional SBATCH directives for clusters other than MareNostrum, one per line and without the '#SBATCH' prefix, for example '--mem-per-cpu=4G' or '--nodes=1'.
    * - **CPUs** (``cpus``)
      - integer
      - ``1``

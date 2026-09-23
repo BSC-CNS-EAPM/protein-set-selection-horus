@@ -12,8 +12,8 @@ Requirements
   see :doc:`configuration`.
 - **A SLURM cluster** is recommended for anything beyond a small test:
   ProteinMPNN and BioEmu want a GPU, and a Rosetta relax of many models is a
-  cluster job. Cluster submission currently targets MareNostrum 5 login nodes;
-  everything else runs on the machine running Horus. See :doc:`remotes`.
+  cluster job. Any SLURM cluster works; MareNostrum 5 is the one the plugin's
+  defaults are set for. See :doc:`remotes`.
 
 Installing the plugin
 ---------------------

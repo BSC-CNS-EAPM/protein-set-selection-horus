@@ -463,16 +463,12 @@ document.write(`
 running Horus) or an SSH connection to another machine, typically a SLURM
 cluster login node. You choose the remote per block, in the drop-down at the
 bottom of the block.</p>
-<div class="admonition important">
-<p class="admonition-title">Important</p>
-<p>Cluster jobs are written by <code class="docutils literal notranslate"><span class="pre">bsc_calculations</span></code>, which this plugin drives
-for <strong>MareNostrum 5 login nodes</strong> (hosts containing <code class="docutils literal notranslate"><span class="pre">glogin</span></code> or
-<code class="docutils literal notranslate"><span class="pre">alogin</span></code>). A cluster remote whose host is neither is refused with a clear
-error, and everything else runs on the Local remote. Several block defaults
-(module names, environment paths) also point at that installation; change
-them for your own site. Support for other SLURM clusters means extending
-<code class="docutils literal notranslate"><span class="pre">ProtSelect/Include/utils.py</span></code>.</p>
-</div>
+<p>Any SLURM cluster works. Jobs for <strong>MareNostrum 5</strong> login nodes (hosts
+containing <code class="docutils literal notranslate"><span class="pre">glogin</span></code> or <code class="docutils literal notranslate"><span class="pre">alogin</span></code>) are written by <code class="docutils literal notranslate"><span class="pre">bsc_calculations</span></code>, which
+knows that site's queues and software; every other host gets a plain SLURM
+array script built from the block's own settings, so nothing is assumed about
+your cluster. Several block defaults (module names, environment paths) point at
+MareNostrum 5, so check them for your site: see <a class="reference internal" href="#software-on-the-cluster">Software on the cluster</a>.</p>
 <section id="which-blocks-can-run-where">
 <h2>Which blocks can run where<a class="headerlink" href="#which-blocks-can-run-where" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="table">
@@ -619,11 +615,22 @@ matter most:</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Partition</p></td>
-<td><p>The queue (QOS) to submit to: a GPU queue for the GPU blocks, a
-general-purpose one for the others. Debug queues start fast but only
-allow short runs; use them to test a flow. The choices listed are
-MareNostrum 5's.</p></td>
+<tr class="row-even"><td><p>Partition / QOS</p></td>
+<td><p>The queue to submit to, as your cluster names it: a GPU queue for the GPU
+blocks, a general-purpose one for the others. Written as
+<code class="docutils literal notranslate"><span class="pre">--partition</span></code>, or as <code class="docutils literal notranslate"><span class="pre">--qos</span></code> if you enter it as <code class="docutils literal notranslate"><span class="pre">qos:&lt;name&gt;</span></code>. On
+MareNostrum 5 it is the QOS (<code class="docutils literal notranslate"><span class="pre">gp_bscls</span></code>, <code class="docutils literal notranslate"><span class="pre">acc_bscls</span></code>, the <code class="docutils literal notranslate"><span class="pre">*_debug</span></code>
+queues for short test runs).</p></td>
+</tr>
+<tr class="row-odd"><td><p>Account</p></td>
+<td><p>The project to charge the job to, when your cluster requires one. Left
+empty, the cluster's default for your account is used; on MareNostrum 5
+<code class="docutils literal notranslate"><span class="pre">bsc_calculations</span></code> supplies its own default.</p></td>
+</tr>
+<tr class="row-even"><td><p>Extra SBATCH lines</p></td>
+<td><p>Any other directives your cluster needs, one per line without the
+<code class="docutils literal notranslate"><span class="pre">#SBATCH</span></code> prefix, for example <code class="docutils literal notranslate"><span class="pre">--mem-per-cpu=4G</span></code> or <code class="docutils literal notranslate"><span class="pre">--nodes=1</span></code>.
+Used on clusters other than MareNostrum 5.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Walltime (<code class="docutils literal notranslate"><span class="pre">time</span></code>, hours)</p></td>
 <td><p>Leave it at 0 for the 48 h default, or set it close to the real run time:
@@ -655,12 +662,14 @@ has parameters for that, and their defaults are the ones used during
 development, so check them against your site:</p>
 <ul class="simple">
 <li><p><strong>Cluster modules</strong>: modules loaded before the job runs;</p></li>
-<li><p><strong>Cluster environment</strong> (ProteinMPNN, BioEmu): the conda environment the job
-activates, as a path or a name;</p></li>
+<li><p><strong>Cluster environment</strong>: the conda environment the job activates
+(<code class="docutils literal notranslate"><span class="pre">source</span> <span class="pre">activate</span></code>), as a path or a name;</p></li>
 <li><p><strong>Preamble</strong> (MMseqs2): free-text lines for anything a module does not cover.</p></li>
 </ul>
-<p>Rosetta Relax is the exception: <code class="docutils literal notranslate"><span class="pre">bsc_calculations</span></code> loads its own Rosetta
-module for that job, so the module must exist on the cluster you submit from.</p>
+<p>Rosetta Relax has the same two settings. Left empty, the job loads the Rosetta
+modules <code class="docutils literal notranslate"><span class="pre">bsc_calculations</span></code> knows on MareNostrum 5; on any other cluster, name
+the module that provides <code class="docutils literal notranslate"><span class="pre">rosetta_scripts</span></code> there, or the environment holding
+it.</p>
 </section>
 <section id="per-block-advice">
 <h3>Per-block advice<a class="headerlink" href="#per-block-advice" title="Link to this heading">#</a></h3>
