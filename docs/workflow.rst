@@ -165,7 +165,8 @@ Running the preset
    block, select the sequences file (FASTA or JSON, keyed by the structure file
    names). To try it, use ``ExampleData/hmfo``; see :doc:`example_data`.
 2. Assign the remotes: ProteinMPNN and BioEmu to your GPU remote, MMseqs2 and
-   Rosetta to your CPU remote (see :doc:`remotes`). Leave the rest on Local.
+   Rosetta to your CPU remote, and check the blocks' cluster software settings
+   against your site (see :doc:`remotes`). Leave the rest on Local.
 3. For a quick test, reduce the expensive settings first: Rosetta ``nstruct`` 2
    (and **CPUs** 3), BioEmu ``num_samples`` 10, Pareto ``n_select`` below the
    number of representatives.
