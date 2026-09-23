@@ -109,6 +109,24 @@ paramFilesVariable = PluginVariable(
     type=VariableTypes.STRING,
     defaultValue="",
 )
+clusterModulesVariable = PluginVariable(
+    id="cluster_modules",
+    name="Cluster modules",
+    description="Comma-separated modules that provide Rosetta on the cluster, for "
+    "example 'gcc/12.3.0, rosetta/3.14'. Leave empty on MareNostrum 5, where "
+    "bsc_calculations loads its own Rosetta modules; on any other cluster this is "
+    "how the job finds Rosetta.",
+    type=VariableTypes.STRING,
+    defaultValue="",
+)
+clusterEnvVariable = PluginVariable(
+    id="cluster_env",
+    name="Cluster environment",
+    description="Conda environment the job activates before running, when Rosetta "
+    "comes from one instead of a module. Leave empty to use modules alone.",
+    type=VariableTypes.STRING,
+    defaultValue="",
+)
 removeExistingResults = PluginVariable(
     name="Remove existing results",
     id="remove_existing_results",
@@ -223,7 +241,24 @@ def initial_rosetta_relax(block: SlurmBlock):
         # a SLURM cluster. Drop it so the relax can run on this machine.
         jobs = strip_srun(jobs)
 
-    launchCalculationAction(block, jobs, "rosetta", [folder_name])
+    # The "rosetta" program preset is a bsc_calculations shortcut that loads
+    # MareNostrum's Rosetta modules; it means nothing on another cluster, which
+    # supplies its own modules or environment instead.
+    modules = [
+        module.strip()
+        for module in (block.variables.get(clusterModulesVariable.id) or "").split(",")
+        if module.strip()
+    ]
+    cluster_env = (block.variables.get(clusterEnvVariable.id) or "").strip()
+
+    launchCalculationAction(
+        block,
+        jobs,
+        None if (modules or cluster_env) else "rosetta",
+        [folder_name],
+        condaEnv=cluster_env or None,
+        modules=modules or None,
+    )
 
 
 def final_rosetta_relax(block: SlurmBlock):
@@ -273,6 +308,8 @@ rosettaRelaxBlock = SlurmBlock(
         executableVariable,
         rosettaPathVariable,
         paramFilesVariable,
+        clusterModulesVariable,
+        clusterEnvVariable,
         removeExistingResults,
     ],
     inputs=[modelsFolder],

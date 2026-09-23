@@ -7,10 +7,13 @@ The blocks that do real work (ProteinMPNN, Rosetta Relax, BioEmu) are
 be written out as scripts, uploads them and submits the job; a final action
 downloads the results once the job finishes.
 
-This module is trimmed from the EAPM plugin's ``utils.py`` to the two targets
-this plugin supports: MareNostrum 5 (``glogin*``/``alogin*``) and the local
-machine. The PELE special case and the minotauro, nord3, cte-amd and
-"powerpuff" branches were dropped along with the blocks that used them.
+This module is trimmed from the EAPM plugin's ``utils.py``: the PELE special
+case and the minotauro, nord3, cte-amd and "powerpuff" branches were dropped
+along with the blocks that used them. Three targets remain. MareNostrum 5
+(``glogin*``/``alogin*``) goes through ``bsc_calculations.mn5``, which knows
+that site's queues, modules and program presets; the local machine runs the
+jobs in place; and any other SLURM cluster gets a plain array script from
+``_write_slurm_array``, built only from the block's own settings.
 """
 
 import datetime
@@ -40,6 +43,8 @@ def setup_bsc_calculations_based_on_horus_remote(
     localGPU=None,
     time=None,
     group_jobs_by=None,
+    account=None,
+    sbatch_extra=None,
 ):
     """
     Write the job scripts for the selected Horus remote.
@@ -82,6 +87,9 @@ def setup_bsc_calculations_based_on_horus_remote(
             mn5_arguments["time"] = time
         if group_jobs_by:
             mn5_arguments["group_jobs_by"] = group_jobs_by
+        # Left unset, bsc_calculations charges the job to its own default project.
+        if account:
+            mn5_arguments["account"] = account
         bsc_calculations.mn5.jobArrays(
             jobs,
             job_name=job_name,
@@ -116,13 +124,118 @@ def setup_bsc_calculations_based_on_horus_remote(
                 cpus=min(cpus or 40, len(jobs)),
                 script_name=scriptName,
             )
+    # any other SLURM cluster
     else:
-        raise Exception(
-            f"The remote '{cluster}' is not supported by this plugin. Use a "
-            "MareNostrum 5 login node (glogin*/alogin*) or the local machine."
+        print(f"Generating SLURM jobs for '{cluster}'...")
+        _write_slurm_array(
+            jobs,
+            script_name=scriptName,
+            job_name=job_name,
+            partition=partition,
+            account=account,
+            ntasks=cpus,
+            cpus_per_task=cpus_per_task,
+            gpus=gpus,
+            time=time,
+            group_jobs_by=group_jobs_by,
+            modules=modules,
+            module_purge=modulePurge,
+            conda_env=conda_env,
+            exports=exports,
+            sbatch_extra=sbatch_extra,
         )
 
     return cluster
+
+
+def _write_slurm_array(
+    jobs,
+    script_name,
+    job_name,
+    partition=None,
+    account=None,
+    ntasks=None,
+    cpus_per_task=None,
+    gpus=None,
+    time=None,
+    group_jobs_by=None,
+    modules=None,
+    module_purge=False,
+    conda_env=None,
+    exports=None,
+    sbatch_extra=None,
+):
+    """
+    Write a plain SLURM array script, for clusters other than MareNostrum 5.
+
+    ``bsc_calculations.mn5`` is MareNostrum-specific: it validates that site's
+    queue names, caps the walltime per queue, defaults the account to a BSC
+    project, and its ``program`` presets load MareNostrum modules. So every
+    other cluster gets this writer instead, which asks nothing of the site: the
+    queue, account, modules, environment and any extra directives come from the
+    block's own settings.
+
+    The layout follows the MareNostrum scripts, so the rest of the plugin (the
+    submission, the array task ids, the per-task logs) behaves identically:
+    one array task per job, or per group of ``group_jobs_by`` jobs.
+    """
+    # 'qos:<name>' submits to a QOS, as MareNostrum does; anything else is a
+    # partition, which is what most clusters expect.
+    directives = []
+    queue = (partition or "").strip()
+    if queue.lower().startswith("qos:"):
+        directives.append(f"--qos={queue.split(':', 1)[1].strip()}")
+    elif queue:
+        directives.append(f"--partition={queue}")
+    if account:
+        directives.append(f"--account={account}")
+    if ntasks:
+        directives.append(f"--ntasks={int(ntasks)}")
+    if cpus_per_task:
+        directives.append(f"--cpus-per-task={int(cpus_per_task)}")
+    if gpus:
+        directives.append(f"--gres=gpu:{int(gpus)}")
+    if time:
+        hours = int(time)
+        directives.append(f"--time={hours:02d}:00:00")
+
+    group = int(group_jobs_by or 1) or 1
+    groups = [jobs[i:i + group] for i in range(0, len(jobs), group)]
+
+    lines = ["#!/bin/bash", f"#SBATCH --job-name={job_name}"]
+    lines += [f"#SBATCH {directive}" for directive in directives]
+    lines.append(f"#SBATCH --array=1-{len(groups)}")
+    lines.append(f"#SBATCH --output={job_name}_%a_%A.out")
+    lines.append(f"#SBATCH --error={job_name}_%a_%A.err")
+    for extra in (sbatch_extra or "").splitlines():
+        extra = extra.strip().lstrip("#").replace("SBATCH", "", 1).strip()
+        if extra:
+            lines.append(f"#SBATCH {extra}")
+    lines.append("")
+
+    if module_purge:
+        lines.append("module purge")
+    for module in modules or []:
+        lines.append(f"module load {module}")
+    if conda_env:
+        lines.append(f"source activate {conda_env}")
+    for export in exports or []:
+        lines.append(f"export {export}")
+    if cpus_per_task:
+        # srun otherwise starts single-threaded tasks on recent SLURM.
+        lines.append("export SRUN_CPUS_PER_TASK=${SLURM_CPUS_PER_TASK}")
+    lines.append("")
+
+    for index, group_jobs in enumerate(groups, start=1):
+        lines.append(f"if [[ $SLURM_ARRAY_TASK_ID = {index} ]]; then")
+        for job in group_jobs:
+            lines.append(job.rstrip("\n"))
+        lines.append("fi")
+
+    with open(script_name, "w") as sf:
+        sf.write("\n".join(lines) + "\n")
+
+    return script_name
 
 
 def strip_srun(jobs):
@@ -281,6 +394,8 @@ def launchCalculationAction(
         raise Exception("No jobs selected")
 
     partition = block.variables.get("partition")
+    account = (block.variables.get("account") or "").strip() or None
+    sbatch_extra = block.variables.get("sbatch_extra") or None
     cpus = block.variables.get("cpus")
     cpus_per_task = block.variables.get("cpus_per_task")
     # Only the blocks that expose the GPUs variable request them; the rest keep
@@ -333,6 +448,8 @@ def launchCalculationAction(
         localGPU,
         walltime,
         groupJobsBy,
+        account,
+        sbatch_extra,
     )
 
     # Rewrite the main script to add the environment variables and to wait for
@@ -512,14 +629,36 @@ scriptNameVariable = PluginVariable(
 )
 
 partitionVariable = PluginVariable(
-    name="Partition",
+    name="Partition / QOS",
     id="partition",
-    description="SLURM queue (QOS) to submit to. On MareNostrum 5, gp_* queues are "
-    "the general-purpose CPU partition and acc_* the GPU partition; *_debug queues "
-    "start fast but are limited to short runs.",
-    type=VariableTypes.STRING_LIST,
+    description="Queue to submit to, as your cluster names it. On MareNostrum 5 it is "
+    "the QOS: gp_* for general-purpose CPU, acc_* for GPU, *_debug for short test "
+    "runs. Elsewhere it is written as --partition, unless it is given as "
+    "'qos:<name>'.",
+    type=VariableTypes.STRING,
     defaultValue="gp_bscls",
-    allowedValues=["gp_bscls", "gp_debug", "acc_bscls", "acc_debug", "debug", "bsc_ls"],
+    category="Slurm configuration",
+)
+
+accountVariable = PluginVariable(
+    name="Account",
+    id="account",
+    description="Account (project) to charge the job to, when the cluster needs one. "
+    "Leave empty to let the cluster pick your default; on MareNostrum 5 the "
+    "bsc_calculations default is used instead.",
+    type=VariableTypes.STRING,
+    defaultValue="",
+    category="Slurm configuration",
+)
+
+sbatchExtraVariable = PluginVariable(
+    name="Extra SBATCH lines",
+    id="sbatch_extra",
+    description="Additional SBATCH directives for clusters other than MareNostrum, "
+    "one per line and without the '#SBATCH' prefix, for example "
+    "'--mem-per-cpu=4G' or '--nodes=1'.",
+    type=VariableTypes.STRING,
+    defaultValue="",
     category="Slurm configuration",
 )
 
@@ -616,6 +755,8 @@ environmentList = VariableList(
 BSC_JOB_VARIABLES = [
     scriptNameVariable,
     partitionVariable,
+    accountVariable,
+    sbatchExtraVariable,
     cpusVariable,
     cpusPerTaskVariable,
     timeVariable,
