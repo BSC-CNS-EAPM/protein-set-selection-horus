@@ -164,6 +164,12 @@ Running the preset
    sequences file (FASTA or JSON, keyed by the structure file names) in both
    **File** blocks (6 and 17). The second copy of each sits next to the block it
    feeds, to keep the flow readable. See :doc:`example_data`.
+
+   With the example paths, the Folder and File blocks print *"is not a folder
+   on the local machine"* (or *"is not a file"*), and the file preview in the
+   editor cannot open them. Both are expected and can be ignored: Horus checks
+   the path from the flow's folder, while the plugin's blocks find the example
+   inside the plugin. Paths to your own data do not give the warning.
 2. Assign the remotes: ProteinMPNN and BioEmu to your GPU remote, MMseqs2 and
    Rosetta to your CPU remote, and check the blocks' cluster software settings
    against your site (see :doc:`remotes`). Leave the rest on Local.
