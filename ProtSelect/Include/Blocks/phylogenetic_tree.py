@@ -19,14 +19,14 @@ Pure Biopython, so there is no external tool dependency.
 """
 
 from HorusAPI import Extensions, PluginBlock, PluginVariable, VariableTypes
-from sequence_io import require_local
+from sequence_io import input_path, require_local
 
 # ==========================#
 # Variable inputs
 # ==========================#
 msaFile = PluginVariable(
     id="msa_file",
-    name="Alignment file",
+    name="MSA",
     description="Multiple sequence alignment (FASTA, Clustal, Phylip, Stockholm...). "
     "The format is guessed from the extension unless one is set below.",
     type=VariableTypes.FILE,
@@ -174,7 +174,7 @@ def build_tree(block: PluginBlock):
 
     require_local(block, "Phylogenetic Tree")
 
-    msa_path = block.inputs.get(msaFile.id, None)
+    msa_path = input_path(block, msaFile)
     if not msa_path or not os.path.isfile(msa_path):
         raise ValueError("A valid alignment file must be provided.")
 
@@ -193,7 +193,7 @@ def build_tree(block: PluginBlock):
     print(f"Alignment: {len(alignment)} sequences x {alignment.get_alignment_length()} columns.")
 
     labels = {}
-    labels_path = block.inputs.get(labelsFile.id, None)
+    labels_path = input_path(block, labelsFile)
     if labels_path and os.path.isfile(labels_path):
         with open(labels_path) as jf:
             labels = {str(k): str(v) for k, v in json.load(jf).items()}

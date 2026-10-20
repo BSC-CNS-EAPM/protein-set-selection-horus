@@ -21,7 +21,7 @@ of them, so the DataFrame is only read once every job has finished.
 """
 
 from HorusAPI import Extensions, PluginBlock, PluginVariable, VariableTypes
-from sequence_io import foreign_python_env, require_local
+from sequence_io import foreign_python_env, input_path, require_local
 
 # ==========================#
 # Variable inputs
@@ -125,14 +125,14 @@ relaxDataFile = PluginVariable(
 )
 scoreSummaryFile = PluginVariable(
     id="score_summary_file",
-    name="Score summary",
+    name="Rosetta score summary",
     description="CSV with per-model score statistics (mean, min, max, std, count).",
     type=VariableTypes.FILE,
     allowedValues=["csv"],
 )
 meanScoresFile = PluginVariable(
     id="mean_scores_file",
-    name="Mean scores",
+    name="Mean Rosetta scores",
     description="JSON mapping each model to its average Rosetta score.",
     type=VariableTypes.FILE,
     allowedValues=["json"],
@@ -538,11 +538,11 @@ def analyse_rosetta_relax(block: PluginBlock):
 
     require_local(block, "Analyse Rosetta Relax")
 
-    models_folder = block.inputs.get(modelsFolder.id, None)
+    models_folder = input_path(block, modelsFolder)
     if not models_folder or not os.path.isdir(models_folder):
         raise ValueError("A valid models folder must be provided.")
 
-    relax_folder = block.inputs.get(relaxFolder.id, None)
+    relax_folder = input_path(block, relaxFolder)
     if not relax_folder or not os.path.isdir(relax_folder):
         raise ValueError("A valid Rosetta relax folder must be provided.")
 
@@ -555,7 +555,7 @@ def analyse_rosetta_relax(block: PluginBlock):
     plot_type = block.variables.get(plotTypeVariable.id) or "violin"
     max_models_plot = int(block.variables.get(maxModelsPlotVariable.id, 60) or 0)
 
-    lengths_path = block.inputs.get(lengthsFile.id, None)
+    lengths_path = input_path(block, lengthsFile)
     lengths = {}
     if lengths_path and os.path.isfile(lengths_path):
         with open(lengths_path) as jf:

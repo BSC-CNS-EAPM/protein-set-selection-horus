@@ -34,23 +34,26 @@ the ten together stand for roughly 11,000 of the family's members.
 
 ## Clustering behaviour
 
-These were chosen as cluster representatives, so they are diverse by
-construction and only merge at low identity:
-
 | `min_seq_id` | Clusters |
 | --- | --- |
 | 0.40 | 5 |
 | 0.50 | 10 |
 | 0.60 and above | 10 (all singletons) |
 
-**Sweep below 0.5 with this dataset** — the opposite of the lysozyme set, where
-the interesting range is 0.45 to 0.8. That contrast is the point of the
-threshold sweep block: the useful threshold depends entirely on how the set was
-assembled, and guessing it is worse than looking.
+**Sweep below 0.5 with this dataset.**
+
+The ten were selected after filtering for length (450-650 residues) and the
+FAD-binding motif.
 
 ## Cost
 
-At ~540 residues these are roughly four times the lysozymes, so a CPU
-ProteinMPNN pass takes minutes rather than seconds and Rosetta relax is a
-cluster job. Use the lysozyme set to check that a flow is wired correctly, and
-this one to see the pipeline behave on realistic input.
+A CPU ProteinMPNN pass takes minutes rather than seconds, and Rosetta relax is a
+cluster job.
+
+## Provenance
+
+Trimmed AlphaFold models of the family. Organism names were resolved through the
+UniProt REST API; six of the ten accessions have since been deleted from
+UniProtKB as "not part of a reference proteome", so those carry the taxonomic
+mnemonic from their entry id rather than a species name. `provenance.json`
+records the status of each.

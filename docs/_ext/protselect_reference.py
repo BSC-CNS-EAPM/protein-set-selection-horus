@@ -4,7 +4,8 @@ Generate the block and configuration reference from the plugin source.
 Every block's inputs, parameters and outputs, and every plugin configuration,
 are read from the ``PluginVariable`` / ``PluginBlock`` / ``SlurmBlock`` /
 ``PluginConfig`` definitions in ``ProtSelect/Include``, so the reference cannot
-drift from what the blocks do.
+drift from what the blocks do. The diagram of the preset flow is drawn from the
+``.flow`` file in ``ProtSelect/Flows`` in the same way.
 
 The modules are parsed with ``ast`` rather than imported: HorusAPI ships with
 Horus and is not installable in CI, and the blocks import heavy science
@@ -15,14 +16,18 @@ folder is generated; do not edit it by hand.
 """
 
 import ast
+import json
 import os
 import re
 import textwrap
+import zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DOCS = os.path.dirname(HERE)
 INCLUDE = os.path.join(os.path.dirname(DOCS), "ProtSelect", "Include")
 OUT = os.path.join(DOCS, "reference")
+PRESET_FLOW = os.path.join(os.path.dirname(DOCS), "ProtSelect", "Flows",
+                           "ProteSel_Pipeline.flow")
 
 # Pipeline order: the order a reader meets the blocks in the workflow.
 BLOCK_ORDER = [
@@ -258,7 +263,7 @@ def _block_page(block, shared_ids):
     parts.append(_heading("Inputs", "-"))
     parts.append(_table("", _input_rows(inputs),
                         ["Input", "Type", "Accepts", "Required", "Description"],
-                        [6, 3, 3, 3, 12])
+                        [6, 3, 3, 4, 11])
                  or "This block takes no inputs.\n")
     parts.append(_heading("Parameters", "-"))
     parts.append(_table("", _parameter_rows(own),
@@ -267,7 +272,7 @@ def _block_page(block, shared_ids):
     if uses_shared:
         parts.append("\nAs a cluster-capable block it also has the shared "
                      ":ref:`cluster job settings <cluster-job-settings>` "
-                     "(CPUs, partition, walltime, job grouping, ...).\n")
+                     "(CPUs, partition, walltime, job grouping, …).\n")
     parts.append(_heading("Outputs", "-"))
     parts.append(_table("", _output_rows(outputs), ["Output", "Type", "Format", "Description"],
                         [6, 3, 3, 12])
@@ -320,6 +325,36 @@ def _index_page(blocks):
     return "\n".join(parts)
 
 
+def _flow_diagram(flow_path):
+    """
+    A Mermaid flowchart of a saved flow: one node per block, one arrow per pair
+    of connected blocks. Horus's own input blocks (Folder, File) are numbered as
+    the canvas numbers them, since the preset has more than one of each.
+    """
+    with zipfile.ZipFile(flow_path) as archive:
+        flow = json.loads(archive.read("flow.json"))
+
+    names = {}
+    for block in flow.get("blocks") or []:
+        name = _text(block.get("name")) or block.get("id")
+        if str(block.get("id", "")).startswith("horus."):
+            name = f"{name} {block.get('placedID')}"
+        names[block.get("placedID")] = name.replace('"', "'")
+
+    edges = []
+    for block in flow.get("blocks") or []:
+        for connection in block.get("variableConnections") or []:
+            edge = (connection["origin"]["placedID"], connection["destination"]["placedID"])
+            if edge not in edges:
+                edges.append(edge)
+
+    used = {placed for edge in edges for placed in edge}
+    lines = [".. mermaid::", "", "   flowchart TD"]
+    lines += [f'      n{placed}["{names[placed]}"]' for placed in names if placed in used]
+    lines += [f"      n{origin} --> n{destination}" for origin, destination in edges]
+    return "\n".join(lines) + "\n"
+
+
 def _write(path, content):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     # Only rewrite on change so Sphinx does not rebuild every page every time.
@@ -339,6 +374,7 @@ def generate(_app=None):
                _block_page(block, shared_ids))
     _write(os.path.join(OUT, "cluster_job_settings.rst"), _slurm_page(shared))
     _write(os.path.join(OUT, "configurations.rst"), _configs_page(configs))
+    _write(os.path.join(OUT, "pipeline_flow.rst.inc"), _flow_diagram(PRESET_FLOW))
 
 
 def setup(app):

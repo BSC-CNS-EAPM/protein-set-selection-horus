@@ -14,6 +14,7 @@ clustering runs.
 
 from HorusAPI import PluginBlock, PluginVariable, VariableTypes
 from sequence_io import (
+    input_path,
     load_scores,
     read_sequences,
     require_local,
@@ -85,6 +86,14 @@ covModeVariable = PluginVariable(
     description="MMseqs2 coverage mode (--cov-mode).",
     type=VariableTypes.INTEGER,
     defaultValue=1,
+)
+scoreColumnVariable = PluginVariable(
+    id="score_column",
+    name="Score column",
+    description="CSV column to rank by. Leave empty to pick 'mean_score', 'score' "
+    "or 'avg_score', or else the second column. Ignored for JSON scores.",
+    type=VariableTypes.STRING,
+    defaultValue="",
 )
 maximizeVariable = PluginVariable(
     id="maximize",
@@ -180,10 +189,10 @@ def sweep_thresholds(block: PluginBlock):
 
     require_local(block, "MMseqs2 Threshold Sweep")
 
-    sequences_path = block.inputs.get(sequencesFile.id, None)
+    sequences_path = input_path(block, sequencesFile)
     if not sequences_path or not os.path.isfile(sequences_path):
         raise ValueError("A valid sequences file (FASTA or JSON) must be provided.")
-    scores_path = block.inputs.get(scoresFile.id, None)
+    scores_path = input_path(block, scoresFile)
     if not scores_path or not os.path.isfile(scores_path):
         raise ValueError("A valid scores file (JSON or CSV) must be provided.")
 
@@ -194,13 +203,14 @@ def sweep_thresholds(block: PluginBlock):
     coverage = block.variables.get(coverageVariable.id, 0.8)
     cov_mode = block.variables.get(covModeVariable.id, 1)
     maximize = block.variables.get(maximizeVariable.id, False)
+    score_column = block.variables.get(scoreColumnVariable.id, "")
 
     # resolve_executable raises with a message naming the config entry and the
     # Environment Setup page if MMseqs2 is missing.
     mmseqs_cmd = resolve_executable(block, "mmseqs_path", "mmseqs")
 
     sequences = read_sequences(sequences_path)
-    scores = load_scores(scores_path)
+    scores = load_scores(scores_path, score_column)
 
     # numpy.arange accumulates floating point error with a non-integer step, so
     # it can emit a value at (or fractionally past) the exclusive stop: with
@@ -312,6 +322,7 @@ mmseqsThresholdSweepBlock = PluginBlock(
         topNVariable,
         coverageVariable,
         covModeVariable,
+        scoreColumnVariable,
         maximizeVariable,
     ],
     outputs=[plotFile, scoreDistributionsFile, selectedPerThresholdFile],

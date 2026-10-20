@@ -12,7 +12,7 @@ both and you get the union, labelled by which set chose each model.
 """
 
 from HorusAPI import PluginBlock, PluginVariable, VariableTypes
-from sequence_io import load_scores, read_sequences, write_fasta
+from sequence_io import input_path, load_scores, read_sequences, write_fasta
 
 # ==========================#
 # Variable inputs
@@ -64,6 +64,14 @@ topNVariable = PluginVariable(
     type=VariableTypes.INTEGER,
     defaultValue=100,
 )
+scoreColumnVariable = PluginVariable(
+    id="score_column",
+    name="Score column",
+    description="CSV column to rank by. Leave empty to pick 'mean_score', 'score' "
+    "or 'avg_score', or else the second column. Ignored for JSON scores.",
+    type=VariableTypes.STRING,
+    defaultValue="",
+)
 maximizeVariable = PluginVariable(
     id="maximize",
     name="Maximize score",
@@ -72,10 +80,11 @@ maximizeVariable = PluginVariable(
     type=VariableTypes.BOOLEAN,
     defaultValue=False,
 )
-selectionVariable = PluginVariable(
+weightSetSelectionVariable = PluginVariable(
     id="model_selection",
-    name="Combine as",
-    description="How to combine the two selections when both score sets are given. "
+    name="ProteinMPNN weight sets to keep",
+    description="How to combine the vanilla and soluble ProteinMPNN selections when "
+    "both score sets are given. "
     "'both' keeps the union; 'vanilla' or 'soluble' keep only that one.",
     type=VariableTypes.STRING_LIST,
     defaultValue="both",
@@ -87,7 +96,7 @@ selectionVariable = PluginVariable(
 # ==========================#
 selectedModelsFile = PluginVariable(
     id="selected_models_file",
-    name="Selected models",
+    name="Selected cluster representatives",
     description="JSON list of the selected model names.",
     type=VariableTypes.FILE,
     allowedValues=["json"],
@@ -107,11 +116,11 @@ selectedScoresFile = PluginVariable(
     type=VariableTypes.FILE,
     allowedValues=["json"],
 )
-originFile = PluginVariable(
+weightSetOriginFile = PluginVariable(
     id="origin_file",
-    name="Origin",
-    description="JSON labelling each selected model 'vanilla only', 'soluble only' or "
-    "'common'. Feed this to the Pareto Selection block to colour its plot.",
+    name="ProteinMPNN weight-set origin",
+    description="JSON labelling each selected model by the ProteinMPNN weight set that "
+    "chose it: 'vanilla only', 'soluble only' or 'common'. Feed this to the Pareto Selection block to colour its plot.",
     type=VariableTypes.FILE,
     allowedValues=["json"],
 )
@@ -183,12 +192,12 @@ def select_representatives(block: PluginBlock):
 
     # pylint: enable=import-outside-toplevel
 
-    clusters_path = block.inputs.get(clustersFile.id, None)
+    clusters_path = input_path(block, clustersFile)
     if not clusters_path or not os.path.isfile(clusters_path):
         raise ValueError("A valid clusters JSON file must be provided.")
 
     def given(variable):
-        path = block.inputs.get(variable.id, None)
+        path = input_path(block, variable)
         return path if path and path != "None" and os.path.isfile(path) else None
 
     vanilla_path = given(vanillaScoresFile)
@@ -199,13 +208,14 @@ def select_representatives(block: PluginBlock):
             "scores, or both."
         )
 
-    sequences_path = block.inputs.get(sequencesFile.id, None)
+    sequences_path = input_path(block, sequencesFile)
     if sequences_path == "None":
         sequences_path = None
 
     top_n = block.variables.get(topNVariable.id, 100)
     maximize = block.variables.get(maximizeVariable.id, False)
-    combine_as = block.variables.get(selectionVariable.id, "both") or "both"
+    score_column = block.variables.get(scoreColumnVariable.id, "")
+    combine_as = block.variables.get(weightSetSelectionVariable.id, "both") or "both"
 
     with open(clusters_path) as jf:
         clusters = json.load(jf)
@@ -217,12 +227,12 @@ def select_representatives(block: PluginBlock):
     print(f"Ranking {len(clusters)} clusters...")
     if vanilla_path:
         vanilla_models, vanilla_scores, vanilla_rows = _select_one(
-            clusters, load_scores(vanilla_path), top_n, maximize
+            clusters, load_scores(vanilla_path, score_column), top_n, maximize
         )
         print(f"  vanilla scores selected {len(vanilla_models)} representatives.")
     if soluble_path:
         soluble_models, soluble_scores, soluble_rows = _select_one(
-            clusters, load_scores(soluble_path), top_n, maximize
+            clusters, load_scores(soluble_path, score_column), top_n, maximize
         )
         print(f"  soluble scores selected {len(soluble_models)} representatives.")
 
@@ -286,7 +296,7 @@ def select_representatives(block: PluginBlock):
 
     block.setOutput(selectedModelsFile.id, models_output)
     block.setOutput(selectedScoresFile.id, scores_output)
-    block.setOutput(originFile.id, origin_output)
+    block.setOutput(weightSetOriginFile.id, origin_output)
     block.setOutput(selectionTableFile.id, table_output)
 
     if sequences_path and os.path.isfile(sequences_path):
@@ -309,8 +319,9 @@ selectClusterRepresentativesBlock = PluginBlock(
     description="Keep the best-scoring member of each of the top-N clusters. Give the "
     "vanilla and soluble scores to select from both and keep the union.",
     inputs=[clustersFile, vanillaScoresFile, solubleScoresFile, sequencesFile],
-    variables=[topNVariable, maximizeVariable, selectionVariable],
+    variables=[topNVariable, scoreColumnVariable, maximizeVariable,
+               weightSetSelectionVariable],
     outputs=[selectedModelsFile, selectedSequencesFile, selectedScoresFile,
-             originFile, selectionTableFile],
+             weightSetOriginFile, selectionTableFile],
     action=select_representatives,
 )

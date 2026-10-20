@@ -6,11 +6,8 @@ running Horus) or an SSH connection to another machine, typically a SLURM
 cluster login node. You choose the remote per block, in the drop-down at the
 bottom of the block.
 
-Any SLURM cluster works. Jobs for **MareNostrum 5** login nodes (hosts
-containing ``glogin`` or ``alogin``) are written by ``bsc_calculations``, which
-knows that site's queues and software; every other host gets a plain SLURM
-array script built from the block's own settings, so nothing is assumed about
-your cluster. Several block defaults (module names, environment paths) point at
+Any SLURM cluster works. **MareNostrum 5** is supported out of the box; on
+other clusters the job is built from the block's own settings. Several block defaults (module names, environment paths) point at
 MareNostrum 5, so check them for your site: see `Software on the cluster`_.
 
 Which blocks can run where
@@ -97,8 +94,7 @@ see the software it needs:
      - the login node serving the general-purpose partitions
      - MMseqs2 Clustering, Rosetta Relax
 
-On MareNostrum 5 those are the ``alogin`` and ``glogin`` nodes; the plugin was
-tested with one remote for each. Where a single login node serves everything,
+On MareNostrum 5 those are the ``alogin`` and ``glogin`` nodes. Where a single login node serves everything,
 one remote is enough.
 
 The two remotes can share a working directory; each job gets its own folder.
@@ -139,13 +135,13 @@ matter most:
    * - Account
      - The project to charge the job to, when your cluster requires one. Left
        empty, the cluster's default for your account is used; on MareNostrum 5
-       ``bsc_calculations`` supplies its own default.
+       the plugin supplies a default.
    * - Extra SBATCH lines
      - Any other directives your cluster needs, one per line without the
        ``#SBATCH`` prefix, for example ``--mem-per-cpu=4G`` or ``--nodes=1``.
        Used on clusters other than MareNostrum 5.
    * - Walltime (``time``, hours)
-     - Leave it at 0 for the 48 h default, or set it close to the real run time:
+     - Leave it at 0 for the 48 h default, or set it close to the real run time:
        shorter jobs usually wait less in the queue. The plugin cannot extend a
        job that runs out of time, but you can rerun the block and it resumes (see
        :ref:`workflow:Rerunning and resuming`).
@@ -165,8 +161,8 @@ Software on the cluster
 
 The plugin's local tool configuration (:doc:`configuration`) does not apply to
 cluster jobs: there the job loads its own software. Each cluster-capable block
-has parameters for that, and their defaults are the ones used during
-development, so check them against your site:
+has parameters for that, and their defaults are set for MareNostrum 5, so check
+them against your site:
 
 - **Cluster modules**: modules loaded before the job runs;
 - **Cluster environment**: the conda environment the job activates

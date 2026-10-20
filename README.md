@@ -17,18 +17,9 @@ datasets are lysozymes and HMFOs.
 ## Documentation
 
 The [documentation](https://bsc-cns-eapm.github.io/protein-set-selection-horus/)
-covers installation, the external tools, setting up cluster remotes (including
-the GPU/CPU split on MareNostrum 5), the workflow and the preset flow, and has a
-reference page for every block's inputs, parameters and outputs.
-
-The block reference is generated from the block definitions at every build, so
-it always matches the code. Build it locally with:
-
-```bash
-micromamba create -f Devtools/Environment/docs.yaml
-micromamba activate protselect_docs
-sphinx-build -b html -W docs docs/build/html
-```
+covers installation, the external tools, setting up SLURM cluster remotes, the
+workflow and the preset flow, and has a reference page for every block's inputs,
+parameters and outputs.
 
 ## The pipeline
 
@@ -48,11 +39,8 @@ A prebuilt flow wiring all of them together ships in `ProtSelect/Flows/` and
 appears in Horus as a preset, along with example datasets in
 `ProtSelect/ExampleData/` so it can be run out of the box.
 
-The reference workflow scores with both ProteinMPNN weight sets and keeps the
-union of the two selections. That is one block each here, not two: **ProteinMPNN
-Scoring** takes a weight set of `vanilla`, `soluble` or `both`, **Read
-ProteinMPNN Scores** emits a vanilla and a soluble scores file, and **Select
-Cluster Representatives** takes both and returns the union, labelled
+ProteinMPNN can score with the vanilla weights, the soluble weights or both.
+Select Cluster Representatives then keeps the union and labels each model
 `vanilla only`, `soluble only` or `common`.
 
 ## Installation
@@ -90,37 +78,39 @@ Build a distributable artifact:
 Releases are cut by pushing a tag (or running the **Build Plugin** workflow),
 which builds the `.hp` and attaches it to a GitHub release.
 
+Build the documentation locally:
+
+```bash
+micromamba create -f Devtools/Environment/docs.yaml
+micromamba activate protselect_docs
+sphinx-build -b html -W docs docs/build/html
+```
+
 ## Repository layout
 
 ```
 ProtSelect/                 the plugin root (this is what gets zipped)
 ├── plugin.meta             metadata and pip dependencies
 ├── ProtSelect.py           entry point; registers blocks, configs and pages
-├── Flows/                  prebuilt flow presets, auto-registered by Horus
+├── Flows/                  prebuilt flow presets
 ├── ExampleData/            runnable example datasets (lysozyme, hmfo)
 ├── Pages/                  HTML for the plugin's pages
-└── Include/                added to sys.path by Horus
+└── Include/                plugin source
     ├── Blocks/             one module per block
     ├── Configs/            executable and environment paths
     ├── Pages/              page endpoints
     ├── sequence_io.py      shared FASTA/JSON/scores IO
     ├── env_manager.py      external tool detection and installation
     └── utils.py            SLURM and local job submission
-docs/                       Sphinx site published to GitHub Pages
-└── _ext/                  generates the block reference from Include/Blocks
+docs/                       Sphinx documentation site
 ```
 
 ## Relationship to EAPM-plugins
 
-These blocks began life inside
-[EAPM-plugins](https://github.com/BSC-CNS-EAPM/EAPM-plugins), which carries a
-much larger and unrelated set of tools. This repository extracts just the
-selection pipeline so it can be distributed and installed on its own.
-
-The plugin depends on
-[bioprospecting-horus](https://github.com/BSC-CNS-EAPM/bioprospecting-horus),
-a trimmed redistribution of `bioprospecting` carrying only the ProteinMPNN,
-MAFFT and CodonTransformer backends.
+The blocks are derived from
+[EAPM-plugins](https://github.com/BSC-CNS-EAPM/EAPM-plugins). The plugin depends
+on [bioprospecting-horus](https://github.com/BSC-CNS-EAPM/bioprospecting-horus)
+for the ProteinMPNN, MAFFT and CodonTransformer backends.
 
 ## Licence
 

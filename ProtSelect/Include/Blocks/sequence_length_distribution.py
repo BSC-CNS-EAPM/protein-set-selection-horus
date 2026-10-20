@@ -14,7 +14,7 @@ downstream analysis blocks consume them directly.
 """
 
 from HorusAPI import PluginBlock, PluginVariable, VariableTypes
-from sequence_io import read_sequences, show_plot_html
+from sequence_io import input_path, read_sequences, show_plot_html
 
 # ==========================#
 # Variable inputs
@@ -96,7 +96,7 @@ def plot_length_distribution(block: PluginBlock):
 
     # pylint: enable=import-outside-toplevel
 
-    sequences_path = block.inputs.get(sequencesFile.id, None)
+    sequences_path = input_path(block, sequencesFile)
     if not sequences_path:
         raise ValueError("A valid sequences file (FASTA or JSON) must be provided.")
 

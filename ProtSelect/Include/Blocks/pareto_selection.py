@@ -20,6 +20,7 @@ from HorusAPI import (
     VariableList,
     VariableTypes,
 )
+from sequence_io import input_path
 
 # ==========================#
 # Variable inputs
@@ -40,9 +41,9 @@ extraMetricsFile = PluginVariable(
     defaultValue=None,
     allowedValues=["csv"],
 )
-originFile = PluginVariable(
+weightSetOriginFile = PluginVariable(
     id="origin_file",
-    name="Model origin (optional)",
+    name="ProteinMPNN weight-set origin (optional)",
     description="JSON {model: origin} from Select Cluster Representatives, labelling "
     "each model 'vanilla only', 'soluble only' or 'common'. Added as a Model_Origin "
     "column for reference.",
@@ -56,13 +57,13 @@ originFile = PluginVariable(
 # ==========================#
 objectiveColumnVariable = PluginVariable(
     id="objective_column",
-    name="Column",
+    name="Objective column",
     description="Name of the metric column to optimise.",
     type=VariableTypes.STRING,
 )
 objectiveMaximizeVariable = PluginVariable(
     id="objective_maximize",
-    name="Maximize",
+    name="Maximize objective",
     description="Enable to maximise this objective; leave off to minimise it.",
     type=VariableTypes.BOOLEAN,
     defaultValue=False,
@@ -91,21 +92,21 @@ numSelectVariable = PluginVariable(
 # ==========================#
 rankedFile = PluginVariable(
     id="ranked_file",
-    name="Ranked models",
+    name="Pareto ranking",
     description="CSV with every model, its Pareto_Rank and whether it was selected.",
     type=VariableTypes.FILE,
     allowedValues=["csv"],
 )
 selectedFile = PluginVariable(
     id="selected_file",
-    name="Selected models table",
+    name="Pareto selection table",
     description="CSV with the selected models and all their metrics.",
     type=VariableTypes.FILE,
     allowedValues=["csv"],
 )
 selectedModelsFile = PluginVariable(
     id="selected_models_file",
-    name="Selected models",
+    name="Pareto-selected models",
     description="JSON list with the names of the selected models.",
     type=VariableTypes.FILE,
     allowedValues=["json"],
@@ -292,14 +293,14 @@ def pareto_selection(block: PluginBlock):
 
     # pylint: enable=import-outside-toplevel
 
-    metrics_path = block.inputs.get(metricsFile.id, None)
+    metrics_path = input_path(block, metricsFile)
     if not metrics_path or not os.path.isfile(metrics_path):
         raise ValueError("A valid metrics CSV must be provided.")
 
     frame = pd.read_csv(metrics_path, index_col=0)
     frame.index = frame.index.astype(str)
 
-    extra_path = block.inputs.get(extraMetricsFile.id, None)
+    extra_path = input_path(block, extraMetricsFile)
     if extra_path and os.path.isfile(extra_path):
         extra = pd.read_csv(extra_path, index_col=0)
         extra.index = extra.index.astype(str)
@@ -310,7 +311,7 @@ def pareto_selection(block: PluginBlock):
         frame = frame.join(extra, how="outer")
         print(f"Merged extra metrics: {list(extra.columns)}")
 
-    origin_path = block.inputs.get(originFile.id, None)
+    origin_path = input_path(block, weightSetOriginFile)
     if origin_path and os.path.isfile(origin_path):
         with open(origin_path) as jf:
             origins = json.load(jf)
@@ -439,7 +440,7 @@ paretoSelectionBlock = PluginBlock(
     id="pareto_selection",
     description="Rank models by Pareto dominance over any number of objectives and "
     "select the best N using crowding distance.",
-    inputs=[metricsFile, extraMetricsFile, originFile],
+    inputs=[metricsFile, extraMetricsFile, weightSetOriginFile],
     variables=[objectivesList, numSelectVariable],
     outputs=[rankedFile, selectedFile, selectedModelsFile, plotFile],
     action=pareto_selection,

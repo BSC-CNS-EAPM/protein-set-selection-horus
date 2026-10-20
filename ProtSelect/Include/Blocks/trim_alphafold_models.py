@@ -3,9 +3,10 @@ Module containing the trim AlphaFold models block
 """
 
 from HorusAPI import PluginBlock, PluginVariable, VariableTypes
+from sequence_io import input_path
 
 resultsFolderAF = PluginVariable(
-    name="Models",
+    name="AlphaFold results folder",
     id="results_folder",
     description="Folder containing the Alphafold output PDBs",
     type=VariableTypes.FOLDER,
@@ -22,7 +23,7 @@ confidenceThresholdAF = PluginVariable(
 )
 
 outputPDBAF = PluginVariable(
-    name="First PDB",
+    name="First trimmed structure",
     id="out_pdb",
     description="First PDB of the Alphafold.",
     type=VariableTypes.FILE,
@@ -59,7 +60,7 @@ def trim_alphafold_models(block: PluginBlock):
 
     # pylint: enable=import-outside-toplevel
     # Get the models folder
-    models_folder = block.inputs.get(resultsFolderAF.id, None)
+    models_folder = input_path(block, resultsFolderAF)
 
     if models_folder is None:
         raise ValueError("No models folder selected")

@@ -35,7 +35,8 @@ the final set diverse. To choose the identity threshold, run :ref:`MMseqs2
 Threshold Sweep <block-mmseqs2_threshold_sweep>` first: it clusters over a range
 of thresholds and plots, for each one, the score distribution of the top-N
 representatives it would select. It needs a scores file, so connect it to one
-of the ProteinMPNN score outputs.
+of the ProteinMPNN score outputs. For a CSV with several columns, set **Score
+column** to the one to rank by.
 
 3. Pick one representative per cluster
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -105,27 +106,19 @@ The ProteSel Pipeline preset
 The whole pipeline ships as a flow. In Horus, open the **Protein Set Selection**
 plugin's presets and choose **ProteSel Pipeline**.
 
-.. code-block:: text
+.. figure:: _static/protesel_pipeline.png
+   :alt: The ProteSel Pipeline preset in the Horus flow editor: four input
+         blocks on the left and bottom feed ProteinMPNN Scoring, MMseqs2
+         Clustering and Select Cluster Representatives, which branch into the
+         Rosetta, BioEmu and MAFFT stages and join again at Pareto Selection and
+         CodonTransformer.
+   :target: _static/protesel_pipeline.png
 
-   Folder (structures) ──┬─> ProteinMPNN Scoring ─> Read ProteinMPNN Scores ─┐
-                         │                                                  │
-   File (sequences) ─────┼─> MMseqs2 Clustering ────────────────────────────┤
-                         │                                                  v
-                         └──────────────────────────> Select Cluster Representatives
-                                                          │         │          │
-                     ┌────────────────────────────────────┘         │          │
-                     v                                              v          │
-          Collect Selected Structures                        BioEmu Sampling    │
-                     │                                              │          │
-                     v                                              v          │
-               Rosetta Relax ─> Analyse Rosetta Relax        Analyse BioEmu     │
-                                          │                         │          │
-                                          └──────> Pareto Selection <┘<── origin┘
-                                                          │
-                                                          v
-                                                  CodonTransformer
+   The preset in the Horus flow editor. Click to open it at full size.
 
-          Select Cluster Representatives ─> MAFFT ─> Phylogenetic Tree
+How the blocks connect, drawn from the preset itself:
+
+.. include:: reference/pipeline_flow.rst.inc
 
 The main connections:
 
@@ -134,24 +127,28 @@ The main connections:
 
    * - From
      - To
-   * - Folder (structures)
-     - ProteinMPNN Scoring, Collect Selected Structures, Analyse BioEmu
-   * - File (sequences)
-     - MMseqs2 Clustering, Select Cluster Representatives, ProteinMPNN Scoring,
-       CodonTransformer, Analyse BioEmu
+   * - Folder 1 (structures)
+     - ProteinMPNN Scoring, Collect Selected Structures
+   * - Folder 18 (the same structures)
+     - Analyse BioEmu
+   * - File 6 (sequences)
+     - ProteinMPNN Scoring, MMseqs2 Clustering, Select Cluster Representatives,
+       Analyse BioEmu
+   * - File 17 (the same sequences)
+     - CodonTransformer
    * - Read ProteinMPNN Scores: vanilla / soluble scores
      - Select Cluster Representatives
    * - MMseqs2 Clustering: clusters
      - Select Cluster Representatives
-   * - Select Cluster Representatives: selected models
+   * - Select Cluster Representatives: selected cluster representatives
      - Collect Selected Structures
    * - Select Cluster Representatives: selected sequences
      - BioEmu Sampling, MAFFT
-   * - Select Cluster Representatives: origin
+   * - Select Cluster Representatives: ProteinMPNN weight-set origin
      - Pareto Selection (colours the plot)
-   * - Analyse Rosetta Relax: score summary; Analyse BioEmu: metrics
+   * - Analyse Rosetta Relax: Rosetta score summary; Analyse BioEmu: BioEmu metrics
      - Pareto Selection
-   * - Pareto Selection: selected models
+   * - Pareto Selection: Pareto-selected models
      - CodonTransformer
 
 The preset's settings are for a production run: Rosetta ``nstruct`` 100 with
@@ -161,9 +158,18 @@ one short job.
 Running the preset
 ~~~~~~~~~~~~~~~~~~
 
-1. In the **Folder** block, select the folder of structures. In the **File**
-   block, select the sequences file (FASTA or JSON, keyed by the structure file
-   names). To try it, use ``ExampleData/hmfo``; see :doc:`example_data`.
+1. The four input blocks come filled in with the lysozyme example
+   (``ExampleData/lysozyme``), so the preset runs as it is. For your own data,
+   select your structures folder in both **Folder** blocks (1 and 18) and your
+   sequences file (FASTA or JSON, keyed by the structure file names) in both
+   **File** blocks (6 and 17). The second copy of each sits next to the block it
+   feeds, to keep the flow readable. See :doc:`example_data`.
+
+   With the example paths, the Folder and File blocks print *"is not a folder
+   on the local machine"* (or *"is not a file"*), and the file preview in the
+   editor cannot open them. Both are expected and can be ignored: Horus checks
+   the path from the flow's folder, while the plugin's blocks find the example
+   inside the plugin. Paths to your own data do not give the warning.
 2. Assign the remotes: ProteinMPNN and BioEmu to your GPU remote, MMseqs2 and
    Rosetta to your CPU remote, and check the blocks' cluster software settings
    against your site (see :doc:`remotes`). Leave the rest on Local.
