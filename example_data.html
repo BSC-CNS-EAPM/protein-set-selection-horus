@@ -31,7 +31,7 @@
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=60d9f863" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=fba1a000" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -49,8 +49,11 @@
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="The workflow" href="workflow.html" />
     <link rel="prev" title="Remotes and clusters" href="remotes.html" />
+  
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"/>
+  <meta name="theme-color" content="#14181e" media="(prefers-color-scheme: dark)"/>
   </head>
   
   
@@ -504,8 +507,7 @@ provenance.json    where each entry comes from
 </div>
 <p>Start with <strong>lysozyme</strong> to check that a flow is connected. Use <strong>hmfo</strong> to see
 the pipeline behave at a realistic size: there ProteinMPNN takes minutes on a
-CPU and the Rosetta relax is a cluster job. The HMFO set is the one the
-pipeline was tested on end to end on a SLURM cluster.</p>
+CPU and the Rosetta relax is a cluster job.</p>
 <section id="using-your-own-data">
 <h2>Using your own data<a class="headerlink" href="#using-your-own-data" title="Link to this heading">#</a></h2>
 <p>The <strong>model name</strong> joins everything in the pipeline: the ProteinMPNN scores,

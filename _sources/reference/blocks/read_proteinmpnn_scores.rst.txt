@@ -15,7 +15,7 @@ Inputs
 
 .. list-table:: 
    :header-rows: 1
-   :widths: 6 3 3 3 12
+   :widths: 6 3 3 4 11
 
    * - Input
      - Type
@@ -52,7 +52,7 @@ Parameters
      - string list
      - ``mean_score``
      - Which ProteinMPNN score to read. 'mean_score' is the per-sample mean negative log-likelihood; lower is better. Choices: ``mean_score``, ``global_mean_score``.
-   * - **Source filter** (``source_filter``)
+   * - **Sequence source** (``source_filter``)
      - string list
      - ``all``
      - Which rows to keep. 'score_only' rows are the scored input sequences; 'designed' rows are newly sampled sequences. 'all' keeps both. Choices: ``all``, ``score_only``, ``designed``.

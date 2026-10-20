@@ -15,7 +15,7 @@ Inputs
 
 .. list-table:: 
    :header-rows: 1
-   :widths: 6 3 3 3 12
+   :widths: 6 3 3 4 11
 
    * - Input
      - Type
@@ -32,7 +32,7 @@ Inputs
      - .csv
      - yes
      - A second per-model CSV merged on the model name (e.g. 'rosetta_score_summary.csv', which carries score_per_residue and length).
-   * - **Model origin (optional)** (``origin_file``)
+   * - **ProteinMPNN weight-set origin (optional)** (``origin_file``)
      - file
      - .json
      - yes
@@ -69,15 +69,15 @@ Outputs
      - Type
      - Format
      - Description
-   * - **Ranked models** (``ranked_file``)
+   * - **Pareto ranking** (``ranked_file``)
      - file
      - .csv
      - CSV with every model, its Pareto_Rank and whether it was selected.
-   * - **Selected models table** (``selected_file``)
+   * - **Pareto selection table** (``selected_file``)
      - file
      - .csv
      - CSV with the selected models and all their metrics.
-   * - **Selected models** (``selected_models_file``)
+   * - **Pareto-selected models** (``selected_models_file``)
      - file
      - .json
      - JSON list with the names of the selected models.

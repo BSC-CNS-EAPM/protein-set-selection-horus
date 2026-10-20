@@ -15,7 +15,7 @@ Inputs
 
 .. list-table:: 
    :header-rows: 1
-   :widths: 6 3 3 3 12
+   :widths: 6 3 3 4 11
 
    * - Input
      - Type
@@ -68,7 +68,7 @@ Parameters
      - boolean
      - ``True``
      - Only score the given sequences instead of designing new ones.
-   * - **Model weights** (``model_name``)
+   * - **Model checkpoint** (``model_name``)
      - string list
      - ``v_48_020``
      - Which ProteinMPNN weight file to use. The number is the training noise level in hundredths of an Angstrom; v_48_020 is the usual default. Choices: ``v_48_002``, ``v_48_010``, ``v_48_020``, ``v_48_030``.
@@ -118,7 +118,7 @@ Parameters
      - Delete the existing results folder before running. Only applied when the run is started from this block: a run that reaches it through its connections keeps the results.
 
 
-As a cluster-capable block it also has the shared :ref:`cluster job settings <cluster-job-settings>` (CPUs, partition, walltime, job grouping, ...).
+As a cluster-capable block it also has the shared :ref:`cluster job settings <cluster-job-settings>` (CPUs, partition, walltime, job grouping, …).
 
 Outputs
 -------

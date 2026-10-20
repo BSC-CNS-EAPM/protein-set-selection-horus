@@ -31,7 +31,7 @@
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=60d9f863" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=fba1a000" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -49,8 +49,11 @@
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Remotes and clusters" href="remotes.html" />
     <link rel="prev" title="Installation" href="installation.html" />
+  
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"/>
+  <meta name="theme-color" content="#14181e" media="(prefers-color-scheme: dark)"/>
   </head>
   
   
@@ -569,9 +572,8 @@ is in <a class="reference internal" href="reference/configurations.html"><span c
 <h2>Environments with another Python<a class="headerlink" href="#environments-with-another-python" title="Link to this heading">#</a></h2>
 <p>PyRosetta, CodonTransformer, BioEmu and the torch used by ProteinMPNN usually
 live in their own conda environments, often on a different Python version from
-Horus. The plugin runs them as separate processes and removes Horus's own
-<code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code> from their environment, so you can point the configuration at any
-environment. You do not need to install these tools into Horus.</p>
+Horus. You can point the configuration at any environment, even one with a
+different Python version. You do not need to install these tools into Horus.</p>
 <p>Examples of valid values:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">pyrosetta_python</span></code>: <code class="docutils literal notranslate"><span class="pre">/home/me/micromamba/envs/rosetta/bin/python</span></code></p></li>

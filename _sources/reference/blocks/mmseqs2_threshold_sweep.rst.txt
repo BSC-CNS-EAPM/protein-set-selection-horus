@@ -15,7 +15,7 @@ Inputs
 
 .. list-table:: 
    :header-rows: 1
-   :widths: 6 3 3 3 12
+   :widths: 6 3 3 4 11
 
    * - Input
      - Type
@@ -68,6 +68,10 @@ Parameters
      - integer
      - ``1``
      - MMseqs2 coverage mode (--cov-mode).
+   * - **Score column** (``score_column``)
+     - string
+     - —
+     - CSV column to rank by. Leave empty to pick 'mean_score', 'score' or 'avg_score', or else the second column. Ignored for JSON scores.
    * - **Maximize score** (``maximize``)
      - boolean
      - ``False``

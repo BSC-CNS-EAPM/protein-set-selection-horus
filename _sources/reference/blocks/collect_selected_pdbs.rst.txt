@@ -15,14 +15,14 @@ Inputs
 
 .. list-table:: 
    :header-rows: 1
-   :widths: 6 3 3 3 12
+   :widths: 6 3 3 4 11
 
    * - Input
      - Type
      - Accepts
      - Required
      - Description
-   * - **Source structures folder** (``source_folder``)
+   * - **Structures folder** (``source_folder``)
      - folder
      - —
      - yes
@@ -44,7 +44,7 @@ Parameters
      - Type
      - Default
      - Description
-   * - **Output folder** (``output_folder``)
+   * - **Output folder name** (``output_folder``)
      - string
      - ``selected_models``
      - Name of the folder the selected structures are copied into.

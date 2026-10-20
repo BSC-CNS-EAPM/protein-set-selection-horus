@@ -100,9 +100,8 @@ Environments with another Python
 
 PyRosetta, CodonTransformer, BioEmu and the torch used by ProteinMPNN usually
 live in their own conda environments, often on a different Python version from
-Horus. The plugin runs them as separate processes and removes Horus's own
-``PYTHONPATH`` from their environment, so you can point the configuration at any
-environment. You do not need to install these tools into Horus.
+Horus. You can point the configuration at any environment, even one with a
+different Python version. You do not need to install these tools into Horus.
 
 Examples of valid values:
 

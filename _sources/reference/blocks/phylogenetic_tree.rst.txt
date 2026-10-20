@@ -15,14 +15,14 @@ Inputs
 
 .. list-table:: 
    :header-rows: 1
-   :widths: 6 3 3 3 12
+   :widths: 6 3 3 4 11
 
    * - Input
      - Type
      - Accepts
      - Required
      - Description
-   * - **Alignment file** (``msa_file``)
+   * - **MSA** (``msa_file``)
      - file
      - .fasta, .fa, .aln, .clustal, .maf, .phy, .sto
      - yes

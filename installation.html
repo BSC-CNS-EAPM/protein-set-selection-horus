@@ -31,7 +31,7 @@
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=60d9f863" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=fba1a000" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -49,8 +49,11 @@
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Tools and configuration" href="configuration.html" />
     <link rel="prev" title="Protein Set Selection" href="index.html" />
+  
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"/>
+  <meta name="theme-color" content="#14181e" media="(prefers-color-scheme: dark)"/>
   </head>
   
   
@@ -503,8 +506,8 @@ Rosetta, BioEmu and structure handling;</p></li>
 a trimmed <code class="docutils literal notranslate"><span class="pre">bioprospecting</span></code> with the ProteinMPNN, MAFFT and CodonTransformer
 code the blocks use, including the ProteinMPNN weights.</p></li>
 </ul>
-<p>PyTorch is deliberately not among them: it is large and depends on your CUDA
-version. ProteinMPNN runs with a Python environment that has it (see
+<p>PyTorch is not installed with the plugin, because the right build depends on
+your CUDA version. ProteinMPNN runs with a Python environment that has it (see
 <a class="reference internal" href="configuration.html"><span class="doc">Tools and configuration</span></a>).</p>
 </section>
 </section>
@@ -525,7 +528,6 @@ micromamba<span class="w"> </span>activate<span class="w"> </span>protselect_doc
 <span class="nb">cd</span><span class="w"> </span>docs<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span>html
 </pre></div>
 </div>
-<p>The block reference is generated from the block definitions at every build.</p>
 </section>
 <section id="next-steps">
 <h2>Next steps<a class="headerlink" href="#next-steps" title="Link to this heading">#</a></h2>

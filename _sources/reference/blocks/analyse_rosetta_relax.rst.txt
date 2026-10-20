@@ -15,7 +15,7 @@ Inputs
 
 .. list-table:: 
    :header-rows: 1
-   :widths: 6 3 3 3 12
+   :widths: 6 3 3 4 11
 
    * - Input
      - Type
@@ -79,7 +79,7 @@ Parameters
      - Only the best-scoring N models are drawn, keeping the x-axis readable. Set to 0 to plot every model.
 
 
-As a cluster-capable block it also has the shared :ref:`cluster job settings <cluster-job-settings>` (CPUs, partition, walltime, job grouping, ...).
+As a cluster-capable block it also has the shared :ref:`cluster job settings <cluster-job-settings>` (CPUs, partition, walltime, job grouping, …).
 
 Outputs
 -------
@@ -96,11 +96,11 @@ Outputs
      - file
      - .csv
      - CSV with the full Rosetta relax data (one row per model/pose).
-   * - **Score summary** (``score_summary_file``)
+   * - **Rosetta score summary** (``score_summary_file``)
      - file
      - .csv
      - CSV with per-model score statistics (mean, min, max, std, count).
-   * - **Mean scores** (``mean_scores_file``)
+   * - **Mean Rosetta scores** (``mean_scores_file``)
      - file
      - .json
      - JSON mapping each model to its average Rosetta score.

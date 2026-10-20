@@ -15,7 +15,7 @@ Inputs
 
 .. list-table:: 
    :header-rows: 1
-   :widths: 6 3 3 3 12
+   :widths: 6 3 3 4 11
 
    * - Input
      - Type
@@ -58,14 +58,18 @@ Parameters
      - integer
      - ``100``
      - Number of best-scoring clusters to keep, per score set.
+   * - **Score column** (``score_column``)
+     - string
+     - —
+     - CSV column to rank by. Leave empty to pick 'mean_score', 'score' or 'avg_score', or else the second column. Ignored for JSON scores.
    * - **Maximize score** (``maximize``)
      - boolean
      - ``False``
      - If enabled, higher scores are better. By default lower scores are better, as with ProteinMPNN scores.
-   * - **Combine as** (``model_selection``)
+   * - **ProteinMPNN weight sets to keep** (``model_selection``)
      - string list
      - ``both``
-     - How to combine the two selections when both score sets are given. 'both' keeps the union; 'vanilla' or 'soluble' keep only that one. Choices: ``both``, ``vanilla``, ``soluble``.
+     - How to combine the vanilla and soluble ProteinMPNN selections when both score sets are given. 'both' keeps the union; 'vanilla' or 'soluble' keep only that one. Choices: ``both``, ``vanilla``, ``soluble``.
 
 Outputs
 -------
@@ -78,7 +82,7 @@ Outputs
      - Type
      - Format
      - Description
-   * - **Selected models** (``selected_models_file``)
+   * - **Selected cluster representatives** (``selected_models_file``)
      - file
      - .json
      - JSON list of the selected model names.
@@ -90,10 +94,10 @@ Outputs
      - file
      - .json
      - JSON mapping each selected model to its score. With both score sets, the score from the set that selected it (the vanilla one, when both did).
-   * - **Origin** (``origin_file``)
+   * - **ProteinMPNN weight-set origin** (``origin_file``)
      - file
      - .json
-     - JSON labelling each selected model 'vanilla only', 'soluble only' or 'common'. Feed this to the Pareto Selection block to colour its plot.
+     - JSON labelling each selected model by the ProteinMPNN weight set that chose it: 'vanilla only', 'soluble only' or 'common'. Feed this to the Pareto Selection block to colour its plot.
    * - **Selection table** (``selection_table_file``)
      - file
      - .csv

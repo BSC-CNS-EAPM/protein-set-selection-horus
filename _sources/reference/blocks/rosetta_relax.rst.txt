@@ -15,7 +15,7 @@ Inputs
 
 .. list-table:: 
    :header-rows: 1
-   :widths: 6 3 3 3 12
+   :widths: 6 3 3 4 11
 
    * - Input
      - Type
@@ -39,7 +39,7 @@ Parameters
      - Type
      - Default
      - Description
-   * - **Relax folder** (``folder_name``)
+   * - **Output folder name** (``folder_name``)
      - string
      - ``relax_selected_models``
      - Name of the folder where the relax calculation will be stored.
@@ -93,7 +93,7 @@ Parameters
      - Delete the existing results folder before running. Only applied when the run is started from this block: a run that reaches it through its connections keeps the results.
 
 
-As a cluster-capable block it also has the shared :ref:`cluster job settings <cluster-job-settings>` (CPUs, partition, walltime, job grouping, ...).
+As a cluster-capable block it also has the shared :ref:`cluster job settings <cluster-job-settings>` (CPUs, partition, walltime, job grouping, …).
 
 Outputs
 -------

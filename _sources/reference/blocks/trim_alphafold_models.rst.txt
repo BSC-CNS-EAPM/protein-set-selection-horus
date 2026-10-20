@@ -15,14 +15,14 @@ Inputs
 
 .. list-table:: 
    :header-rows: 1
-   :widths: 6 3 3 3 12
+   :widths: 6 3 3 4 11
 
    * - Input
      - Type
      - Accepts
      - Required
      - Description
-   * - **Models** (``results_folder``)
+   * - **AlphaFold results folder** (``results_folder``)
      - folder
      - —
      - yes
@@ -55,7 +55,7 @@ Outputs
      - Type
      - Format
      - Description
-   * - **First PDB** (``out_pdb``)
+   * - **First trimmed structure** (``out_pdb``)
      - file
      - .pdb
      - First PDB of the Alphafold.

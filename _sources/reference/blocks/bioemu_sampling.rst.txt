@@ -15,7 +15,7 @@ Inputs
 
 .. list-table:: 
    :header-rows: 1
-   :widths: 6 3 3 3 12
+   :widths: 6 3 3 4 11
 
    * - Input
      - Type
@@ -43,7 +43,7 @@ Parameters
      - integer
      - ``1``
      - Number of GPUs to request per job (--gres gpu:N). Only honoured on GPU partitions (the 'acc\_\*' queues on MareNostrum); set the CPUs per task variable to choose how many CPUs go with them.
-   * - **BioEmu folder** (``folder_name``)
+   * - **Output folder name** (``folder_name``)
      - string
      - ``bioemu_sampling``
      - Name of the folder where the BioEmu sampling will be stored.
@@ -117,7 +117,7 @@ Parameters
      - Delete the existing results folder before running. Only applied when the run is started from this block: a run that reaches it through its connections keeps the results.
 
 
-As a cluster-capable block it also has the shared :ref:`cluster job settings <cluster-job-settings>` (CPUs, partition, walltime, job grouping, ...).
+As a cluster-capable block it also has the shared :ref:`cluster job settings <cluster-job-settings>` (CPUs, partition, walltime, job grouping, …).
 
 Outputs
 -------

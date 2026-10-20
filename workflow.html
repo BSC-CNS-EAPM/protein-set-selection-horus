@@ -31,7 +31,7 @@
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=60d9f863" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=fba1a000" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -44,13 +44,18 @@
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="_static/copybutton.js?v=f281be69"></script>
     <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script src="https://unpkg.com/mermaid@10.2.0/dist/mermaid.min.js"></script>
+    <script>mermaid.initialize({startOnLoad:true});</script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'workflow';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Troubleshooting" href="troubleshooting.html" />
     <link rel="prev" title="Example data" href="example_data.html" />
+  
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"/>
+  <meta name="theme-color" content="#14181e" media="(prefers-color-scheme: dark)"/>
   </head>
   
   
@@ -488,7 +493,8 @@ the final set diverse. To choose the identity threshold, run <a class="reference
 Threshold Sweep</span></a> first: it clusters over a range
 of thresholds and plots, for each one, the score distribution of the top-N
 representatives it would select. It needs a scores file, so connect it to one
-of the ProteinMPNN score outputs.</p>
+of the ProteinMPNN score outputs. For a CSV with several columns, set <strong>Score
+column</strong> to the one to rank by.</p>
 </section>
 <section id="pick-one-representative-per-cluster">
 <h3>3. Pick one representative per cluster<a class="headerlink" href="#pick-one-representative-per-cluster" title="Link to this heading">#</a></h3>
@@ -553,28 +559,57 @@ neighbour-joining tree from the alignment, to see how diverse the set is.</p></l
 <h2>The ProteSel Pipeline preset<a class="headerlink" href="#the-protesel-pipeline-preset" title="Link to this heading">#</a></h2>
 <p>The whole pipeline ships as a flow. In Horus, open the <strong>Protein Set Selection</strong>
 plugin's presets and choose <strong>ProteSel Pipeline</strong>.</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Folder (structures) ──┬─&gt; ProteinMPNN Scoring ─&gt; Read ProteinMPNN Scores ─┐
-                      │                                                  │
-File (sequences) ─────┼─&gt; MMseqs2 Clustering ────────────────────────────┤
-                      │                                                  v
-                      └──────────────────────────&gt; Select Cluster Representatives
-                                                       │         │          │
-                  ┌────────────────────────────────────┘         │          │
-                  v                                              v          │
-       Collect Selected Structures                        BioEmu Sampling    │
-                  │                                              │          │
-                  v                                              v          │
-            Rosetta Relax ─&gt; Analyse Rosetta Relax        Analyse BioEmu     │
-                                       │                         │          │
-                                       └──────&gt; Pareto Selection &lt;┘&lt;── origin┘
-                                                       │
-                                                       v
-                                               CodonTransformer
-
-       Select Cluster Representatives ─&gt; MAFFT ─&gt; Phylogenetic Tree
-</pre></div>
-</div>
-<p>The main connections:</p>
+<figure class="align-default" id="id1">
+<a class="reference external image-reference" href="_static/protesel_pipeline.png"><img alt="The ProteSel Pipeline preset in the Horus flow editor: four input blocks on the left and bottom feed ProteinMPNN Scoring, MMseqs2 Clustering and Select Cluster Representatives, which branch into the Rosetta, BioEmu and MAFFT stages and join again at Pareto Selection and CodonTransformer." src="_images/protesel_pipeline.png" />
+</a>
+<figcaption>
+<p><span class="caption-text">The preset in the Horus flow editor. Click to open it at full size.</span><a class="headerlink" href="#id1" title="Link to this image">#</a></p>
+</figcaption>
+</figure>
+<p>How the blocks connect, drawn from the preset itself:</p>
+<div class="mermaid">
+            flowchart TD
+   n1[&quot;Folder 1&quot;]
+   n2[&quot;ProteinMPNN Scoring&quot;]
+   n4[&quot;Read ProteinMPNN Scores&quot;]
+   n5[&quot;MMseqs2 Clustering&quot;]
+   n6[&quot;File 6&quot;]
+   n7[&quot;Select Cluster Representatives&quot;]
+   n8[&quot;Collect Selected Structures&quot;]
+   n9[&quot;Rosetta Relax&quot;]
+   n10[&quot;Analyse Rosetta Relax&quot;]
+   n11[&quot;BioEmu Sampling&quot;]
+   n12[&quot;Analyse BioEmu&quot;]
+   n13[&quot;Pareto Selection&quot;]
+   n14[&quot;CodonTransformer&quot;]
+   n15[&quot;Multiple Sequence Alignment (MAFFT)&quot;]
+   n16[&quot;Phylogenetic Tree&quot;]
+   n17[&quot;File 17&quot;]
+   n18[&quot;Folder 18&quot;]
+   n1 --&gt; n2
+   n6 --&gt; n2
+   n2 --&gt; n4
+   n6 --&gt; n5
+   n4 --&gt; n7
+   n5 --&gt; n7
+   n6 --&gt; n7
+   n7 --&gt; n8
+   n1 --&gt; n8
+   n8 --&gt; n9
+   n9 --&gt; n10
+   n8 --&gt; n10
+   n7 --&gt; n11
+   n6 --&gt; n12
+   n11 --&gt; n12
+   n18 --&gt; n12
+   n10 --&gt; n13
+   n12 --&gt; n13
+   n7 --&gt; n13
+   n13 --&gt; n14
+   n17 --&gt; n14
+   n7 --&gt; n15
+   n15 --&gt; n16
+        </div><p>The main connections:</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>From</p></th>
@@ -582,12 +617,18 @@ File (sequences) ─────┼─&gt; MMseqs2 Clustering ──────
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Folder (structures)</p></td>
-<td><p>ProteinMPNN Scoring, Collect Selected Structures, Analyse BioEmu</p></td>
+<tr class="row-even"><td><p>Folder 1 (structures)</p></td>
+<td><p>ProteinMPNN Scoring, Collect Selected Structures</p></td>
 </tr>
-<tr class="row-odd"><td><p>File (sequences)</p></td>
-<td><p>MMseqs2 Clustering, Select Cluster Representatives, ProteinMPNN Scoring,
-CodonTransformer, Analyse BioEmu</p></td>
+<tr class="row-odd"><td><p>Folder 18 (the same structures)</p></td>
+<td><p>Analyse BioEmu</p></td>
+</tr>
+<tr class="row-even"><td><p>File 6 (sequences)</p></td>
+<td><p>ProteinMPNN Scoring, MMseqs2 Clustering, Select Cluster Representatives,
+Analyse BioEmu</p></td>
+</tr>
+<tr class="row-odd"><td><p>File 17 (the same sequences)</p></td>
+<td><p>CodonTransformer</p></td>
 </tr>
 <tr class="row-even"><td><p>Read ProteinMPNN Scores: vanilla / soluble scores</p></td>
 <td><p>Select Cluster Representatives</p></td>
@@ -595,19 +636,19 @@ CodonTransformer, Analyse BioEmu</p></td>
 <tr class="row-odd"><td><p>MMseqs2 Clustering: clusters</p></td>
 <td><p>Select Cluster Representatives</p></td>
 </tr>
-<tr class="row-even"><td><p>Select Cluster Representatives: selected models</p></td>
+<tr class="row-even"><td><p>Select Cluster Representatives: selected cluster representatives</p></td>
 <td><p>Collect Selected Structures</p></td>
 </tr>
 <tr class="row-odd"><td><p>Select Cluster Representatives: selected sequences</p></td>
 <td><p>BioEmu Sampling, MAFFT</p></td>
 </tr>
-<tr class="row-even"><td><p>Select Cluster Representatives: origin</p></td>
+<tr class="row-even"><td><p>Select Cluster Representatives: ProteinMPNN weight-set origin</p></td>
 <td><p>Pareto Selection (colours the plot)</p></td>
 </tr>
-<tr class="row-odd"><td><p>Analyse Rosetta Relax: score summary; Analyse BioEmu: metrics</p></td>
+<tr class="row-odd"><td><p>Analyse Rosetta Relax: Rosetta score summary; Analyse BioEmu: BioEmu metrics</p></td>
 <td><p>Pareto Selection</p></td>
 </tr>
-<tr class="row-even"><td><p>Pareto Selection: selected models</p></td>
+<tr class="row-even"><td><p>Pareto Selection: Pareto-selected models</p></td>
 <td><p>CodonTransformer</p></td>
 </tr>
 </tbody>
@@ -618,10 +659,19 @@ CodonTransformer, Analyse BioEmu</p></td>
 one short job.</p>
 <section id="running-the-preset">
 <h3>Running the preset<a class="headerlink" href="#running-the-preset" title="Link to this heading">#</a></h3>
-<ol class="arabic simple">
-<li><p>In the <strong>Folder</strong> block, select the folder of structures. In the <strong>File</strong>
-block, select the sequences file (FASTA or JSON, keyed by the structure file
-names). To try it, use <code class="docutils literal notranslate"><span class="pre">ExampleData/hmfo</span></code>; see <a class="reference internal" href="example_data.html"><span class="doc">Example data</span></a>.</p></li>
+<ol class="arabic">
+<li><p>The four input blocks come filled in with the lysozyme example
+(<code class="docutils literal notranslate"><span class="pre">ExampleData/lysozyme</span></code>), so the preset runs as it is. For your own data,
+select your structures folder in both <strong>Folder</strong> blocks (1 and 18) and your
+sequences file (FASTA or JSON, keyed by the structure file names) in both
+<strong>File</strong> blocks (6 and 17). The second copy of each sits next to the block it
+feeds, to keep the flow readable. See <a class="reference internal" href="example_data.html"><span class="doc">Example data</span></a>.</p>
+<p>With the example paths, the Folder and File blocks print <em>&quot;is not a folder
+on the local machine&quot;</em> (or <em>&quot;is not a file&quot;</em>), and the file preview in the
+editor cannot open them. Both are expected and can be ignored: Horus checks
+the path from the flow's folder, while the plugin's blocks find the example
+inside the plugin. Paths to your own data do not give the warning.</p>
+</li>
 <li><p>Assign the remotes: ProteinMPNN and BioEmu to your GPU remote, MMseqs2 and
 Rosetta to your CPU remote, and check the blocks' cluster software settings
 against your site (see <a class="reference internal" href="remotes.html"><span class="doc">Remotes and clusters</span></a>). Leave the rest on Local.</p></li>

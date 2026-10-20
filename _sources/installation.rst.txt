@@ -46,8 +46,8 @@ Installed automatically with the plugin:
   a trimmed ``bioprospecting`` with the ProteinMPNN, MAFFT and CodonTransformer
   code the blocks use, including the ProteinMPNN weights.
 
-PyTorch is deliberately not among them: it is large and depends on your CUDA
-version. ProteinMPNN runs with a Python environment that has it (see
+PyTorch is not installed with the plugin, because the right build depends on
+your CUDA version. ProteinMPNN runs with a Python environment that has it (see
 :doc:`configuration`).
 
 Developing the plugin
@@ -72,8 +72,6 @@ Building these docs:
    micromamba create -f Devtools/Environment/docs.yaml
    micromamba activate protselect_docs
    cd docs && make html
-
-The block reference is generated from the block definitions at every build.
 
 Next steps
 ----------
