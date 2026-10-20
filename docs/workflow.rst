@@ -127,14 +127,14 @@ The main connections:
 
    * - From
      - To
-   * - Folder 1 (structures)
+   * - Structures folder
      - ProteinMPNN Scoring, Collect Selected Structures
-   * - Folder 18 (the same structures)
+   * - Structures folder (second copy)
      - Analyse BioEmu
-   * - File 6 (sequences)
+   * - Sequences file
      - ProteinMPNN Scoring, MMseqs2 Clustering, Select Cluster Representatives,
        Analyse BioEmu
-   * - File 17 (the same sequences)
+   * - Sequences file (second copy)
      - CodonTransformer
    * - Read ProteinMPNN Scores: vanilla / soluble scores
      - Select Cluster Representatives
@@ -160,10 +160,11 @@ Running the preset
 
 1. The four input blocks come filled in with the lysozyme example
    (``ExampleData/lysozyme``), so the preset runs as it is. For your own data,
-   select your structures folder in both **Folder** blocks (1 and 18) and your
+   select your structures folder in both **Structures folder** blocks and your
    sequences file (FASTA or JSON, keyed by the structure file names) in both
-   **File** blocks (6 and 17). The second copy of each sits next to the block it
-   feeds, to keep the flow readable. See :doc:`example_data`.
+   **Sequences file** blocks. In the editor these are the two Folder and the two
+   File blocks; the second copy of each sits next to the block it feeds, to keep
+   the flow readable. See :doc:`example_data`.
 
    With the example paths, the Folder and File blocks print *"is not a folder
    on the local machine"* (or *"is not a file"*), and the file preview in the
