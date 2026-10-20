@@ -29,6 +29,9 @@ OUT = os.path.join(DOCS, "reference")
 PRESET_FLOW = os.path.join(os.path.dirname(DOCS), "ProtSelect", "Flows",
                            "ProteSel_Pipeline.flow")
 
+# In the preset, Horus's own input blocks carry the pipeline's two inputs.
+INPUT_BLOCK_LABELS = {"horus.folder": "Structures folder", "horus.file": "Sequences file"}
+
 # Pipeline order: the order a reader meets the blocks in the workflow.
 BLOCK_ORDER = [
     "proteinmpnn_scoring",
@@ -328,17 +331,16 @@ def _index_page(blocks):
 def _flow_diagram(flow_path):
     """
     A Mermaid flowchart of a saved flow: one node per block, one arrow per pair
-    of connected blocks. Horus's own input blocks (Folder, File) are numbered as
-    the canvas numbers them, since the preset has more than one of each.
+    of connected blocks. Horus's own input blocks (Folder, File) are named after
+    the input they hold.
     """
     with zipfile.ZipFile(flow_path) as archive:
         flow = json.loads(archive.read("flow.json"))
 
     names = {}
     for block in flow.get("blocks") or []:
-        name = _text(block.get("name")) or block.get("id")
-        if str(block.get("id", "")).startswith("horus."):
-            name = f"{name} {block.get('placedID')}"
+        name = (INPUT_BLOCK_LABELS.get(block.get("id")) or _text(block.get("name"))
+                or block.get("id"))
         names[block.get("placedID")] = name.replace('"', "'")
 
     edges = []
