@@ -35,7 +35,8 @@ the final set diverse. To choose the identity threshold, run :ref:`MMseqs2
 Threshold Sweep <block-mmseqs2_threshold_sweep>` first: it clusters over a range
 of thresholds and plots, for each one, the score distribution of the top-N
 representatives it would select. It needs a scores file, so connect it to one
-of the ProteinMPNN score outputs.
+of the ProteinMPNN score outputs. For a CSV with several columns, set **Score
+column** to the one to rank by.
 
 3. Pick one representative per cluster
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -143,15 +144,15 @@ The main connections:
      - Select Cluster Representatives
    * - MMseqs2 Clustering: clusters
      - Select Cluster Representatives
-   * - Select Cluster Representatives: selected models
+   * - Select Cluster Representatives: selected cluster representatives
      - Collect Selected Structures
    * - Select Cluster Representatives: selected sequences
      - BioEmu Sampling, MAFFT
-   * - Select Cluster Representatives: origin
+   * - Select Cluster Representatives: ProteinMPNN weight-set origin
      - Pareto Selection (colours the plot)
-   * - Analyse Rosetta Relax: score summary; Analyse BioEmu: metrics
+   * - Analyse Rosetta Relax: Rosetta score summary; Analyse BioEmu: BioEmu metrics
      - Pareto Selection
-   * - Pareto Selection: selected models
+   * - Pareto Selection: Pareto-selected models
      - CodonTransformer
 
 The preset's settings are for a production run: Rosetta ``nstruct`` 100 with
