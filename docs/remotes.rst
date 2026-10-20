@@ -141,7 +141,7 @@ matter most:
        ``#SBATCH`` prefix, for example ``--mem-per-cpu=4G`` or ``--nodes=1``.
        Used on clusters other than MareNostrum 5.
    * - Walltime (``time``, hours)
-     - Leave it at 0 for the 48 h default, or set it close to the real run time:
+     - Leave it at 0 for the 48 h default, or set it close to the real run time:
        shorter jobs usually wait less in the queue. The plugin cannot extend a
        job that runs out of time, but you can rerun the block and it resumes (see
        :ref:`workflow:Rerunning and resuming`).

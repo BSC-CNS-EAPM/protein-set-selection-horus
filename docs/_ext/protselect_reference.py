@@ -258,7 +258,7 @@ def _block_page(block, shared_ids):
     parts.append(_heading("Inputs", "-"))
     parts.append(_table("", _input_rows(inputs),
                         ["Input", "Type", "Accepts", "Required", "Description"],
-                        [6, 3, 3, 3, 12])
+                        [6, 3, 3, 4, 11])
                  or "This block takes no inputs.\n")
     parts.append(_heading("Parameters", "-"))
     parts.append(_table("", _parameter_rows(own),
@@ -267,7 +267,7 @@ def _block_page(block, shared_ids):
     if uses_shared:
         parts.append("\nAs a cluster-capable block it also has the shared "
                      ":ref:`cluster job settings <cluster-job-settings>` "
-                     "(CPUs, partition, walltime, job grouping, ...).\n")
+                     "(CPUs, partition, walltime, job grouping, …).\n")
     parts.append(_heading("Outputs", "-"))
     parts.append(_table("", _output_rows(outputs), ["Output", "Type", "Format", "Description"],
                         [6, 3, 3, 12])

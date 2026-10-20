@@ -1,0 +1,8 @@
+{% extends "!layout.html" %}
+
+{# Match the mobile browser bar to the page background in each colour mode. #}
+{%- block extrahead %}
+  {{ super() }}
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"/>
+  <meta name="theme-color" content="#14181e" media="(prefers-color-scheme: dark)"/>
+{%- endblock extrahead %}

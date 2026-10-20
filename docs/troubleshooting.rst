@@ -54,7 +54,7 @@ node that cannot see that software: on a cluster with separate GPU and CPU
 login nodes, submit the GPU blocks from the GPU remote and Rosetta from the CPU
 one. See :doc:`remotes`.
 
-"The folder ... holds a clustering of different sequences / other settings"
+"The folder … holds a clustering of different sequences / other settings"
 ---------------------------------------------------------------------------
 
 MMseqs2 Clustering refuses to reuse a clustering made with other input. Change
