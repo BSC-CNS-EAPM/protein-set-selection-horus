@@ -12,7 +12,7 @@ both and you get the union, labelled by which set chose each model.
 """
 
 from HorusAPI import PluginBlock, PluginVariable, VariableTypes
-from sequence_io import load_scores, read_sequences, write_fasta
+from sequence_io import input_path, load_scores, read_sequences, write_fasta
 
 # ==========================#
 # Variable inputs
@@ -192,12 +192,12 @@ def select_representatives(block: PluginBlock):
 
     # pylint: enable=import-outside-toplevel
 
-    clusters_path = block.inputs.get(clustersFile.id, None)
+    clusters_path = input_path(block, clustersFile)
     if not clusters_path or not os.path.isfile(clusters_path):
         raise ValueError("A valid clusters JSON file must be provided.")
 
     def given(variable):
-        path = block.inputs.get(variable.id, None)
+        path = input_path(block, variable)
         return path if path and path != "None" and os.path.isfile(path) else None
 
     vanilla_path = given(vanillaScoresFile)
@@ -208,7 +208,7 @@ def select_representatives(block: PluginBlock):
             "scores, or both."
         )
 
-    sequences_path = block.inputs.get(sequencesFile.id, None)
+    sequences_path = input_path(block, sequencesFile)
     if sequences_path == "None":
         sequences_path = None
 

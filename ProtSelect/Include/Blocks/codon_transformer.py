@@ -23,6 +23,7 @@ unavailable on hosts that use micromamba.
 
 from HorusAPI import PluginBlock, PluginVariable, VariableTypes
 from sequence_io import (
+    input_path,
     foreign_python_env,
     read_sequences,
     require_local,
@@ -207,13 +208,13 @@ def compute_codon_sequences(block: PluginBlock):
 
     require_local(block, "CodonTransformer")
 
-    sequences_path = block.inputs.get(sequencesFile.id, None)
+    sequences_path = input_path(block, sequencesFile)
     if not sequences_path or not os.path.isfile(sequences_path):
         raise ValueError("A valid protein sequences file (FASTA or JSON) must be provided.")
 
     sequences = read_sequences(sequences_path)
 
-    models_path = block.inputs.get(modelsFile.id, None)
+    models_path = input_path(block, modelsFile)
     if models_path and os.path.isfile(models_path):
         with open(models_path) as jf:
             wanted = json.load(jf)

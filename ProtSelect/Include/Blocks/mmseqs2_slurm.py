@@ -20,6 +20,7 @@ anything a module does not cover. Those are ignored locally.
 import os
 
 from HorusAPI import PluginVariable, SlurmBlock, VariableTypes
+from sequence_io import input_path
 from utils import BSC_JOB_VARIABLES, downloadResultsAction, launchCalculationAction, removal_requested
 
 # ==========================#
@@ -218,7 +219,7 @@ def initial_mmseqs_slurm(block: SlurmBlock):
 
     # pylint: enable=import-outside-toplevel
 
-    sequences_path = block.inputs.get(sequencesFile.id, None)
+    sequences_path = input_path(block, sequencesFile)
     if not sequences_path or sequences_path == "None":
         raise Exception("No sequences file provided.")
     if not os.path.isfile(sequences_path):

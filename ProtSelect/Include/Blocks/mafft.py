@@ -25,7 +25,7 @@ consume either.
 """
 
 from HorusAPI import PluginBlock, PluginVariable, VariableTypes
-from sequence_io import read_sequences, require_local, resolve_executable
+from sequence_io import input_path, read_sequences, require_local, resolve_executable
 
 # ==========================#
 # Variable inputs
@@ -108,7 +108,7 @@ def calculate_msa(block: PluginBlock):
 
     require_local(block, "Multiple Sequence Alignment")
 
-    sequences_path = block.inputs.get(sequencesFile.id, None)
+    sequences_path = input_path(block, sequencesFile)
     if not sequences_path:
         raise ValueError("A valid sequences file (FASTA or JSON) must be provided.")
 

@@ -23,6 +23,7 @@ the shared "CPUs per task" variable, e.g. 1 GPU + 20 CPUs per task.
 from utils import BSC_JOB_VARIABLES, gpusVariable, removal_requested
 
 from HorusAPI import PluginVariable, SlurmBlock, VariableTypes
+from sequence_io import input_path
 
 # ==========================#
 # Variable inputs
@@ -358,7 +359,7 @@ def initial_bioemu(block: SlurmBlock):
 
     # pylint: enable=import-outside-toplevel
 
-    sequences_file = block.inputs.get(sequencesFile.id, None)
+    sequences_file = input_path(block, sequencesFile)
     if not sequences_file or sequences_file == "None":
         raise Exception("No sequences file provided.")
     if not os.path.isfile(sequences_file):

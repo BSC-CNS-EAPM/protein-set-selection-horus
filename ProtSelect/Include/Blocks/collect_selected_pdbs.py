@@ -16,7 +16,7 @@ BioEmu RMSD/RMSF, ...) operate on.
 """
 
 from HorusAPI import PluginBlock, PluginVariable, VariableTypes
-from sequence_io import read_model_list
+from sequence_io import input_path, read_model_list
 
 # ==========================#
 # Variable inputs
@@ -111,11 +111,11 @@ def collect_selected_pdbs(block: PluginBlock):
 
     # pylint: enable=import-outside-toplevel
 
-    source_folder = block.inputs.get(sourceFolder.id, None)
+    source_folder = input_path(block, sourceFolder)
     if not source_folder or not os.path.isdir(source_folder):
         raise ValueError("A valid source structures folder must be provided.")
 
-    models_path = block.inputs.get(modelsFile.id, None)
+    models_path = input_path(block, modelsFile)
     if not models_path or not os.path.isfile(models_path):
         raise ValueError("A valid selected-models file (JSON or FASTA) must be provided.")
 

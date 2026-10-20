@@ -31,6 +31,28 @@ import os
 # ==========================#
 # Sequences
 # ==========================#
+PLUGIN_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+"""The plugin folder (the one holding ``Include/`` and ``ExampleData/``)."""
+
+
+def input_path(block, variable):
+    """
+    Return the path connected to a file or folder input, or None if there is none.
+
+    A relative path that does not exist from the flow's run folder is looked up
+    in the plugin folder too, so a flow can point at ``ExampleData/...`` and work
+    wherever the plugin is installed. Any other path is returned unchanged.
+    """
+    path = block.inputs.get(variable.id, None)
+    if not path or path == "None":
+        return None
+    if not os.path.isabs(path) and not os.path.exists(path):
+        candidate = os.path.join(PLUGIN_ROOT, path)
+        if os.path.exists(candidate):
+            return candidate
+    return path
+
+
 def read_sequences(sequences_path: str) -> dict:
     """
     Read sequences from a FASTA or JSON file.

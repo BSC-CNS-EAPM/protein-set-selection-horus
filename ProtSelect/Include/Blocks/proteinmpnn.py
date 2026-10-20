@@ -20,6 +20,7 @@ the model count small when testing.
 """
 
 from HorusAPI import PluginVariable, SlurmBlock, VariableTypes
+from sequence_io import input_path
 from utils import BSC_JOB_VARIABLES, downloadResultsAction, gpusVariable, launchCalculationAction, removal_requested
 
 # ==========================#
@@ -227,7 +228,7 @@ def initial_proteinmpnn(block: SlurmBlock):
 
     # pylint: enable=import-outside-toplevel
 
-    pdbs_folder = block.inputs.get(pdbsFolder.id, None)
+    pdbs_folder = input_path(block, pdbsFolder)
     if not pdbs_folder or pdbs_folder == "None":
         raise Exception("No structures folder provided.")
     if not os.path.isdir(pdbs_folder):
@@ -257,7 +258,7 @@ def initial_proteinmpnn(block: SlurmBlock):
     block.extraData["nothing_to_run"] = False
 
     sequences = None
-    sequences_path = block.inputs.get(sequencesFile.id, None)
+    sequences_path = input_path(block, sequencesFile)
     if sequences_path and sequences_path != "None":
         sequences = read_sequences(sequences_path)
         print(f"Evaluating {len(sequences)} supplied sequence(s) against each backbone.")

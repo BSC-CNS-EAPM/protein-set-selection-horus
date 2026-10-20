@@ -19,7 +19,7 @@ the RMSD and RMSF metrics are produced.
 """
 
 from HorusAPI import Extensions, PluginBlock, PluginVariable, VariableTypes
-from sequence_io import read_sequences, require_local
+from sequence_io import input_path, read_sequences, require_local
 
 # ==========================#
 # Variable inputs
@@ -356,15 +356,15 @@ def analyse_bioemu(block: PluginBlock):
 
     require_local(block, "Analyse BioEmu")
 
-    sequences_path = block.inputs.get(sequencesFile.id, None)
+    sequences_path = input_path(block, sequencesFile)
     if not sequences_path or not os.path.isfile(sequences_path):
         raise ValueError("A valid sequences file (FASTA or JSON) must be provided.")
 
-    bioemu_folder = block.inputs.get(bioemuFolder.id, None)
+    bioemu_folder = input_path(block, bioemuFolder)
     if not bioemu_folder or not os.path.isdir(bioemu_folder):
         raise ValueError("A valid BioEmu folder must be provided.")
 
-    models_folder = block.inputs.get(modelsFolder.id, None)
+    models_folder = input_path(block, modelsFolder)
     if not models_folder or not os.path.isdir(models_folder):
         raise ValueError("A valid reference models folder must be provided.")
 

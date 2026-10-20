@@ -20,6 +20,7 @@ from HorusAPI import (
     VariableList,
     VariableTypes,
 )
+from sequence_io import input_path
 
 # ==========================#
 # Variable inputs
@@ -292,14 +293,14 @@ def pareto_selection(block: PluginBlock):
 
     # pylint: enable=import-outside-toplevel
 
-    metrics_path = block.inputs.get(metricsFile.id, None)
+    metrics_path = input_path(block, metricsFile)
     if not metrics_path or not os.path.isfile(metrics_path):
         raise ValueError("A valid metrics CSV must be provided.")
 
     frame = pd.read_csv(metrics_path, index_col=0)
     frame.index = frame.index.astype(str)
 
-    extra_path = block.inputs.get(extraMetricsFile.id, None)
+    extra_path = input_path(block, extraMetricsFile)
     if extra_path and os.path.isfile(extra_path):
         extra = pd.read_csv(extra_path, index_col=0)
         extra.index = extra.index.astype(str)
@@ -310,7 +311,7 @@ def pareto_selection(block: PluginBlock):
         frame = frame.join(extra, how="outer")
         print(f"Merged extra metrics: {list(extra.columns)}")
 
-    origin_path = block.inputs.get(weightSetOriginFile.id, None)
+    origin_path = input_path(block, weightSetOriginFile)
     if origin_path and os.path.isfile(origin_path):
         with open(origin_path) as jf:
             origins = json.load(jf)

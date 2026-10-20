@@ -18,6 +18,7 @@ compute blocks.
 from utils import BSC_JOB_VARIABLES, removal_requested
 
 from HorusAPI import PluginVariable, SlurmBlock, VariableTypes
+from sequence_io import input_path
 
 # ==========================#
 # Variable inputs
@@ -166,7 +167,7 @@ def initial_rosetta_relax(block: SlurmBlock):
 
     # pylint: enable=import-outside-toplevel
 
-    models_folder = block.inputs.get(modelsFolder.id, None)
+    models_folder = input_path(block, modelsFolder)
     if not models_folder or models_folder == "None":
         raise Exception("No models folder provided.")
     if not os.path.isdir(models_folder):

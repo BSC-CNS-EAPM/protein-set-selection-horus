@@ -14,6 +14,7 @@ clustering runs.
 
 from HorusAPI import PluginBlock, PluginVariable, VariableTypes
 from sequence_io import (
+    input_path,
     load_scores,
     read_sequences,
     require_local,
@@ -188,10 +189,10 @@ def sweep_thresholds(block: PluginBlock):
 
     require_local(block, "MMseqs2 Threshold Sweep")
 
-    sequences_path = block.inputs.get(sequencesFile.id, None)
+    sequences_path = input_path(block, sequencesFile)
     if not sequences_path or not os.path.isfile(sequences_path):
         raise ValueError("A valid sequences file (FASTA or JSON) must be provided.")
-    scores_path = block.inputs.get(scoresFile.id, None)
+    scores_path = input_path(block, scoresFile)
     if not scores_path or not os.path.isfile(scores_path):
         raise ValueError("A valid scores file (JSON or CSV) must be provided.")
 

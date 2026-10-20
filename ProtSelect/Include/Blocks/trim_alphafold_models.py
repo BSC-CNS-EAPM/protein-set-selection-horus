@@ -3,6 +3,7 @@ Module containing the trim AlphaFold models block
 """
 
 from HorusAPI import PluginBlock, PluginVariable, VariableTypes
+from sequence_io import input_path
 
 resultsFolderAF = PluginVariable(
     name="AlphaFold results folder",
@@ -59,7 +60,7 @@ def trim_alphafold_models(block: PluginBlock):
 
     # pylint: enable=import-outside-toplevel
     # Get the models folder
-    models_folder = block.inputs.get(resultsFolderAF.id, None)
+    models_folder = input_path(block, resultsFolderAF)
 
     if models_folder is None:
         raise ValueError("No models folder selected")

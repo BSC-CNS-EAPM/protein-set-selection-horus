@@ -16,7 +16,7 @@ here is the full table, for inspection rather than for wiring onward.
 """
 
 from HorusAPI import PluginBlock, PluginVariable, VariableTypes
-from sequence_io import read_sequences, require_local, show_table_html
+from sequence_io import input_path, read_sequences, require_local, show_table_html
 
 # ==========================#
 # Variable inputs
@@ -119,7 +119,7 @@ def read_proteinmpnn_scores(block: PluginBlock):
 
     require_local(block, "Read ProteinMPNN Scores")
 
-    folder = block.inputs.get(pmpnnFolder.id, None)
+    folder = input_path(block, pmpnnFolder)
     if not folder or not os.path.isdir(folder):
         raise ValueError("A valid ProteinMPNN output folder must be provided.")
 
@@ -139,7 +139,7 @@ def read_proteinmpnn_scores(block: PluginBlock):
         ) from error
     # pylint: enable=import-outside-toplevel
 
-    sequences_path = block.inputs.get(sequencesFile.id, None)
+    sequences_path = input_path(block, sequencesFile)
     known = None
     if sequences_path and sequences_path != "None":
         known = set(read_sequences(sequences_path))
