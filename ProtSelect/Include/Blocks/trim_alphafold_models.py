@@ -5,7 +5,7 @@ Module containing the trim AlphaFold models block
 from HorusAPI import PluginBlock, PluginVariable, VariableTypes
 
 resultsFolderAF = PluginVariable(
-    name="Models",
+    name="AlphaFold results folder",
     id="results_folder",
     description="Folder containing the Alphafold output PDBs",
     type=VariableTypes.FOLDER,
@@ -22,7 +22,7 @@ confidenceThresholdAF = PluginVariable(
 )
 
 outputPDBAF = PluginVariable(
-    name="First PDB",
+    name="First trimmed structure",
     id="out_pdb",
     description="First PDB of the Alphafold.",
     type=VariableTypes.FILE,

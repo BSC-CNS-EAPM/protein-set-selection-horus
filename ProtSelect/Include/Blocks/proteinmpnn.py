@@ -88,7 +88,7 @@ scoreOnlyVariable = PluginVariable(
 )
 modelNameVariable = PluginVariable(
     id="model_name",
-    name="Model weights",
+    name="Model checkpoint",
     description="Which ProteinMPNN weight file to use. The number is the training "
     "noise level in hundredths of an Angstrom; v_48_020 is the usual default.",
     type=VariableTypes.STRING_LIST,

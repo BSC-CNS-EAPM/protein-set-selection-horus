@@ -26,7 +26,7 @@ from sequence_io import require_local
 # ==========================#
 msaFile = PluginVariable(
     id="msa_file",
-    name="Alignment file",
+    name="MSA",
     description="Multiple sequence alignment (FASTA, Clustal, Phylip, Stockholm...). "
     "The format is guessed from the extension unless one is set below.",
     type=VariableTypes.FILE,

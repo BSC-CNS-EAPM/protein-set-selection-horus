@@ -125,14 +125,14 @@ relaxDataFile = PluginVariable(
 )
 scoreSummaryFile = PluginVariable(
     id="score_summary_file",
-    name="Score summary",
+    name="Rosetta score summary",
     description="CSV with per-model score statistics (mean, min, max, std, count).",
     type=VariableTypes.FILE,
     allowedValues=["csv"],
 )
 meanScoresFile = PluginVariable(
     id="mean_scores_file",
-    name="Mean scores",
+    name="Mean Rosetta scores",
     description="JSON mapping each model to its average Rosetta score.",
     type=VariableTypes.FILE,
     allowedValues=["json"],

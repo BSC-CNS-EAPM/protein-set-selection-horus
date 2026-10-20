@@ -23,7 +23,7 @@ from sequence_io import read_model_list
 # ==========================#
 sourceFolder = PluginVariable(
     id="source_folder",
-    name="Source structures folder",
+    name="Structures folder",
     description="Folder holding the structures of all models (e.g. 'AF_truncated').",
     type=VariableTypes.FOLDER,
 )
@@ -41,7 +41,7 @@ modelsFile = PluginVariable(
 # ==========================#
 outputFolderVariable = PluginVariable(
     id="output_folder",
-    name="Output folder",
+    name="Output folder name",
     description="Name of the folder the selected structures are copied into.",
     type=VariableTypes.STRING,
     defaultValue="selected_models",

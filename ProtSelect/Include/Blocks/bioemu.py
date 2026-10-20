@@ -42,7 +42,7 @@ sequencesFile = PluginVariable(
 # Variables
 # ==========================#
 output = PluginVariable(
-    name="BioEmu folder",
+    name="Output folder name",
     id="folder_name",
     description="Name of the folder where the BioEmu sampling will be stored.",
     type=VariableTypes.STRING,

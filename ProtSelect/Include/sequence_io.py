@@ -148,13 +148,15 @@ def read_model_list(models_path: str) -> list:
 # ==========================#
 # Scores
 # ==========================#
-def load_scores(scores_path: str) -> dict:
+def load_scores(scores_path: str, score_column: str = None) -> dict:
     """
     Read per-model scores from a JSON or CSV file.
 
     JSON must map model name to a number. For CSV the name column is sniffed
     from (model, description, name, id) and the score column from (mean_score,
-    score, avg_score), falling back to the first and second columns.
+    score, avg_score), falling back to the first and second columns. Pass
+    ``score_column`` to use that CSV column instead of sniffing (matched without
+    regard to case); it is ignored for JSON, which holds a single score per model.
 
     Note that the CSV branch keeps the last value it sees for a repeated model
     name; it does no aggregation. Producers of multi-row-per-model data (a raw
@@ -190,12 +192,21 @@ def load_scores(scores_path: str) -> dict:
             name_idx = header.index(label)
             break
     score_idx = None
-    for label in ("mean_score", "score", "avg_score"):
-        if label in header:
-            score_idx = header.index(label)
-            break
-    if score_idx is None:
-        score_idx = 1 if len(rows[0]) > 1 else None
+    score_column = (score_column or "").strip()
+    if score_column and score_column != "None":
+        if score_column.lower() not in header:
+            raise ValueError(
+                f"The score column '{score_column}' is not in '{scores_path}'. "
+                f"Available columns: {', '.join(h.strip() for h in rows[0])}."
+            )
+        score_idx = header.index(score_column.lower())
+    else:
+        for label in ("mean_score", "score", "avg_score"):
+            if label in header:
+                score_idx = header.index(label)
+                break
+        if score_idx is None:
+            score_idx = 1 if len(rows[0]) > 1 else None
     if score_idx is None:
         raise ValueError(
             f"Could not find a score column in '{scores_path}'. Expected one of "

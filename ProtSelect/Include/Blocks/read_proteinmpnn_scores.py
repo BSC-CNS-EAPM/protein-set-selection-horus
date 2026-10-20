@@ -60,7 +60,7 @@ scoreColumnVariable = PluginVariable(
 )
 sourceFilterVariable = PluginVariable(
     id="source_filter",
-    name="Source filter",
+    name="Sequence source",
     description="Which rows to keep. 'score_only' rows are the scored input "
     "sequences; 'designed' rows are newly sampled sequences. 'all' keeps both.",
     type=VariableTypes.STRING_LIST,
