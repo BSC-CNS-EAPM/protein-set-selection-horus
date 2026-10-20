@@ -569,11 +569,11 @@ plugin's presets and choose <strong>ProteSel Pipeline</strong>.</p>
 <p>How the blocks connect, drawn from the preset itself:</p>
 <div class="mermaid">
             flowchart TD
-   n1[&quot;Folder 1&quot;]
+   n1[&quot;Structures folder&quot;]
    n2[&quot;ProteinMPNN Scoring&quot;]
    n4[&quot;Read ProteinMPNN Scores&quot;]
    n5[&quot;MMseqs2 Clustering&quot;]
-   n6[&quot;File 6&quot;]
+   n6[&quot;Sequences file&quot;]
    n7[&quot;Select Cluster Representatives&quot;]
    n8[&quot;Collect Selected Structures&quot;]
    n9[&quot;Rosetta Relax&quot;]
@@ -584,8 +584,8 @@ plugin's presets and choose <strong>ProteSel Pipeline</strong>.</p>
    n14[&quot;CodonTransformer&quot;]
    n15[&quot;Multiple Sequence Alignment (MAFFT)&quot;]
    n16[&quot;Phylogenetic Tree&quot;]
-   n17[&quot;File 17&quot;]
-   n18[&quot;Folder 18&quot;]
+   n17[&quot;Sequences file&quot;]
+   n18[&quot;Structures folder&quot;]
    n1 --&gt; n2
    n6 --&gt; n2
    n2 --&gt; n4
@@ -617,17 +617,17 @@ plugin's presets and choose <strong>ProteSel Pipeline</strong>.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Folder 1 (structures)</p></td>
+<tr class="row-even"><td><p>Structures folder</p></td>
 <td><p>ProteinMPNN Scoring, Collect Selected Structures</p></td>
 </tr>
-<tr class="row-odd"><td><p>Folder 18 (the same structures)</p></td>
+<tr class="row-odd"><td><p>Structures folder (second copy)</p></td>
 <td><p>Analyse BioEmu</p></td>
 </tr>
-<tr class="row-even"><td><p>File 6 (sequences)</p></td>
+<tr class="row-even"><td><p>Sequences file</p></td>
 <td><p>ProteinMPNN Scoring, MMseqs2 Clustering, Select Cluster Representatives,
 Analyse BioEmu</p></td>
 </tr>
-<tr class="row-odd"><td><p>File 17 (the same sequences)</p></td>
+<tr class="row-odd"><td><p>Sequences file (second copy)</p></td>
 <td><p>CodonTransformer</p></td>
 </tr>
 <tr class="row-even"><td><p>Read ProteinMPNN Scores: vanilla / soluble scores</p></td>
@@ -662,10 +662,11 @@ one short job.</p>
 <ol class="arabic">
 <li><p>The four input blocks come filled in with the lysozyme example
 (<code class="docutils literal notranslate"><span class="pre">ExampleData/lysozyme</span></code>), so the preset runs as it is. For your own data,
-select your structures folder in both <strong>Folder</strong> blocks (1 and 18) and your
+select your structures folder in both <strong>Structures folder</strong> blocks and your
 sequences file (FASTA or JSON, keyed by the structure file names) in both
-<strong>File</strong> blocks (6 and 17). The second copy of each sits next to the block it
-feeds, to keep the flow readable. See <a class="reference internal" href="example_data.html"><span class="doc">Example data</span></a>.</p>
+<strong>Sequences file</strong> blocks. In the editor these are the two Folder and the two
+File blocks; the second copy of each sits next to the block it feeds, to keep
+the flow readable. See <a class="reference internal" href="example_data.html"><span class="doc">Example data</span></a>.</p>
 <p>With the example paths, the Folder and File blocks print <em>&quot;is not a folder
 on the local machine&quot;</em> (or <em>&quot;is not a file&quot;</em>), and the file preview in the
 editor cannot open them. Both are expected and can be ignored: Horus checks
