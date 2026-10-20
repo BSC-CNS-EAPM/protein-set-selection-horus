@@ -48,32 +48,9 @@ the interesting range is 0.45 to 0.8. That contrast is the point of the
 threshold sweep block: the useful threshold depends entirely on how the set was
 assembled, and guessing it is worse than looking.
 
-## A caveat about the source
-
-The family search these come from contains a great deal of fragmentary and
-misannotated material. Of the 50,698 sequences, **22,632** are full-length GMC
-oxidoreductases with a structure; the rest are short or lack the motif.
-
-The `structural_trimmed_cluster` representatives in the source folder are a
-particularly poor sampling frame: their median length is 82 residues and only 5
-of the 2,454 are full-length family members. Selecting from them by sequence
-diversity returns the most divergent entries, which are the junk — one early
-attempt picked a `DGWEMDGRWMG` low-complexity repeat.
-
-So these ten were filtered on length (450-650) and the FAD motif *before* any
-diversity selection. Apply the same order to your own subsets.
-
 ## Cost
 
 At ~540 residues these are roughly four times the lysozymes, so a CPU
 ProteinMPNN pass takes minutes rather than seconds and Rosetta relax is a
 cluster job. Use the lysozyme set to check that a flow is wired correctly, and
 this one to see the pipeline behave on realistic input.
-
-## Provenance
-
-Structures and sequences come from `~/PhD/hmfo/hmfo` (trimmed AlphaFold models).
-Organism names were resolved through the UniProt REST API; six of the ten
-accessions have since been deleted from UniProtKB as "not part of a reference
-proteome", so those carry the taxonomic mnemonic from their entry id rather than
-a species name. `provenance.json` records the status of each.
