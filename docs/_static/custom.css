@@ -33,3 +33,12 @@ dl.field-list dd span.pre {
   white-space: normal;
   overflow-wrap: anywhere;
 }
+
+/* Mermaid draws in dark text on a transparent background, which disappears in
+   the dark theme; keep the diagram on a light panel in both modes. */
+pre.mermaid,
+div.mermaid {
+  background: #ffffff;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
