@@ -573,12 +573,14 @@ environments.</p>
 <p>It also installs the two tools the page leaves alone:</p>
 <ul class="simple">
 <li><p><strong>Rosetta</strong>: the binary bundle from RosettaCommons, after you confirm that
-your use is academic or non-commercial. It is about 21.5 GB to download and
-52 GB extracted, and an interrupted download resumes when you rerun the
-script. With <code class="docutils literal notranslate"><span class="pre">--rosetta-archive</span> <span class="pre">FILE</span></code> it keeps the bundle at <code class="docutils literal notranslate"><span class="pre">FILE</span></code>, or
-installs from a bundle you already have there, which also works on a machine
-without internet access. Set the Rosetta Relax block's <strong>Rosetta executable</strong> to the binary
-it reports, or let the script link it onto <code class="docutils literal notranslate"><span class="pre">PATH</span></code>.</p></li>
+your use is academic or non-commercial; Rosetta (like PyRosetta) is licensed
+for that use only, and commercial use needs a commercial licence (see
+<a class="reference internal" href="installation.html"><span class="doc">Installation</span></a>). It is about 21.5 GB to download and 52 GB extracted,
+and an interrupted download resumes when you rerun the script. With
+<code class="docutils literal notranslate"><span class="pre">--rosetta-archive</span> <span class="pre">FILE</span></code> it keeps the bundle at <code class="docutils literal notranslate"><span class="pre">FILE</span></code>, or installs from a
+bundle you already have there, which also works on a machine without
+internet access. Set the Rosetta Relax block's <strong>Rosetta executable</strong> to the
+binary it reports, or let the script link it onto <code class="docutils literal notranslate"><span class="pre">PATH</span></code>.</p></li>
 <li><p><strong>SMOG2</strong>: a <code class="docutils literal notranslate"><span class="pre">smog2</span></code> wrapper around the official container when podman or
 docker is installed, otherwise a native install into a <code class="docutils literal notranslate"><span class="pre">smog2</span></code> environment,
 which builds PDL from source and takes several minutes. Analyse BioEmu looks
