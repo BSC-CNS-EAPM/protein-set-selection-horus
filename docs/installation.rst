@@ -15,6 +15,17 @@ Requirements
   cluster job. Any SLURM cluster works; MareNostrum 5 is the one the plugin's
   defaults are set for. See :doc:`remotes`.
 
+.. important::
+
+   **Rosetta and PyRosetta need a licence.** They are free for academic and
+   non-commercial use under the Rosetta Software Non-Commercial License
+   Agreement, which covers the Rosetta Relax and Analyse Rosetta Relax blocks.
+   Commercial use, including fee-for-service work done by an academic group,
+   needs a commercial licence from the University of Washington
+   (`license@uw.edu <mailto:license@uw.edu>`_). Neither download asks for a
+   login, so it is up to you to check that your use is covered. See
+   `Rosetta licensing <https://rosettacommons.org/software/license-and-download/>`_.
+
 Installing the plugin
 ---------------------
 
