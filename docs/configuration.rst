@@ -100,12 +100,14 @@ environments.
 It also installs the two tools the page leaves alone:
 
 - **Rosetta**: the binary bundle from RosettaCommons, after you confirm that
-  your use is academic or non-commercial. It is about 21.5 GB to download and
-  52 GB extracted, and an interrupted download resumes when you rerun the
-  script. With ``--rosetta-archive FILE`` it keeps the bundle at ``FILE``, or
-  installs from a bundle you already have there, which also works on a machine
-  without internet access. Set the Rosetta Relax block's **Rosetta executable** to the binary
-  it reports, or let the script link it onto ``PATH``.
+  your use is academic or non-commercial; Rosetta (like PyRosetta) is licensed
+  for that use only, and commercial use needs a commercial licence (see
+  :doc:`installation`). It is about 21.5 GB to download and 52 GB extracted,
+  and an interrupted download resumes when you rerun the script. With
+  ``--rosetta-archive FILE`` it keeps the bundle at ``FILE``, or installs from a
+  bundle you already have there, which also works on a machine without
+  internet access. Set the Rosetta Relax block's **Rosetta executable** to the
+  binary it reports, or let the script link it onto ``PATH``.
 - **SMOG2**: a ``smog2`` wrapper around the official container when podman or
   docker is installed, otherwise a native install into a ``smog2`` environment,
   which builds PDL from source and takes several minutes. Analyse BioEmu looks
