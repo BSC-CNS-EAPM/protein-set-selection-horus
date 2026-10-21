@@ -58,7 +58,8 @@ The external tools (MMseqs2, MAFFT, PyRosetta, BioEmu, CodonTransformer,
 Rosetta, SMOG2) are not pip-installable into that folder. After installing the
 plugin, open the **Environment Setup** page it adds: it reports which tools are
 present, installs the ones it can, and saves the resolved paths into the plugin
-configuration.
+configuration. `./install_deps.sh` does the same from a terminal, asking before
+each install (`--check` only reports).
 
 ## Development
 

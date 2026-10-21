@@ -37,7 +37,7 @@ Which tool each block needs
      - Rosetta Relax
      - the block's **Rosetta path** and **Rosetta executable** parameters, or
        the executable on ``PATH``
-     - no: licensed, install it yourself
+     - no; ``install_deps.sh`` can (see below)
    * - PyRosetta
      - Analyse Rosetta Relax
      - configuration ``pyrosetta_python`` (a Python with PyRosetta)
@@ -49,7 +49,7 @@ Which tool each block needs
    * - SMOG2
      - Analyse BioEmu (fraction of native contacts, Q)
      - ``smog2`` on the ``PATH`` of the Horus process
-     - no: registration required
+     - no; ``install_deps.sh`` can (see below)
    * - CodonTransformer
      - CodonTransformer
      - configuration ``codontransformer_env``, unless the block's
@@ -77,12 +77,50 @@ whether the tool is found, where, and which blocks need it. From there you can:
 - **save the detected paths** into the plugin configuration, so the blocks find
   them.
 
-Rosetta and SMOG2 are only detected, never installed: Rosetta needs a licence
-and SMOG2 a registration. Install them yourself and point the configuration at
+The page only detects Rosetta and SMOG2. Neither needs credentials, but
+Rosetta is a ~21.5 GB download licensed for non-commercial use only, and SMOG2
+needs a container engine or a Perl toolchain. Install them with
+``install_deps.sh`` (below) or by hand, and point the configuration at
 them.
 
 After saving from the page, reopen the configurations in Horus to see the new
 values.
+
+From a terminal
+---------------
+
+``install_deps.sh``, at the root of the repository, does the same from a
+terminal, which is handy on a machine where Horus is not running yet. It checks
+each tool, explains which blocks need it and asks before installing it:
+MMseqs2 from the official static build, the rest into their own conda
+environments (``mafft``, ``proteinmpnn``, ``pyrosetta``, ``bioemu``,
+``codontransformer``). It needs micromamba, mamba or conda for the
+environments.
+
+It also installs the two tools the page leaves alone:
+
+- **Rosetta**: the binary bundle from RosettaCommons, after you confirm that
+  your use is academic or non-commercial. It is about 21.5 GB to download and
+  52 GB extracted, and an interrupted download resumes when you rerun the
+  script. With ``--rosetta-archive FILE`` it keeps the bundle at ``FILE``, or
+  installs from a bundle you already have there, which also works on a machine
+  without internet access. Set the Rosetta Relax block's **Rosetta executable** to the binary
+  it reports, or let the script link it onto ``PATH``.
+- **SMOG2**: a ``smog2`` wrapper around the official container when podman or
+  docker is installed, otherwise a native install into a ``smog2`` environment,
+  which builds PDL from source and takes several minutes. Analyse BioEmu looks
+  ``smog2`` up on ``PATH``, so the script offers to link it into
+  ``~/.local/bin``.
+
+.. code-block:: bash
+
+   ./install_deps.sh --check     # report only
+   ./install_deps.sh             # ask before each install
+   ./install_deps.sh --config <appSupport>/config/protselect/protselect_Local.json
+   ./install_deps.sh --yes --rosetta-noncommercial   # unattended, Rosetta included
+
+At the end it prints the configuration values to enter in Horus. With
+``--config`` it merges them into the saved configuration instead.
 
 Setting the configurations by hand
 ----------------------------------
