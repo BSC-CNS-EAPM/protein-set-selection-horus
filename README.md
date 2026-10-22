@@ -45,21 +45,35 @@ Select Cluster Representatives then keeps the union and labels each model
 
 ## Installation
 
-Download `protselect-<version>.hp` from the
-[releases page](https://github.com/BSC-CNS-EAPM/protein-set-selection-horus/releases),
-then in Horus: **Plugins → Install plugin** and select the file.
+The [installation guide](https://bsc-cns-eapm.github.io/protein-set-selection-horus/installation.html)
+walks through every step. In short:
 
-Horus installs the Python dependencies listed in `plugin.meta` into a private
-`ProtSelect/deps/` folder. Dependency installation does not run when Horus
-starts in desktop mode — use the Plugin Manager button, or start Horus with
-`--server`.
+1. **Install Horus.** Download the `.deb`/`.rpm` (Linux) or `.dmg` (macOS) from
+   the [Horus releases](https://gitlab.bsc.es/eapm/horus/-/releases). There is no
+   Windows build; use the web app at [horus.bsc.es](https://horus.bsc.es).
+2. **Install the plugin.** Download `protselect-<version>.hp` from the
+   [releases page](https://github.com/BSC-CNS-EAPM/protein-set-selection-horus/releases),
+   then in Horus: **Plugins → Install plugin** and select the file. Horus
+   installs the plugin's Python dependencies with it.
+3. **Install the external tools.** MMseqs2, MAFFT, PyTorch, PyRosetta, BioEmu,
+   CodonTransformer, Rosetta and SMOG2 are installed separately. Either open the **Environment Setup** page the plugin adds (it reports which
+   tools are present and installs the ones it can), or run the installer from a
+   terminal:
 
-The external tools (MMseqs2, MAFFT, PyRosetta, BioEmu, CodonTransformer,
-Rosetta, SMOG2) are not pip-installable into that folder. After installing the
-plugin, open the **Environment Setup** page it adds: it reports which tools are
-present, installs the ones it can, and saves the resolved paths into the plugin
-configuration. `./install_deps.sh` does the same from a terminal, asking before
-each install (`--check` only reports).
+   ```bash
+   ./install_deps.sh --check    # report only
+   ./install_deps.sh            # ask before each install
+   ```
+
+   It needs micromamba, mamba or conda, and also installs Rosetta (after you
+   confirm non-commercial use) and SMOG2. See
+   [the dependency installer](https://bsc-cns-eapm.github.io/protein-set-selection-horus/install_deps.html)
+   for every option.
+4. **Point the plugin at the tools.** Press **Save detected paths** on the
+   Environment Setup page, or run the installer with
+   `--config <AppSupport>/config/protselect/protselect_Local.json`.
+5. **Set up your cluster** as a Horus remote, if you use one, and run the
+   **ProteSel Pipeline** preset on the lysozyme example to check everything.
 
 ## Development
 

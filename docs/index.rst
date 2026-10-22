@@ -32,7 +32,8 @@ open from the plugin's presets in Horus.
       :link: installation
       :link-type: doc
 
-      Install the plugin, set up the external tools and your cluster remotes.
+      Install Horus and the plugin step by step, then the external tools and
+      your cluster remotes.
 
    .. grid-item-card:: The workflow
       :link: workflow
@@ -58,6 +59,7 @@ open from the plugin's presets in Horus.
    :hidden:
 
    installation
+   install_deps
    configuration
    remotes
    example_data
