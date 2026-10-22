@@ -47,7 +47,7 @@ Parameters
    * - **GPUs** (``gpus``)
      - integer
      - ``1``
-     - Number of GPUs to request per job (--gres gpu:N). Only honoured on GPU partitions (the 'acc\_\*' queues on MareNostrum); set the CPUs per task variable to choose how many CPUs go with them.
+     - Number of GPUs to request per job (--gres=gpu:N), so the partition must be a GPU one. Set the CPUs per task variable to choose how many CPUs go with them. If your cluster wants another form (--gpus=N, a typed gres), set this to 0 and write it in the extra SBATCH lines.
    * - **Output folder name** (``folder_name``)
      - string
      - ``proteinmpnn``
@@ -106,12 +106,12 @@ Parameters
      - When running locally, how many jobs to run at once on each GPU.
    * - **Cluster environment** (``cluster_env``)
      - string
-     - ``/gpfs/projects/bsc72/conda_envs/ligandmpnn``
-     - Path to the conda environment providing torch on the cluster. bsc_calculations has no ProteinMPNN preset, so the environment is given explicitly; the LigandMPNN environment serves, being a torch environment.
+     - —
+     - "Path to the conda environment providing torch on the cluster. " "A LigandMPNN environment serves, being a torch environment. Leave it empty " "if the modules already provide one (on MareNostrum 5, empty uses " f"{MN5_CLUSTER_ENV})."
    * - **Cluster modules** (``cluster_modules``)
      - string
-     - ``bsc/1.0, anaconda``
-     - Comma-separated modules to load on the cluster before the job.
+     - —
+     - "Comma-separated modules to load on the cluster before the job, " "for example the one providing conda (on MareNostrum 5, empty loads " f"'{MN5_CLUSTER_MODULES}')."
    * - **Remove existing results** (``remove_existing_results``)
      - boolean
      - ``False``

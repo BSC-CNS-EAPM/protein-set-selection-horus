@@ -6,9 +6,10 @@ running Horus) or an SSH connection to another machine, typically a SLURM
 cluster login node. You choose the remote per block, in the drop-down at the
 bottom of the block.
 
-Any SLURM cluster works. **MareNostrum 5** is supported out of the box; on
-other clusters the job is built from the block's own settings. Several block defaults (module names, environment paths) point at
-MareNostrum 5, so check them for your site: see `Software on the cluster`_.
+Any SLURM cluster works. The job is built from the block's own settings, which
+default to nothing site-specific: you name your cluster's queue, modules and
+environments (see `Software on the cluster`_). On **MareNostrum 5**, where the
+plugin is tested, settings left empty take that site's values instead.
 
 Which blocks can run where
 --------------------------
@@ -129,9 +130,10 @@ matter most:
    * - Partition / QOS
      - The queue to submit to, as your cluster names it: a GPU queue for the GPU
        blocks, a general-purpose one for the others. Written as
-       ``--partition``, or as ``--qos`` if you enter it as ``qos:<name>``. On
-       MareNostrum 5 it is the QOS (``gp_bscls``, ``acc_bscls``, the ``*_debug``
-       queues for short test runs).
+       ``--partition``, or as ``--qos`` if you enter it as ``qos:<name>``. Left
+       empty, the cluster's default queue is used. On MareNostrum 5 it is the
+       QOS (``gp_bscls``, ``acc_bscls``, the ``*_debug`` queues for short test
+       runs), and empty means ``gp_bscls``.
    * - Account
      - The project to charge the job to, when your cluster requires one. Left
        empty, the cluster's default for your account is used; on MareNostrum 5
@@ -139,9 +141,12 @@ matter most:
    * - Extra SBATCH lines
      - Any other directives your cluster needs, one per line without the
        ``#SBATCH`` prefix, for example ``--mem-per-cpu=4G`` or ``--nodes=1``.
-       Used on clusters other than MareNostrum 5.
+       If your cluster requests GPUs another way than ``--gres=gpu:N`` (say
+       ``--gpus=1`` or a typed GPU), set **GPUs** to 0 and write it here. Not
+       used on MareNostrum 5.
    * - Walltime (``time``, hours)
-     - Leave it at 0 for the 48 h default, or set it close to the real run time:
+     - Leave it at 0 for the partition's default limit (48 h on MareNostrum 5),
+       or set it close to the real run time:
        shorter jobs usually wait less in the queue. The plugin cannot extend a
        job that runs out of time, but you can rerun the block and it resumes (see
        :ref:`workflow:Rerunning and resuming`).
@@ -161,13 +166,17 @@ Software on the cluster
 
 The plugin's local tool configuration (:doc:`configuration`) does not apply to
 cluster jobs: there the job loads its own software. Each cluster-capable block
-has parameters for that, and their defaults are set for MareNostrum 5, so check
-them against your site:
+has parameters for that. They default to empty, which on most clusters means
+"use what is already on the node's PATH", so set them for your site:
 
 - **Cluster modules**: modules loaded before the job runs;
 - **Cluster environment**: the conda environment the job activates
   (``source activate``), as a path or a name;
 - **Preamble** (MMseqs2): free-text lines for anything a module does not cover.
+
+On MareNostrum 5 an empty setting takes the value the plugin is tested with
+there (the BSC modules and the ``bsc72`` project environments), so the blocks
+run without filling anything in. A value you enter always wins.
 
 Rosetta Relax has the same two settings. Left empty, the job loads the Rosetta
 modules ``bsc_calculations`` knows on MareNostrum 5; on any other cluster, name

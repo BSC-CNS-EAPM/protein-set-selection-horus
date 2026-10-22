@@ -47,7 +47,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'installation';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Tools and configuration" href="configuration.html" />
+    <link rel="next" title="The dependency installer" href="install_deps.html" />
     <link rel="prev" title="Protein Set Selection" href="index.html" />
   
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -149,6 +149,13 @@
 
 
 <li class="nav-item ">
+  <a class="nav-link nav-internal" href="install_deps.html">
+    The dependency installer
+  </a>
+</li>
+
+
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="configuration.html">
     Tools and configuration
   </a>
@@ -168,19 +175,19 @@
   </a>
 </li>
 
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="workflow.html">
-    The workflow
-  </a>
-</li>
-
             <li class="nav-item dropdown">
                 <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
                     More
                 </button>
                 <ul id="pst-nav-more-links" class="dropdown-menu">
                     
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="workflow.html">
+    The workflow
+  </a>
+</li>
+
+
 <li class=" ">
   <a class="nav-link dropdown-item nav-internal" href="troubleshooting.html">
     Troubleshooting
@@ -312,6 +319,13 @@ document.write(`
 <li class="nav-item current active">
   <a class="nav-link nav-internal" href="#">
     Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="install_deps.html">
+    The dependency installer
   </a>
 </li>
 
@@ -462,19 +476,32 @@ document.write(`
                   
   <section id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Link to this heading">#</a></h1>
+<p>This page takes you from nothing to a working plugin in six steps:</p>
+<ol class="arabic simple">
+<li><p><a class="reference internal" href="#step-1-install-horus"><span class="std std-ref">install Horus</span></a>;</p></li>
+<li><p><a class="reference internal" href="#step-2-install-the-plugin"><span class="std std-ref">install the plugin</span></a>;</p></li>
+<li><p><a class="reference internal" href="#step-3-install-the-external-tools"><span class="std std-ref">install the external tools</span></a>;</p></li>
+<li><p><a class="reference internal" href="#step-4-point-the-plugin-at-the-tools"><span class="std std-ref">point the plugin at the tools</span></a>;</p></li>
+<li><p><a class="reference internal" href="#step-5-set-up-your-cluster-optional"><span class="std std-ref">set up your cluster</span></a>, if you use one;</p></li>
+<li><p><a class="reference internal" href="#step-6-check-the-installation"><span class="std std-ref">check it with the example data</span></a>.</p></li>
+</ol>
 <section id="requirements">
 <h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading">#</a></h2>
 <ul class="simple">
-<li><p><strong>Horus.</strong> Install the plugin into a Horus installation (desktop app, server
-or web app).</p></li>
+<li><p><strong>A Linux or macOS machine</strong> for the Horus desktop app. There is no Windows
+build; on Windows, use the Horus web app (see Step 1).</p></li>
 <li><p><strong>External tools</strong> for the heavier stages: MMseqs2, MAFFT, PyTorch (for
 ProteinMPNN), Rosetta and PyRosetta, BioEmu, CodonTransformer and, optionally,
 SMOG2. Which ones you need depends on the blocks you use and where they run;
-see <a class="reference internal" href="configuration.html"><span class="doc">Tools and configuration</span></a>.</p></li>
+see <a class="reference internal" href="configuration.html"><span class="doc">Tools and configuration</span></a>. Step 3 installs them.</p></li>
+<li><p><strong>micromamba, mamba or conda</strong>, to create the environments the tools live in.</p></li>
+<li><p><strong>Disk space</strong>: several GB for the tool environments (PyTorch, BioEmu and
+PyRosetta are the large ones), plus about 75 GB while Rosetta installs if you
+install it locally.</p></li>
 <li><p><strong>A SLURM cluster</strong> is recommended for anything beyond a small test:
 ProteinMPNN and BioEmu want a GPU, and a Rosetta relax of many models is a
-cluster job. Any SLURM cluster works; MareNostrum 5 is the one the plugin's
-defaults are set for. See <a class="reference internal" href="remotes.html"><span class="doc">Remotes and clusters</span></a>.</p></li>
+cluster job. Any SLURM cluster works: you name its queue, modules and
+environments in the block settings. See <a class="reference internal" href="remotes.html"><span class="doc">Remotes and clusters</span></a>.</p></li>
 </ul>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
@@ -488,15 +515,77 @@ login, so it is up to you to check that your use is covered. See
 <a class="reference external" href="https://rosettacommons.org/software/license-and-download/">Rosetta licensing</a>.</p>
 </div>
 </section>
-<section id="installing-the-plugin">
-<h2>Installing the plugin<a class="headerlink" href="#installing-the-plugin" title="Link to this heading">#</a></h2>
+<section id="step-1-install-horus">
+<h2>Step 1: install Horus<a class="headerlink" href="#step-1-install-horus" title="Link to this heading">#</a></h2>
+<p>Download the latest Horus release for your system from the
+<a class="reference external" href="https://gitlab.bsc.es/eapm/horus/-/releases">Horus releases page</a>.</p>
+<p><strong>Linux</strong></p>
+<ol class="arabic">
+<li><p>Download the <code class="docutils literal notranslate"><span class="pre">.deb</span></code> (Debian, Ubuntu) or <code class="docutils literal notranslate"><span class="pre">.rpm</span></code> (Fedora, Rocky, RHEL)
+package.</p></li>
+<li><p>Install it with your package manager:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>./horus_&lt;version&gt;.deb<span class="w">      </span><span class="c1"># Debian, Ubuntu</span>
+sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>./horus-&lt;version&gt;.rpm<span class="w">      </span><span class="c1"># Fedora, Rocky, RHEL</span>
+</pre></div>
+</div>
+</li>
+<li><p>Start Horus from the application menu, or from a terminal with <code class="docutils literal notranslate"><span class="pre">horus</span></code>.</p></li>
+</ol>
+<p><strong>macOS</strong></p>
 <ol class="arabic simple">
-<li><p>Download <code class="docutils literal notranslate"><span class="pre">protselect-&lt;version&gt;.hp</span></code> from the repository's releases.</p></li>
+<li><p>Download the <code class="docutils literal notranslate"><span class="pre">.dmg</span></code>.</p></li>
+<li><p>Open it and drag <strong>Horus</strong> into your Applications folder.</p></li>
+<li><p>Start Horus from Applications.</p></li>
+</ol>
+<p><strong>Windows</strong></p>
+<p>There is no Windows build. Use the web app at <a class="reference external" href="https://horus.bsc.es">horus.bsc.es</a>, or run Horus on a Linux machine or server and open it
+from your browser.</p>
+<p><strong>From source</strong></p>
+<p>To run Horus from its repository instead (for developing Horus or plugins),
+follow the README in the Horus repository: it installs micromamba and Bun (or
+Node.js 18), creates a <code class="docutils literal notranslate"><span class="pre">horus</span></code> environment with <code class="docutils literal notranslate"><span class="pre">bun</span> <span class="pre">run</span> <span class="pre">requirements</span></code>, and
+starts the app with <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">Horus.py</span> <span class="pre">--debug</span> <span class="pre">--server</span></code>.</p>
+<p class="rubric">Where Horus keeps its data</p>
+<p>Horus stores its plugins, configurations and settings in its <em>AppSupport</em>
+folder. You need it in Step 4 if you save the tool paths from a terminal.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 28.6%" />
+<col style="width: 71.4%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Horus installed as</p></th>
+<th class="head"><p>AppSupport folder</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Linux package</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">~/.local/share/com.bsc.horus</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>macOS app</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">~/Library/Application</span> <span class="pre">Support/com.bsc.horus</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>From source</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">AppSupport/</span></code> in the Horus checkout</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">HORUS_APP_SUPPORT_DIR</span></code> environment variable overrides it. Horus prints
+the folder it uses in its log at start-up (<em>AppSupport Dir: …</em>).</p>
+</section>
+<section id="step-2-install-the-plugin">
+<h2>Step 2: install the plugin<a class="headerlink" href="#step-2-install-the-plugin" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>Download <code class="docutils literal notranslate"><span class="pre">protselect-&lt;version&gt;.hp</span></code> from the
+<a class="reference external" href="https://github.com/BSC-CNS-EAPM/protein-set-selection-horus/releases">plugin's releases</a>.</p></li>
 <li><p>In Horus, open the <strong>Plugin Manager</strong> and use <strong>Install plugin</strong> to select
 the <code class="docutils literal notranslate"><span class="pre">.hp</span></code> file.</p></li>
 <li><p>Horus installs the plugin and its Python dependencies (listed in
 <code class="docutils literal notranslate"><span class="pre">plugin.meta</span></code>) into the plugin's own <code class="docutils literal notranslate"><span class="pre">deps/</span></code> folder. Follow the progress
-in the <strong>Installation logs</strong>.</p></li>
+in the <strong>Installation logs</strong>, and wait for it to finish.</p></li>
+<li><p>The <strong>Protein Set Selection</strong> blocks appear in the block palette, and the
+plugin adds an <strong>Environment Setup</strong> page.</p></li>
 </ol>
 <p>Install the plugin from the Plugin Manager rather than by copying it into the
 plugins folder. The desktop app refuses to install dependencies while it
@@ -517,10 +606,87 @@ Rosetta, BioEmu and structure handling;</p></li>
 a trimmed <code class="docutils literal notranslate"><span class="pre">bioprospecting</span></code> with the ProteinMPNN, MAFFT and CodonTransformer
 code the blocks use, including the ProteinMPNN weights.</p></li>
 </ul>
-<p>PyTorch is not installed with the plugin, because the right build depends on
-your CUDA version. ProteinMPNN runs with a Python environment that has it (see
-<a class="reference internal" href="configuration.html"><span class="doc">Tools and configuration</span></a>).</p>
+<p>PyTorch is not installed with the plugin; Step 3 installs it.</p>
 </section>
+</section>
+<section id="step-3-install-the-external-tools">
+<h2>Step 3: install the external tools<a class="headerlink" href="#step-3-install-the-external-tools" title="Link to this heading">#</a></h2>
+<p>Each external tool is installed in its own environment. There are two ways to
+install them; both install the tools in the same places, so you can mix them.</p>
+<p><strong>From Horus: the Environment Setup page.</strong> Open the page the plugin adds. For
+every tool it shows whether it is found, where, and which blocks need it, with
+an <strong>Install</strong> button for MMseqs2, MAFFT, PyTorch, PyRosetta, BioEmu and
+CodonTransformer. It only detects Rosetta and SMOG2.</p>
+<p><strong>From a terminal: install_deps.sh.</strong> The installer at the root of the
+repository checks every tool, says which blocks need it and asks before
+installing it. It also installs Rosetta and SMOG2, and works before Horus is
+installed.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/BSC-CNS-EAPM/protein-set-selection-horus.git
+<span class="nb">cd</span><span class="w"> </span>protein-set-selection-horus
+./install_deps.sh<span class="w"> </span>--check<span class="w">     </span><span class="c1"># see what is already there</span>
+./install_deps.sh<span class="w">             </span><span class="c1"># install what is missing, asking first</span>
+</pre></div>
+</div>
+<p>If you have no micromamba, mamba or conda, install micromamba first and open a
+new shell:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="s2">"</span><span class="si">${</span><span class="nv">SHELL</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span>&lt;<span class="o">(</span>curl<span class="w"> </span>-L<span class="w"> </span>micro.mamba.pm/install.sh<span class="o">)</span>
+</pre></div>
+</div>
+<p>All of the installer's options, what it installs where, and how to install
+Rosetta offline are in <a class="reference internal" href="install_deps.html"><span class="doc">The dependency installer</span></a>.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Install only what you will run <strong>locally</strong>. A block that runs on a cluster
+remote uses the cluster's modules and environments, not these. If
+ProteinMPNN, BioEmu and Rosetta all run on the cluster, locally you only need
+PyRosetta, CodonTransformer, MAFFT and, for local clustering, MMseqs2.</p>
+</div>
+</section>
+<section id="step-4-point-the-plugin-at-the-tools">
+<h2>Step 4: point the plugin at the tools<a class="headerlink" href="#step-4-point-the-plugin-at-the-tools" title="Link to this heading">#</a></h2>
+<p>The blocks find the local tools through the plugin's <strong>configurations</strong>, which
+Horus stores per remote. Fill them in one of three ways:</p>
+<ul>
+<li><p>on the <strong>Environment Setup</strong> page, press <strong>Save detected paths</strong>, then reopen
+the configurations in Horus to see the new values;</p></li>
+<li><p>run the installer with <code class="docutils literal notranslate"><span class="pre">--config</span></code>, pointing at the Local remote's
+configuration file in the AppSupport folder from Step 1:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./install_deps.sh<span class="w"> </span>--config<span class="w"> </span>~/.local/share/com.bsc.horus/config/protselect/protselect_Local.json
+</pre></div>
+</div>
+<p>Run it while Horus is closed, or restart Horus afterwards, so Horus reads
+the new values;</p>
+</li>
+<li><p>enter the values the installer prints at the end by hand, in the plugin's
+configurations with the <strong>Local</strong> remote selected.</p></li>
+</ul>
+<p>Rosetta, BioEmu and SMOG2 are not read from the configurations yet. Set them on
+the blocks instead: the Rosetta Relax block's <strong>Rosetta executable</strong> (and
+<strong>Rosetta path</strong> for symmetry), the BioEmu Sampling block's <strong>BioEmu
+environment</strong>, and <code class="docutils literal notranslate"><span class="pre">smog2</span></code> on the <code class="docutils literal notranslate"><span class="pre">PATH</span></code> Horus runs with. The installer
+prints these values too. See <a class="reference internal" href="configuration.html"><span class="doc">Tools and configuration</span></a>.</p>
+</section>
+<section id="step-5-set-up-your-cluster-optional">
+<h2>Step 5: set up your cluster (optional)<a class="headerlink" href="#step-5-set-up-your-cluster-optional" title="Link to this heading">#</a></h2>
+<p>To run the heavy blocks on a SLURM cluster, add the cluster as a remote in
+Horus's <strong>Remotes</strong> manager (a CPU remote and, on clusters with separate GPU
+login nodes, a GPU one), then check each block's cluster software settings
+against your site. <a class="reference internal" href="remotes.html"><span class="doc">Remotes and clusters</span></a> explains which block goes where and how to
+size the jobs.</p>
+</section>
+<section id="step-6-check-the-installation">
+<h2>Step 6: check the installation<a class="headerlink" href="#step-6-check-the-installation" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>Run <code class="docutils literal notranslate"><span class="pre">./install_deps.sh</span> <span class="pre">--check</span></code>. It ends with a summary; every tool you
+need should read <code class="docutils literal notranslate"><span class="pre">ok</span></code> or <code class="docutils literal notranslate"><span class="pre">installed</span></code>. It exits with status 1 while a
+required tool is missing.</p></li>
+<li><p>In Horus, open the <strong>Environment Setup</strong> page and check the same.</p></li>
+<li><p>Open the <strong>ProteSel Pipeline</strong> preset from the plugin's presets. Its input
+blocks come filled in with the small lysozyme example. Lower the expensive
+settings (Rosetta <code class="docutils literal notranslate"><span class="pre">nstruct</span></code> 2 with <strong>CPUs</strong> 3, BioEmu <code class="docutils literal notranslate"><span class="pre">num_samples</span></code> 10)
+and run it. See <a class="reference internal" href="workflow.html"><span class="doc">The workflow</span></a> and <a class="reference internal" href="example_data.html"><span class="doc">Example data</span></a>.</p></li>
+</ol>
+<p>If a block cannot find a tool, see <a class="reference internal" href="troubleshooting.html"><span class="doc">Troubleshooting</span></a>.</p>
 </section>
 <section id="developing-the-plugin">
 <h2>Developing the plugin<a class="headerlink" href="#developing-the-plugin" title="Link to this heading">#</a></h2>
@@ -539,14 +705,6 @@ micromamba<span class="w"> </span>activate<span class="w"> </span>protselect_doc
 <span class="nb">cd</span><span class="w"> </span>docs<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span>html
 </pre></div>
 </div>
-</section>
-<section id="next-steps">
-<h2>Next steps<a class="headerlink" href="#next-steps" title="Link to this heading">#</a></h2>
-<ul class="simple">
-<li><p><a class="reference internal" href="configuration.html"><span class="doc">Tools and configuration</span></a>: point the plugin at the external tools.</p></li>
-<li><p><a class="reference internal" href="remotes.html"><span class="doc">Remotes and clusters</span></a>: set up your cluster.</p></li>
-<li><p><a class="reference internal" href="workflow.html"><span class="doc">The workflow</span></a>: open and run the preset.</p></li>
-</ul>
 </section>
 </section>
 
@@ -570,11 +728,11 @@ micromamba<span class="w"> </span>activate<span class="w"> </span>protselect_doc
       </div>
     </a>
     <a class="right-next"
-       href="configuration.html"
+       href="install_deps.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Tools and configuration</p>
+        <p class="prev-next-title">The dependency installer</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -597,12 +755,16 @@ micromamba<span class="w"> </span>activate<span class="w"> </span>protselect_doc
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#requirements">Requirements</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installing-the-plugin">Installing the plugin</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-1-install-horus">Step 1: install Horus</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-2-install-the-plugin">Step 2: install the plugin</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#python-dependencies">Python dependencies</a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-3-install-the-external-tools">Step 3: install the external tools</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-4-point-the-plugin-at-the-tools">Step 4: point the plugin at the tools</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-5-set-up-your-cluster-optional">Step 5: set up your cluster (optional)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#step-6-check-the-installation">Step 6: check the installation</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#developing-the-plugin">Developing the plugin</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#next-steps">Next steps</a></li>
 </ul>
   </nav></div>
 

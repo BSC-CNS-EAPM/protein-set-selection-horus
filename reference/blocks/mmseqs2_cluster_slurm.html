@@ -149,6 +149,13 @@
 
 
 <li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../install_deps.html">
+    The dependency installer
+  </a>
+</li>
+
+
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../configuration.html">
     Tools and configuration
   </a>
@@ -168,19 +175,19 @@
   </a>
 </li>
 
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../workflow.html">
-    The workflow
-  </a>
-</li>
-
             <li class="nav-item dropdown">
                 <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
                     More
                 </button>
                 <ul id="pst-nav-more-links" class="dropdown-menu">
                     
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../workflow.html">
+    The workflow
+  </a>
+</li>
+
+
 <li class=" ">
   <a class="nav-link dropdown-item nav-internal" href="../../troubleshooting.html">
     Troubleshooting
@@ -312,6 +319,13 @@ document.write(`
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../installation.html">
     Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../install_deps.html">
+    The dependency installer
   </a>
 </li>
 
@@ -577,8 +591,8 @@ document.write(`
 </tr>
 <tr class="row-even"><td><p><strong>Cluster modules</strong> (<code class="docutils literal notranslate"><span class="pre">cluster_modules</span></code>)</p></td>
 <td><p>string</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">bsc/1.0,</span> <span class="pre">mmseqs2/15-6f452</span></code></p></td>
-<td><p>Comma-separated modules loaded before the job. MMseqs2 is not on PATH by default on MareNostrum; 'bsc/1.0, mmseqs2/15-6f452' provides it.</p></td>
+<td><p>—</p></td>
+<td><p>&quot;Comma-separated modules that put MMseqs2 on PATH, for example &quot; &quot;'mmseqs2'. Leave empty if it is already there (on MareNostrum 5, empty &quot; f&quot;loads '{MN5_CLUSTER_MODULES}').&quot;</p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>Preamble</strong> (<code class="docutils literal notranslate"><span class="pre">preamble</span></code>)</p></td>
 <td><p>text area</p></td>
@@ -588,7 +602,7 @@ document.write(`
 <tr class="row-even"><td><p><strong>MPI runner</strong> (<code class="docutils literal notranslate"><span class="pre">mpi_runner</span></code>)</p></td>
 <td><p>string</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">srun</span></code></p></td>
-<td><p>Exported as RUNNER on the cluster, which MMseqs2 prefixes to its MPI-parallel steps. The MareNostrum module is an MPI build: without this, kmermatcher calls MPI_Init outside a launcher and aborts with 'PMI2_Job_GetId returned 14'. Clear it for a non-MPI build, where srun would instead start one full copy of each step per task. Not used when running locally.</p></td>
+<td><p>Exported as RUNNER on the cluster, which MMseqs2 prefixes to its MPI-parallel steps. MPI builds such as the MareNostrum module need it: without it, kmermatcher calls MPI_Init outside a launcher and aborts with 'PMI2_Job_GetId returned 14'. Clear it for a non-MPI build, where srun would instead start one full copy of each step per task. Not used when running locally.</p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>MMseqs2 command</strong> (<code class="docutils literal notranslate"><span class="pre">mmseqs_command</span></code>)</p></td>
 <td><p>string</p></td>

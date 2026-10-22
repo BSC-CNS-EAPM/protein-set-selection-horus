@@ -1,0 +1,842 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>The dependency installer &#8212; Protein Set Selection</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=fba1a000" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=2709fde1"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'install_deps';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tools and configuration" href="configuration.html" />
+    <link rel="prev" title="Installation" href="installation.html" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"/>
+  <meta name="theme-color" content="#14181e" media="(prefers-color-scheme: dark)"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Protein Set Selection</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    The dependency installer
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="configuration.html">
+    Tools and configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="remotes.html">
+    Remotes and clusters
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="example_data.html">
+    Example data
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="workflow.html">
+    The workflow
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="troubleshooting.html">
+    Troubleshooting
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="reference/index.html">
+    Block reference
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/BSC-CNS-EAPM/protein-set-selection-horus" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.bsc.es/" title="Barcelona Supercomputing Center" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa fa-globe fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Barcelona Supercomputing Center</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    The dependency installer
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="configuration.html">
+    Tools and configuration
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="remotes.html">
+    Remotes and clusters
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="example_data.html">
+    Example data
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="workflow.html">
+    The workflow
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="troubleshooting.html">
+    Troubleshooting
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="reference/index.html">
+    Block reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/BSC-CNS-EAPM/protein-set-selection-horus" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://www.bsc.es/" title="Barcelona Supercomputing Center" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa fa-globe fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Barcelona Supercomputing Center</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">The...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="the-dependency-installer">
+<h1>The dependency installer<a class="headerlink" href="#the-dependency-installer" title="Link to this heading">#</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">install_deps.sh</span></code>, at the root of the repository, installs the external tools
+the plugin uses, from a terminal. It covers the same tools as the <strong>Environment
+Setup</strong> page in Horus, plus Rosetta and SMOG2. You can run it before Horus is
+installed.</p>
+<p>The plugin's own Python dependencies are installed by Horus with the plugin
+(see <a class="reference internal" href="installation.html"><span class="doc">Installation</span></a>).</p>
+<section id="what-it-needs">
+<h2>What it needs<a class="headerlink" href="#what-it-needs" title="Link to this heading">#</a></h2>
+<ul>
+<li><p><strong>Linux</strong> (x86_64 or aarch64) or <strong>macOS</strong>, with bash, <code class="docutils literal notranslate"><span class="pre">curl</span></code> and <code class="docutils literal notranslate"><span class="pre">tar</span></code>.</p></li>
+<li><p><strong>micromamba, mamba or conda</strong> on <code class="docutils literal notranslate"><span class="pre">PATH</span></code>. To install micromamba:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="s2">"</span><span class="si">${</span><span class="nv">SHELL</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span>&lt;<span class="o">(</span>curl<span class="w"> </span>-L<span class="w"> </span>micro.mamba.pm/install.sh<span class="o">)</span>
+</pre></div>
+</div>
+</li>
+<li><p>An internet connection, except for an offline Rosetta install (see
+<a class="reference internal" href="#installing-rosetta-offline"><span class="std std-ref">Installing Rosetta offline</span></a>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">python3</span></code>, only for <code class="docutils literal notranslate"><span class="pre">--config</span></code>.</p></li>
+<li><p>No root access: everything is installed in your home folder.</p></li>
+</ul>
+</section>
+<section id="quick-start">
+<h2>Quick start<a class="headerlink" href="#quick-start" title="Link to this heading">#</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/BSC-CNS-EAPM/protein-set-selection-horus.git
+<span class="nb">cd</span><span class="w"> </span>protein-set-selection-horus
+
+./install_deps.sh<span class="w"> </span>--check<span class="w">     </span><span class="c1"># report only, installs nothing</span>
+./install_deps.sh<span class="w">             </span><span class="c1"># ask before each install</span>
+</pre></div>
+</div>
+<p>For every tool it shows whether it is found and which blocks need it, and asks
+before installing a missing one. Answering no, or pressing Enter, skips the
+tool. At the end it prints a summary and the configuration values to enter in
+Horus.</p>
+<p>You can run it again at any time; it only installs what is still missing.</p>
+</section>
+<section id="options">
+<h2>Options<a class="headerlink" href="#options" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 33.3%" />
+<col style="width: 66.7%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Effect</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--check</span></code></p></td>
+<td><p>Report what is found and install nothing.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--yes</span></code>, <code class="docutils literal notranslate"><span class="pre">-y</span></code></p></td>
+<td><p>Install everything missing without asking. Rosetta is still skipped
+unless <code class="docutils literal notranslate"><span class="pre">--rosetta-noncommercial</span></code> is also given.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--only</span> <span class="pre">TOOL[,TOOL...]</span></code></p></td>
+<td><p>Handle only these tools: <code class="docutils literal notranslate"><span class="pre">mmseqs</span></code>, <code class="docutils literal notranslate"><span class="pre">mafft</span></code>, <code class="docutils literal notranslate"><span class="pre">torch</span></code>,
+<code class="docutils literal notranslate"><span class="pre">pyrosetta</span></code>, <code class="docutils literal notranslate"><span class="pre">bioemu</span></code>, <code class="docutils literal notranslate"><span class="pre">codontransformer</span></code>, <code class="docutils literal notranslate"><span class="pre">rosetta</span></code>, <code class="docutils literal notranslate"><span class="pre">smog</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--config</span> <span class="pre">FILE</span></code></p></td>
+<td><p>Also save the resulting paths into a Horus configuration file, normally
+<code class="docutils literal notranslate"><span class="pre">&lt;AppSupport&gt;/config/protselect/protselect_Local.json</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--rosetta-noncommercial</span></code></p></td>
+<td><p>Confirm that your use of Rosetta is academic or non-commercial, so it can
+be installed without the question. Needed for unattended installs.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--rosetta-archive</span> <span class="pre">FILE</span></code></p></td>
+<td><p>Download the Rosetta bundle to <code class="docutils literal notranslate"><span class="pre">FILE</span></code> and keep it, or install from the
+bundle already at <code class="docutils literal notranslate"><span class="pre">FILE</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--tools-dir</span> <span class="pre">DIR</span></code></p></td>
+<td><p>Where MMseqs2, Rosetta and SMOG2 are installed. Default
+<code class="docutils literal notranslate"><span class="pre">~/.local/share/protselect</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-h</span></code>, <code class="docutils literal notranslate"><span class="pre">--help</span></code></p></td>
+<td><p>Print the usage and exit.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Environment variables:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">PROTSELECT_TOOLS_DIR</span></code>: default for <code class="docutils literal notranslate"><span class="pre">--tools-dir</span></code>;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ROSETTA_VERSION</span></code>: the Rosetta release to download (default <code class="docutils literal notranslate"><span class="pre">3.15</span></code>).</p></li>
+</ul>
+<p>Examples:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Only the tools for local scoring and alignment</span>
+./install_deps.sh<span class="w"> </span>--only<span class="w"> </span>torch,mafft
+
+<span class="c1"># Install and save the paths straight into Horus (Linux package install)</span>
+./install_deps.sh<span class="w"> </span>--config<span class="w"> </span>~/.local/share/com.bsc.horus/config/protselect/protselect_Local.json
+
+<span class="c1"># Unattended, Rosetta included</span>
+./install_deps.sh<span class="w"> </span>--yes<span class="w"> </span>--rosetta-noncommercial
+</pre></div>
+</div>
+</section>
+<section id="what-it-installs-and-where">
+<h2>What it installs, and where<a class="headerlink" href="#what-it-installs-and-where" title="Link to this heading">#</a></h2>
+<p>Most tools get their own conda environment, named after the tool.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 18.2%" />
+<col style="width: 18.2%" />
+<col style="width: 36.4%" />
+<col style="width: 27.3%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Tool</p></th>
+<th class="head"><p>Needed by</p></th>
+<th class="head"><p>Installed as</p></th>
+<th class="head"><p>Configuration value it reports</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>MMseqs2</p></td>
+<td><p>MMseqs2 Clustering, MMseqs2 Threshold Sweep</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&lt;tools-dir&gt;/mmseqs</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mmseqs_path</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>MAFFT</p></td>
+<td><p>Multiple Sequence Alignment (MAFFT)</p></td>
+<td><p>conda environment <code class="docutils literal notranslate"><span class="pre">mafft</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mafft_path</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>PyTorch</p></td>
+<td><p>ProteinMPNN Scoring, locally</p></td>
+<td><p>conda environment <code class="docutils literal notranslate"><span class="pre">proteinmpnn</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">proteinmpnn_python</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>PyRosetta</p></td>
+<td><p>Analyse Rosetta Relax</p></td>
+<td><p>conda environment <code class="docutils literal notranslate"><span class="pre">pyrosetta</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pyrosetta_python</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>BioEmu</p></td>
+<td><p>BioEmu Sampling, locally</p></td>
+<td><p>conda environment <code class="docutils literal notranslate"><span class="pre">bioemu</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bioemu_env</span></code>, for the block's <strong>BioEmu environment</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>CodonTransformer</p></td>
+<td><p>CodonTransformer</p></td>
+<td><p>conda environment <code class="docutils literal notranslate"><span class="pre">codontransformer</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">codontransformer_env</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Rosetta (optional)</p></td>
+<td><p>Rosetta Relax, locally</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&lt;tools-dir&gt;/rosetta</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rosetta_path</span></code>, for the block's <strong>Rosetta executable</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>SMOG2 (optional)</p></td>
+<td><p>Analyse BioEmu, for the fraction of native contacts only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&lt;tools-dir&gt;/bin/smog2</span></code>, or conda environment <code class="docutils literal notranslate"><span class="pre">smog2</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">smog_path</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="pytorch-and-the-gpu">
+<h3>PyTorch and the GPU<a class="headerlink" href="#pytorch-and-the-gpu" title="Link to this heading">#</a></h3>
+<p>On a machine with an NVIDIA GPU the installer offers the CUDA build of
+PyTorch, otherwise the CPU build, which works but is slow. Before installing it
+shows the PyTorch package index it will use; type another one to change it, for
+example <code class="docutils literal notranslate"><span class="pre">https://download.pytorch.org/whl/cu118</span></code> for an older driver.</p>
+<p>PyTorch is only needed to score with ProteinMPNN <strong>locally</strong>. On a cluster
+remote the block uses the conda environment set in its parameters.</p>
+</section>
+<section id="rosetta">
+<h3>Rosetta<a class="headerlink" href="#rosetta" title="Link to this heading">#</a></h3>
+<p>Rosetta is optional: skip it if Rosetta Relax runs on a cluster that provides
+Rosetta as a module.</p>
+<ul class="simple">
+<li><p><strong>Licence.</strong> Rosetta is licensed for academic and non-commercial use only
+(see <a class="reference internal" href="installation.html"><span class="doc">Installation</span></a>). The installer asks you to confirm that your use is
+covered, or takes <code class="docutils literal notranslate"><span class="pre">--rosetta-noncommercial</span></code> for unattended runs.</p></li>
+<li><p><strong>Size.</strong> About 21.5 GB to download and 52 GB once installed; have about
+75 GB free while installing.</p></li>
+<li><p><strong>Platforms.</strong> Linux x86_64 and macOS (Intel and Apple silicon).</p></li>
+<li><p><strong>Interrupted downloads.</strong> Run the installer again to resume the download.</p></li>
+</ul>
+<p>When it finishes, it prints what to set in the Rosetta Relax block:
+<strong>Rosetta executable</strong> (the binary's name) and, if you use symmetry,
+<strong>Rosetta path</strong>. It then offers to link the binary into <code class="docutils literal notranslate"><span class="pre">~/.local/bin</span></code> so
+Horus finds it on <code class="docutils literal notranslate"><span class="pre">PATH</span></code>.</p>
+<section id="installing-rosetta-offline">
+<h4>Installing Rosetta offline<a class="headerlink" href="#installing-rosetta-offline" title="Link to this heading">#</a></h4>
+<p><code class="docutils literal notranslate"><span class="pre">--rosetta-archive</span></code> keeps the downloaded bundle, so you can install it on
+another machine without downloading it again:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># On a machine with internet: download and keep the bundle</span>
+./install_deps.sh<span class="w"> </span>--only<span class="w"> </span>rosetta<span class="w"> </span>--rosetta-archive<span class="w"> </span>~/rosetta_bundle.tar.bz2
+
+<span class="c1"># Copy the bundle over, then on the offline machine:</span>
+./install_deps.sh<span class="w"> </span>--only<span class="w"> </span>rosetta<span class="w"> </span>--rosetta-archive<span class="w"> </span>~/rosetta_bundle.tar.bz2
+</pre></div>
+</div>
+</section>
+</section>
+<section id="smog2">
+<h3>SMOG2<a class="headerlink" href="#smog2" title="Link to this heading">#</a></h3>
+<p>SMOG2 is optional: Analyse BioEmu only needs it for the fraction of native
+contacts (Q) and the folding free energy derived from it.</p>
+<ul class="simple">
+<li><p>With <strong>podman or docker</strong> installed, SMOG2 runs from its official container.</p></li>
+<li><p>Otherwise it is installed into a <code class="docutils literal notranslate"><span class="pre">smog2</span></code> conda environment, which takes
+several minutes.</p></li>
+</ul>
+<p>Analyse BioEmu needs <code class="docutils literal notranslate"><span class="pre">smog2</span></code> on <code class="docutils literal notranslate"><span class="pre">PATH</span></code>, so the installer offers to link it
+into <code class="docutils literal notranslate"><span class="pre">~/.local/bin</span></code>.</p>
+</section>
+</section>
+<section id="after-installing">
+<h2>After installing<a class="headerlink" href="#after-installing" title="Link to this heading">#</a></h2>
+<p>At the end, the installer prints a summary and the configuration values:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>== Summary ==
+  MMseqs2                  ok
+  MAFFT                    installed
+  PyTorch (ProteinMPNN)    installed
+  ...
+  Rosetta                  optional-missing
+
+== Plugin configuration values ==
+  mmseqs_path            /home/me/.local/share/protselect/mmseqs/bin/mmseqs
+  mafft_path             /home/me/micromamba/envs/mafft/bin/mafft
+  ...
+</pre></div>
+</div>
+<p>Each tool ends as <code class="docutils literal notranslate"><span class="pre">ok</span></code> (already there), <code class="docutils literal notranslate"><span class="pre">installed</span></code>, <code class="docutils literal notranslate"><span class="pre">missing</span></code> (you
+skipped it), <code class="docutils literal notranslate"><span class="pre">failed</span></code>, or <code class="docutils literal notranslate"><span class="pre">optional-missing</span></code> (Rosetta or SMOG2 not
+installed).</p>
+<p>Get the values into Horus in one of three ways:</p>
+<ul class="simple">
+<li><p>run with <code class="docutils literal notranslate"><span class="pre">--config</span> <span class="pre">FILE</span></code> to save them into that configuration file (keep
+Horus closed, or restart it afterwards);</p></li>
+<li><p>press <strong>Save detected paths</strong> on the <strong>Environment Setup</strong> page;</p></li>
+<li><p>enter them by hand in the plugin's configurations, with the <strong>Local</strong> remote
+selected.</p></li>
+</ul>
+<p>Rosetta and BioEmu are set on their blocks, and SMOG2 is found on <code class="docutils literal notranslate"><span class="pre">PATH</span></code>:
+see <a class="reference internal" href="configuration.html"><span class="doc">Tools and configuration</span></a>.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">~/.local/bin</span></code> is not on your <code class="docutils literal notranslate"><span class="pre">PATH</span></code>, the installer says so. Add it in
+your shell profile, and make sure Horus is started from a shell that has it.</p>
+</section>
+<section id="exit-status">
+<h2>Exit status<a class="headerlink" href="#exit-status" title="Link to this heading">#</a></h2>
+<p>The installer exits with <strong>1</strong> when a required tool is still missing at the
+end, and <strong>0</strong> otherwise; Rosetta and SMOG2 are optional. So
+<code class="docutils literal notranslate"><span class="pre">./install_deps.sh</span> <span class="pre">--check</span></code> also works as a quick test of a machine's setup.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="installation.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Installation</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="configuration.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Tools and configuration</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-it-needs">What it needs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start">Quick start</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#options">Options</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-it-installs-and-where">What it installs, and where</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pytorch-and-the-gpu">PyTorch and the GPU</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rosetta">Rosetta</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#installing-rosetta-offline">Installing Rosetta offline</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#smog2">SMOG2</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#after-installing">After installing</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exit-status">Exit status</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, BSC | Barcelona Supercomputing Center.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

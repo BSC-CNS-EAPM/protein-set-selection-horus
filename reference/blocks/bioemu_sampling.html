@@ -149,6 +149,13 @@
 
 
 <li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../install_deps.html">
+    The dependency installer
+  </a>
+</li>
+
+
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../configuration.html">
     Tools and configuration
   </a>
@@ -168,19 +175,19 @@
   </a>
 </li>
 
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../workflow.html">
-    The workflow
-  </a>
-</li>
-
             <li class="nav-item dropdown">
                 <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
                     More
                 </button>
                 <ul id="pst-nav-more-links" class="dropdown-menu">
                     
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../workflow.html">
+    The workflow
+  </a>
+</li>
+
+
 <li class=" ">
   <a class="nav-link dropdown-item nav-internal" href="../../troubleshooting.html">
     Troubleshooting
@@ -312,6 +319,13 @@ document.write(`
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../installation.html">
     Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../install_deps.html">
+    The dependency installer
   </a>
 </li>
 
@@ -558,7 +572,7 @@ document.write(`
 <tr class="row-even"><td><p><strong>GPUs</strong> (<code class="docutils literal notranslate"><span class="pre">gpus</span></code>)</p></td>
 <td><p>integer</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
-<td><p>Number of GPUs to request per job (--gres gpu:N). Only honoured on GPU partitions (the 'acc_*' queues on MareNostrum); set the CPUs per task variable to choose how many CPUs go with them.</p></td>
+<td><p>Number of GPUs to request per job (--gres=gpu:N), so the partition must be a GPU one. Set the CPUs per task variable to choose how many CPUs go with them. If your cluster wants another form (--gpus=N, a typed gres), set this to 0 and write it in the extra SBATCH lines.</p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>Output folder name</strong> (<code class="docutils literal notranslate"><span class="pre">folder_name</span></code>)</p></td>
 <td><p>string</p></td>
@@ -582,18 +596,18 @@ document.write(`
 </tr>
 <tr class="row-odd"><td><p><strong>Cluster BioEmu environment</strong> (<code class="docutils literal notranslate"><span class="pre">cluster_env</span></code>)</p></td>
 <td><p>string</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">/gpfs/projects/bsc72/conda_envs/bioemu</span></code></p></td>
-<td><p>Conda environment activated by the job on the cluster, as a path or a name. Leave it empty to use the one bsc_calculations hardcodes for BioEmu (/gpfs/projects/bsc72/conda_envs/bioemu).</p></td>
+<td><p>—</p></td>
+<td><p>&quot;Path to the conda environment holding BioEmu on the cluster; the &quot; &quot;jobs call its Python directly. Leave it empty to activate the 'BioEmu &quot; &quot;environment' by name through 'conda.sh path' instead (on MareNostrum 5, &quot; f&quot;empty uses {MN5_CLUSTER_ENV}).&quot;</p></td>
 </tr>
 <tr class="row-even"><td><p><strong>Cluster modules</strong> (<code class="docutils literal notranslate"><span class="pre">cluster_modules</span></code>)</p></td>
 <td><p>string</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">bsc/1.0,</span> <span class="pre">anaconda,</span> <span class="pre">intel/2025.1</span></code></p></td>
-<td><p>Comma-separated modules loaded by the job before activating the environment.</p></td>
+<td><p>—</p></td>
+<td><p>Comma-separated modules loaded by the job before activating the environment, for example the one providing conda.</p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>ColabFold bin folder</strong> (<code class="docutils literal notranslate"><span class="pre">colabfold_bin</span></code>)</p></td>
 <td><p>string</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">/gpfs/projects/bsc72/conda_envs/bioemu/colabfold/localcolabfold/colabfold-conda/bin</span></code></p></td>
-<td><p>Folder holding 'colabfold_search', prepended to the job's PATH. Adapt it to the ColabFold installation that goes with your environment.</p></td>
+<td><p>—</p></td>
+<td><p>Folder holding 'colabfold_search', prepended to the job's PATH. Point it at the ColabFold installation that goes with your environment, or leave it empty if colabfold_search is already on PATH.</p></td>
 </tr>
 <tr class="row-even"><td><p><strong>COLABFOLD_DIR</strong> (<code class="docutils literal notranslate"><span class="pre">colabfold_dir</span></code>)</p></td>
 <td><p>string</p></td>
@@ -602,7 +616,7 @@ document.write(`
 </tr>
 <tr class="row-odd"><td><p><strong>HuggingFace cache</strong> (<code class="docutils literal notranslate"><span class="pre">hf_cache</span></code>)</p></td>
 <td><p>string</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">/gpfs/projects/bsc72/bioemu_hf_cache</span></code></p></td>
+<td><p>—</p></td>
 <td><p>Pre-populated HuggingFace cache holding the BioEmu checkpoints. Exported as HF_HOME (with HF_HUB_CACHE=&lt;cache&gt;/hub) together with the offline flags, so the compute node never reaches out for the model weights. Empty disables the exports, which needs the node to have internet access.</p></td>
 </tr>
 <tr class="row-even"><td><p><strong>conda.sh path</strong> (<code class="docutils literal notranslate"><span class="pre">conda_sh</span></code>)</p></td>
@@ -627,12 +641,12 @@ document.write(`
 </tr>
 <tr class="row-even"><td><p><strong>MMseqs2 binary</strong> (<code class="docutils literal notranslate"><span class="pre">mmseqs_path</span></code>)</p></td>
 <td><p>string</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">/apps/ACC/MMSEQS2/17-b804f/GCC/OPENMPI/bin/mmseqs</span></code></p></td>
+<td><p>—</p></td>
 <td><p>Path to the MMseqs2 executable used by colabfold_search (only used when 'MSA calculation' is enabled).</p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>ColabFold database</strong> (<code class="docutils literal notranslate"><span class="pre">msa_database</span></code>)</p></td>
 <td><p>string</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">/gpfs/apps/MN5/ACC/COLABFOLD/SRC/database/FULL</span></code></p></td>
+<td><p>—</p></td>
 <td><p>Path to the local ColabFold/MMseqs2 database searched for the MSA (only used when 'MSA calculation' is enabled).</p></td>
 </tr>
 <tr class="row-even"><td><p><strong>Persistent MSA folder</strong> (<code class="docutils literal notranslate"><span class="pre">cluster_msa_folder</span></code>)</p></td>

@@ -48,7 +48,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Remotes and clusters" href="remotes.html" />
-    <link rel="prev" title="Installation" href="installation.html" />
+    <link rel="prev" title="The dependency installer" href="install_deps.html" />
   
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -148,6 +148,13 @@
 </li>
 
 
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="install_deps.html">
+    The dependency installer
+  </a>
+</li>
+
+
 <li class="nav-item current active">
   <a class="nav-link nav-internal" href="#">
     Tools and configuration
@@ -168,19 +175,19 @@
   </a>
 </li>
 
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="workflow.html">
-    The workflow
-  </a>
-</li>
-
             <li class="nav-item dropdown">
                 <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
                     More
                 </button>
                 <ul id="pst-nav-more-links" class="dropdown-menu">
                     
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="workflow.html">
+    The workflow
+  </a>
+</li>
+
+
 <li class=" ">
   <a class="nav-link dropdown-item nav-internal" href="troubleshooting.html">
     Troubleshooting
@@ -312,6 +319,13 @@ document.write(`
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="installation.html">
     Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="install_deps.html">
+    The dependency installer
   </a>
 </li>
 
@@ -507,7 +521,7 @@ conda environments set in the block's parameters (see <a class="reference intern
 <td><p>Rosetta Relax</p></td>
 <td><p>the block's <strong>Rosetta path</strong> and <strong>Rosetta executable</strong> parameters, or
 the executable on <code class="docutils literal notranslate"><span class="pre">PATH</span></code></p></td>
-<td><p>no; <code class="docutils literal notranslate"><span class="pre">install_deps.sh</span></code> can (see below)</p></td>
+<td><p>no; <code class="docutils literal notranslate"><span class="pre">install_deps.sh</span></code> can (see <a class="reference internal" href="install_deps.html"><span class="doc">The dependency installer</span></a>)</p></td>
 </tr>
 <tr class="row-even"><td><p>PyRosetta</p></td>
 <td><p>Analyse Rosetta Relax</p></td>
@@ -522,7 +536,7 @@ the executable on <code class="docutils literal notranslate"><span class="pre">P
 <tr class="row-even"><td><p>SMOG2</p></td>
 <td><p>Analyse BioEmu (fraction of native contacts, Q)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">smog2</span></code> on the <code class="docutils literal notranslate"><span class="pre">PATH</span></code> of the Horus process</p></td>
-<td><p>no; <code class="docutils literal notranslate"><span class="pre">install_deps.sh</span></code> can (see below)</p></td>
+<td><p>no; <code class="docutils literal notranslate"><span class="pre">install_deps.sh</span></code> can (see <a class="reference internal" href="install_deps.html"><span class="doc">The dependency installer</span></a>)</p></td>
 </tr>
 <tr class="row-odd"><td><p>CodonTransformer</p></td>
 <td><p>CodonTransformer</p></td>
@@ -553,10 +567,8 @@ PyRosetta, BioEmu, CodonTransformer), each into its own environment;</p></li>
 <li><p><strong>save the detected paths</strong> into the plugin configuration, so the blocks find
 them.</p></li>
 </ul>
-<p>The page only detects Rosetta and SMOG2. Neither needs credentials, but
-Rosetta is a ~21.5 GB download licensed for non-commercial use only, and SMOG2
-needs a container engine or a Perl toolchain. Install them with
-<code class="docutils literal notranslate"><span class="pre">install_deps.sh</span></code> (below) or by hand, and point the configuration at
+<p>The page only detects Rosetta and SMOG2. Install them with
+<code class="docutils literal notranslate"><span class="pre">install_deps.sh</span></code> (see <a class="reference internal" href="install_deps.html"><span class="doc">The dependency installer</span></a>) or by hand, and point the configuration at
 them.</p>
 <p>After saving from the page, reopen the configurations in Horus to see the new
 values.</p>
@@ -564,37 +576,17 @@ values.</p>
 <section id="from-a-terminal">
 <h2>From a terminal<a class="headerlink" href="#from-a-terminal" title="Link to this heading">#</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">install_deps.sh</span></code>, at the root of the repository, does the same from a
-terminal, which is handy on a machine where Horus is not running yet. It checks
-each tool, explains which blocks need it and asks before installing it:
-MMseqs2 from the official static build, the rest into their own conda
-environments (<code class="docutils literal notranslate"><span class="pre">mafft</span></code>, <code class="docutils literal notranslate"><span class="pre">proteinmpnn</span></code>, <code class="docutils literal notranslate"><span class="pre">pyrosetta</span></code>, <code class="docutils literal notranslate"><span class="pre">bioemu</span></code>,
-<code class="docutils literal notranslate"><span class="pre">codontransformer</span></code>). It needs micromamba, mamba or conda for the
-environments.</p>
-<p>It also installs the two tools the page leaves alone:</p>
-<ul class="simple">
-<li><p><strong>Rosetta</strong>: the binary bundle from RosettaCommons, after you confirm that
-your use is academic or non-commercial; Rosetta (like PyRosetta) is licensed
-for that use only, and commercial use needs a commercial licence (see
-<a class="reference internal" href="installation.html"><span class="doc">Installation</span></a>). It is about 21.5 GB to download and 52 GB extracted,
-and an interrupted download resumes when you rerun the script. With
-<code class="docutils literal notranslate"><span class="pre">--rosetta-archive</span> <span class="pre">FILE</span></code> it keeps the bundle at <code class="docutils literal notranslate"><span class="pre">FILE</span></code>, or installs from a
-bundle you already have there, which also works on a machine without
-internet access. Set the Rosetta Relax block's <strong>Rosetta executable</strong> to the
-binary it reports, or let the script link it onto <code class="docutils literal notranslate"><span class="pre">PATH</span></code>.</p></li>
-<li><p><strong>SMOG2</strong>: a <code class="docutils literal notranslate"><span class="pre">smog2</span></code> wrapper around the official container when podman or
-docker is installed, otherwise a native install into a <code class="docutils literal notranslate"><span class="pre">smog2</span></code> environment,
-which builds PDL from source and takes several minutes. Analyse BioEmu looks
-<code class="docutils literal notranslate"><span class="pre">smog2</span></code> up on <code class="docutils literal notranslate"><span class="pre">PATH</span></code>, so the script offers to link it into
-<code class="docutils literal notranslate"><span class="pre">~/.local/bin</span></code>.</p></li>
-</ul>
+terminal. It checks each tool, says which blocks need it and asks before
+installing it, and it also installs Rosetta and SMOG2.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./install_deps.sh<span class="w"> </span>--check<span class="w">     </span><span class="c1"># report only</span>
 ./install_deps.sh<span class="w">             </span><span class="c1"># ask before each install</span>
-./install_deps.sh<span class="w"> </span>--config<span class="w"> </span>&lt;appSupport&gt;/config/protselect/protselect_Local.json
-./install_deps.sh<span class="w"> </span>--yes<span class="w"> </span>--rosetta-noncommercial<span class="w">   </span><span class="c1"># unattended, Rosetta included</span>
+./install_deps.sh<span class="w"> </span>--config<span class="w"> </span>&lt;AppSupport&gt;/config/protselect/protselect_Local.json
 </pre></div>
 </div>
 <p>At the end it prints the configuration values to enter in Horus. With
-<code class="docutils literal notranslate"><span class="pre">--config</span></code> it merges them into the saved configuration instead.</p>
+<code class="docutils literal notranslate"><span class="pre">--config</span></code> it merges them into the saved configuration instead. Every option,
+what it installs where, and how to install Rosetta offline are in
+<a class="reference internal" href="install_deps.html"><span class="doc">The dependency installer</span></a>.</p>
 </section>
 <section id="setting-the-configurations-by-hand">
 <h2>Setting the configurations by hand<a class="headerlink" href="#setting-the-configurations-by-hand" title="Link to this heading">#</a></h2>
@@ -632,12 +624,12 @@ folder (<code class="docutils literal notranslate"><span class="pre">/home/me/mi
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="installation.html"
+       href="install_deps.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Installation</p>
+        <p class="prev-next-title">The dependency installer</p>
       </div>
     </a>
     <a class="right-next"

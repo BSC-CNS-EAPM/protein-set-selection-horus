@@ -57,8 +57,8 @@ Parameters
      - MMseqs2 coverage mode (--cov-mode). 0: bidirectional, 1: target coverage, 2: query coverage.
    * - **Cluster modules** (``cluster_modules``)
      - string
-     - ``bsc/1.0, mmseqs2/15-6f452``
-     - Comma-separated modules loaded before the job. MMseqs2 is not on PATH by default on MareNostrum; 'bsc/1.0, mmseqs2/15-6f452' provides it.
+     - —
+     - "Comma-separated modules that put MMseqs2 on PATH, for example " "'mmseqs2'. Leave empty if it is already there (on MareNostrum 5, empty " f"loads '{MN5_CLUSTER_MODULES}')."
    * - **Preamble** (``preamble``)
      - text area
      - —
@@ -66,7 +66,7 @@ Parameters
    * - **MPI runner** (``mpi_runner``)
      - string
      - ``srun``
-     - Exported as RUNNER on the cluster, which MMseqs2 prefixes to its MPI-parallel steps. The MareNostrum module is an MPI build: without this, kmermatcher calls MPI_Init outside a launcher and aborts with 'PMI2_Job_GetId returned 14'. Clear it for a non-MPI build, where srun would instead start one full copy of each step per task. Not used when running locally.
+     - Exported as RUNNER on the cluster, which MMseqs2 prefixes to its MPI-parallel steps. MPI builds such as the MareNostrum module need it: without it, kmermatcher calls MPI_Init outside a launcher and aborts with 'PMI2_Job_GetId returned 14'. Clear it for a non-MPI build, where srun would instead start one full copy of each step per task. Not used when running locally.
    * - **MMseqs2 command** (``mmseqs_command``)
      - string
      - ``mmseqs``

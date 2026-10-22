@@ -19,16 +19,16 @@ Every block that can run as a SLURM job (ProteinMPNN Scoring, MMseqs2 Clustering
      - Name of the generated job script. Change it only to run two calculations of the same block in one folder.
    * - **Partition / QOS** (``partition``)
      - string
-     - ``gp_bscls``
-     - Queue to submit to, as your cluster names it. On MareNostrum 5 it is the QOS: gp\_\* for general-purpose CPU, acc\_\* for GPU, \*_debug for short test runs. Elsewhere it is written as --partition, unless it is given as 'qos:<name>'.
+     - —
+     - Queue to submit to, as your cluster names it. It is written as --partition, or as --qos when given as 'qos:<name>'. Empty uses the cluster's default queue (gp_bscls on MareNostrum 5, where it names the QOS).
    * - **Account** (``account``)
      - string
      - —
-     - Account (project) to charge the job to, when the cluster needs one. Leave empty to let the cluster pick your default; on MareNostrum 5 the bsc_calculations default is used instead.
+     - Account (project) to charge the job to, when the cluster needs one. Leave empty to let the cluster pick your default.
    * - **Extra SBATCH lines** (``sbatch_extra``)
      - string
      - —
-     - Additional SBATCH directives for clusters other than MareNostrum, one per line and without the '#SBATCH' prefix, for example '--mem-per-cpu=4G' or '--nodes=1'.
+     - Additional SBATCH directives, one per line and without the '#SBATCH' prefix, for example '--mem-per-cpu=4G', '--gpus=1' or '--constraint=a100'. Not applied on MareNostrum 5, whose scripts bsc_calculations writes.
    * - **CPUs** (``cpus``)
      - integer
      - ``1``
@@ -40,7 +40,7 @@ Every block that can run as a SLURM job (ProteinMPNN Scoring, MMseqs2 Clustering
    * - **Walltime (hours)** (``time``)
      - integer
      - ``0``
-     - Wall clock limit in hours. bsc_calculations clamps this to the QOS cap (2h on the \*_debug queues), and a request far above what a job needs only makes it queue longer. 0 leaves the bsc_calculations default of 48h.
+     - Wall clock limit in hours. A request far above what a job needs only makes it queue longer. 0 sends no limit, so the partition's default applies (48h on MareNostrum 5, where it is also clamped to the QOS cap).
    * - **Group jobs per array task** (``group_jobs_by``)
      - integer
      - ``0``

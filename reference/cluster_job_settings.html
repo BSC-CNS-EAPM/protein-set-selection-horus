@@ -149,6 +149,13 @@
 
 
 <li class="nav-item ">
+  <a class="nav-link nav-internal" href="../install_deps.html">
+    The dependency installer
+  </a>
+</li>
+
+
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../configuration.html">
     Tools and configuration
   </a>
@@ -168,19 +175,19 @@
   </a>
 </li>
 
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../workflow.html">
-    The workflow
-  </a>
-</li>
-
             <li class="nav-item dropdown">
                 <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
                     More
                 </button>
                 <ul id="pst-nav-more-links" class="dropdown-menu">
                     
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../workflow.html">
+    The workflow
+  </a>
+</li>
+
+
 <li class=" ">
   <a class="nav-link dropdown-item nav-internal" href="../troubleshooting.html">
     Troubleshooting
@@ -308,6 +315,13 @@ document.write(`
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../installation.html">
     Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../install_deps.html">
+    The dependency installer
   </a>
 </li>
 
@@ -513,18 +527,18 @@ document.write(`
 </tr>
 <tr class="row-odd"><td><p><strong>Partition / QOS</strong> (<code class="docutils literal notranslate"><span class="pre">partition</span></code>)</p></td>
 <td><p>string</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">gp_bscls</span></code></p></td>
-<td><p>Queue to submit to, as your cluster names it. On MareNostrum 5 it is the QOS: gp_* for general-purpose CPU, acc_* for GPU, *_debug for short test runs. Elsewhere it is written as --partition, unless it is given as 'qos:&lt;name&gt;'.</p></td>
+<td><p>—</p></td>
+<td><p>Queue to submit to, as your cluster names it. It is written as --partition, or as --qos when given as 'qos:&lt;name&gt;'. Empty uses the cluster's default queue (gp_bscls on MareNostrum 5, where it names the QOS).</p></td>
 </tr>
 <tr class="row-even"><td><p><strong>Account</strong> (<code class="docutils literal notranslate"><span class="pre">account</span></code>)</p></td>
 <td><p>string</p></td>
 <td><p>—</p></td>
-<td><p>Account (project) to charge the job to, when the cluster needs one. Leave empty to let the cluster pick your default; on MareNostrum 5 the bsc_calculations default is used instead.</p></td>
+<td><p>Account (project) to charge the job to, when the cluster needs one. Leave empty to let the cluster pick your default.</p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>Extra SBATCH lines</strong> (<code class="docutils literal notranslate"><span class="pre">sbatch_extra</span></code>)</p></td>
 <td><p>string</p></td>
 <td><p>—</p></td>
-<td><p>Additional SBATCH directives for clusters other than MareNostrum, one per line and without the '#SBATCH' prefix, for example '--mem-per-cpu=4G' or '--nodes=1'.</p></td>
+<td><p>Additional SBATCH directives, one per line and without the '#SBATCH' prefix, for example '--mem-per-cpu=4G', '--gpus=1' or '--constraint=a100'. Not applied on MareNostrum 5, whose scripts bsc_calculations writes.</p></td>
 </tr>
 <tr class="row-even"><td><p><strong>CPUs</strong> (<code class="docutils literal notranslate"><span class="pre">cpus</span></code>)</p></td>
 <td><p>integer</p></td>
@@ -539,7 +553,7 @@ document.write(`
 <tr class="row-even"><td><p><strong>Walltime (hours)</strong> (<code class="docutils literal notranslate"><span class="pre">time</span></code>)</p></td>
 <td><p>integer</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">0</span></code></p></td>
-<td><p>Wall clock limit in hours. bsc_calculations clamps this to the QOS cap (2h on the *_debug queues), and a request far above what a job needs only makes it queue longer. 0 leaves the bsc_calculations default of 48h.</p></td>
+<td><p>Wall clock limit in hours. A request far above what a job needs only makes it queue longer. 0 sends no limit, so the partition's default applies (48h on MareNostrum 5, where it is also clamped to the QOS cap).</p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>Group jobs per array task</strong> (<code class="docutils literal notranslate"><span class="pre">group_jobs_by</span></code>)</p></td>
 <td><p>integer</p></td>

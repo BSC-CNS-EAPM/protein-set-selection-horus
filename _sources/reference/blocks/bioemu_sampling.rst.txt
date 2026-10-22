@@ -42,7 +42,7 @@ Parameters
    * - **GPUs** (``gpus``)
      - integer
      - ``1``
-     - Number of GPUs to request per job (--gres gpu:N). Only honoured on GPU partitions (the 'acc\_\*' queues on MareNostrum); set the CPUs per task variable to choose how many CPUs go with them.
+     - Number of GPUs to request per job (--gres=gpu:N), so the partition must be a GPU one. Set the CPUs per task variable to choose how many CPUs go with them. If your cluster wants another form (--gpus=N, a typed gres), set this to 0 and write it in the extra SBATCH lines.
    * - **Output folder name** (``folder_name``)
      - string
      - ``bioemu_sampling``
@@ -61,23 +61,23 @@ Parameters
      - Name of the conda environment holding BioEmu.
    * - **Cluster BioEmu environment** (``cluster_env``)
      - string
-     - ``/gpfs/projects/bsc72/conda_envs/bioemu``
-     - Conda environment activated by the job on the cluster, as a path or a name. Leave it empty to use the one bsc_calculations hardcodes for BioEmu (/gpfs/projects/bsc72/conda_envs/bioemu).
+     - —
+     - "Path to the conda environment holding BioEmu on the cluster; the " "jobs call its Python directly. Leave it empty to activate the 'BioEmu " "environment' by name through 'conda.sh path' instead (on MareNostrum 5, " f"empty uses {MN5_CLUSTER_ENV})."
    * - **Cluster modules** (``cluster_modules``)
      - string
-     - ``bsc/1.0, anaconda, intel/2025.1``
-     - Comma-separated modules loaded by the job before activating the environment.
+     - —
+     - Comma-separated modules loaded by the job before activating the environment, for example the one providing conda.
    * - **ColabFold bin folder** (``colabfold_bin``)
      - string
-     - ``/gpfs/projects/bsc72/conda_envs/bioemu/colabfold/localcolabfold/colabfold-conda/bin``
-     - Folder holding 'colabfold_search', prepended to the job's PATH. Adapt it to the ColabFold installation that goes with your environment.
+     - —
+     - Folder holding 'colabfold_search', prepended to the job's PATH. Point it at the ColabFold installation that goes with your environment, or leave it empty if colabfold_search is already on PATH.
    * - **COLABFOLD_DIR** (``colabfold_dir``)
      - string
      - —
      - Exported as COLABFOLD_DIR when set. Leave it empty if your ColabFold installation does not need it.
    * - **HuggingFace cache** (``hf_cache``)
      - string
-     - ``/gpfs/projects/bsc72/bioemu_hf_cache``
+     - —
      - Pre-populated HuggingFace cache holding the BioEmu checkpoints. Exported as HF_HOME (with HF_HUB_CACHE=<cache>/hub) together with the offline flags, so the compute node never reaches out for the model weights. Empty disables the exports, which needs the node to have internet access.
    * - **conda.sh path** (``conda_sh``)
      - string
@@ -97,11 +97,11 @@ Parameters
      - Build the MSA on the cluster with colabfold_search against a local database. Leave it off only if the compute nodes have internet access: BioEmu otherwise queries the ColabFold web API to align the raw sequence.
    * - **MMseqs2 binary** (``mmseqs_path``)
      - string
-     - ``/apps/ACC/MMSEQS2/17-b804f/GCC/OPENMPI/bin/mmseqs``
+     - —
      - Path to the MMseqs2 executable used by colabfold_search (only used when 'MSA calculation' is enabled).
    * - **ColabFold database** (``msa_database``)
      - string
-     - ``/gpfs/apps/MN5/ACC/COLABFOLD/SRC/database/FULL``
+     - —
      - Path to the local ColabFold/MMseqs2 database searched for the MSA (only used when 'MSA calculation' is enabled).
    * - **Persistent MSA folder** (``cluster_msa_folder``)
      - string

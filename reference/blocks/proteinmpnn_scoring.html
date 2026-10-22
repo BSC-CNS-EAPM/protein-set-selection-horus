@@ -149,6 +149,13 @@
 
 
 <li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../install_deps.html">
+    The dependency installer
+  </a>
+</li>
+
+
+<li class="nav-item ">
   <a class="nav-link nav-internal" href="../../configuration.html">
     Tools and configuration
   </a>
@@ -168,19 +175,19 @@
   </a>
 </li>
 
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../workflow.html">
-    The workflow
-  </a>
-</li>
-
             <li class="nav-item dropdown">
                 <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
                     More
                 </button>
                 <ul id="pst-nav-more-links" class="dropdown-menu">
                     
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../workflow.html">
+    The workflow
+  </a>
+</li>
+
+
 <li class=" ">
   <a class="nav-link dropdown-item nav-internal" href="../../troubleshooting.html">
     Troubleshooting
@@ -312,6 +319,13 @@ document.write(`
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../installation.html">
     Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../install_deps.html">
+    The dependency installer
   </a>
 </li>
 
@@ -564,7 +578,7 @@ document.write(`
 <tr class="row-even"><td><p><strong>GPUs</strong> (<code class="docutils literal notranslate"><span class="pre">gpus</span></code>)</p></td>
 <td><p>integer</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
-<td><p>Number of GPUs to request per job (--gres gpu:N). Only honoured on GPU partitions (the 'acc_*' queues on MareNostrum); set the CPUs per task variable to choose how many CPUs go with them.</p></td>
+<td><p>Number of GPUs to request per job (--gres=gpu:N), so the partition must be a GPU one. Set the CPUs per task variable to choose how many CPUs go with them. If your cluster wants another form (--gpus=N, a typed gres), set this to 0 and write it in the extra SBATCH lines.</p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>Output folder name</strong> (<code class="docutils literal notranslate"><span class="pre">folder_name</span></code>)</p></td>
 <td><p>string</p></td>
@@ -638,13 +652,13 @@ document.write(`
 </tr>
 <tr class="row-odd"><td><p><strong>Cluster environment</strong> (<code class="docutils literal notranslate"><span class="pre">cluster_env</span></code>)</p></td>
 <td><p>string</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">/gpfs/projects/bsc72/conda_envs/ligandmpnn</span></code></p></td>
-<td><p>Path to the conda environment providing torch on the cluster. bsc_calculations has no ProteinMPNN preset, so the environment is given explicitly; the LigandMPNN environment serves, being a torch environment.</p></td>
+<td><p>—</p></td>
+<td><p>&quot;Path to the conda environment providing torch on the cluster. &quot; &quot;A LigandMPNN environment serves, being a torch environment. Leave it empty &quot; &quot;if the modules already provide one (on MareNostrum 5, empty uses &quot; f&quot;{MN5_CLUSTER_ENV}).&quot;</p></td>
 </tr>
 <tr class="row-even"><td><p><strong>Cluster modules</strong> (<code class="docutils literal notranslate"><span class="pre">cluster_modules</span></code>)</p></td>
 <td><p>string</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">bsc/1.0,</span> <span class="pre">anaconda</span></code></p></td>
-<td><p>Comma-separated modules to load on the cluster before the job.</p></td>
+<td><p>—</p></td>
+<td><p>&quot;Comma-separated modules to load on the cluster before the job, &quot; &quot;for example the one providing conda (on MareNostrum 5, empty loads &quot; f&quot;'{MN5_CLUSTER_MODULES}').&quot;</p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>Remove existing results</strong> (<code class="docutils literal notranslate"><span class="pre">remove_existing_results</span></code>)</p></td>
 <td><p>boolean</p></td>
