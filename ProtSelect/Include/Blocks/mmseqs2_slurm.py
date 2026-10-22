@@ -12,16 +12,22 @@ Like every other compute block here it goes through the shared launcher in
 that ``bsc_calculations`` applies, and the same upload/submit/download cycle.
 
 MMseqs2 is not a program ``bsc_calculations`` knows, so on a cluster the
-environment is supplied through the usual "cluster modules" variable -- on
-MareNostrum that is ``mmseqs2/15-6f452`` -- or through a free-text preamble for
-anything a module does not cover. Those are ignored locally.
+environment is supplied through the usual "cluster modules" variable -- left
+empty on MareNostrum it loads ``mmseqs2/15-6f452`` -- or through a free-text
+preamble for anything a module does not cover. Those are ignored locally.
 """
 
 import os
 
 from HorusAPI import PluginVariable, SlurmBlock, VariableTypes
 from sequence_io import input_path
-from utils import BSC_JOB_VARIABLES, downloadResultsAction, launchCalculationAction, removal_requested
+from utils import (
+    BSC_JOB_VARIABLES,
+    cluster_modules,
+    downloadResultsAction,
+    launchCalculationAction,
+    removal_requested,
+)
 
 # ==========================#
 # Input
@@ -68,13 +74,17 @@ covModeVariable = PluginVariable(
     type=VariableTypes.INTEGER,
     defaultValue=1,
 )
+# Used when the job goes to MareNostrum 5 and the setting is empty.
+MN5_CLUSTER_MODULES = "bsc/1.0, mmseqs2/15-6f452"
+
 clusterModulesVariable = PluginVariable(
     id="cluster_modules",
     name="Cluster modules",
-    description="Comma-separated modules loaded before the job. MMseqs2 is not on "
-    "PATH by default on MareNostrum; 'bsc/1.0, mmseqs2/15-6f452' provides it.",
+    description="Comma-separated modules that put MMseqs2 on PATH, for example "
+    "'mmseqs2'. Leave empty if it is already there (on MareNostrum 5, empty "
+    f"loads '{MN5_CLUSTER_MODULES}').",
     type=VariableTypes.STRING,
-    defaultValue="bsc/1.0, mmseqs2/15-6f452",
+    defaultValue="",
 )
 preambleVariable = PluginVariable(
     id="preamble",
@@ -88,7 +98,7 @@ mpiRunnerVariable = PluginVariable(
     id="mpi_runner",
     name="MPI runner",
     description="Exported as RUNNER on the cluster, which MMseqs2 prefixes to its "
-    "MPI-parallel steps. The MareNostrum module is an MPI build: without this, "
+    "MPI-parallel steps. MPI builds such as the MareNostrum module need it: without it, "
     "kmermatcher calls MPI_Init outside a launcher and aborts with 'PMI2_Job_GetId "
     "returned 14'. Clear it for a non-MPI build, where srun would instead start one "
     "full copy of each step per task. Not used when running locally.",
@@ -301,11 +311,7 @@ def initial_mmseqs_slurm(block: SlurmBlock):
     if preamble:
         job = preamble + "\n" + job
 
-    modules = [
-        module.strip()
-        for module in (block.variables.get(clusterModulesVariable.id) or "").split(",")
-        if module.strip()
-    ]
+    modules = cluster_modules(block, clusterModulesVariable.id, MN5_CLUSTER_MODULES)
 
     # program=None: bsc_calculations has no MMseqs2 preset, so the environment
     # comes from the modules above.
