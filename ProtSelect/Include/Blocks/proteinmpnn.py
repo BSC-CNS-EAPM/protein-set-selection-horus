@@ -21,7 +21,15 @@ the model count small when testing.
 
 from HorusAPI import PluginVariable, SlurmBlock, VariableTypes
 from sequence_io import input_path
-from utils import BSC_JOB_VARIABLES, downloadResultsAction, gpusVariable, launchCalculationAction, removal_requested
+from utils import (
+    BSC_JOB_VARIABLES,
+    cluster_modules,
+    cluster_setting,
+    downloadResultsAction,
+    gpusVariable,
+    launchCalculationAction,
+    removal_requested,
+)
 
 # ==========================#
 # Variable inputs
@@ -155,21 +163,28 @@ localParallelVariable = PluginVariable(
     type=VariableTypes.INTEGER,
     defaultValue=4,
 )
+# Used when the job goes to MareNostrum 5 and the matching setting is empty.
+MN5_CLUSTER_ENV = "/gpfs/projects/bsc72/conda_envs/ligandmpnn"
+MN5_CLUSTER_MODULES = "bsc/1.0, anaconda"
+
 clusterEnvVariable = PluginVariable(
     id="cluster_env",
     name="Cluster environment",
     description="Path to the conda environment providing torch on the cluster. "
-    "bsc_calculations has no ProteinMPNN preset, so the environment is given "
-    "explicitly; the LigandMPNN environment serves, being a torch environment.",
+    "A LigandMPNN environment serves, being a torch environment. Leave it empty "
+    "if the modules already provide one (on MareNostrum 5, empty uses "
+    f"{MN5_CLUSTER_ENV}).",
     type=VariableTypes.STRING,
-    defaultValue="/gpfs/projects/bsc72/conda_envs/ligandmpnn",
+    defaultValue="",
 )
 clusterModulesVariable = PluginVariable(
     id="cluster_modules",
     name="Cluster modules",
-    description="Comma-separated modules to load on the cluster before the job.",
+    description="Comma-separated modules to load on the cluster before the job, "
+    "for example the one providing conda (on MareNostrum 5, empty loads "
+    f"'{MN5_CLUSTER_MODULES}').",
     type=VariableTypes.STRING,
-    defaultValue="bsc/1.0, anaconda",
+    defaultValue="",
 )
 removeExistingResultsVariable = PluginVariable(
     id="remove_existing_results",
@@ -341,12 +356,8 @@ def initial_proteinmpnn(block: SlurmBlock):
             localGPU={"gpus": local_gpus, "parallel": local_parallel},
         )
     else:
-        cluster_env = (block.variables.get(clusterEnvVariable.id) or "").strip()
-        modules = [
-            module.strip()
-            for module in (block.variables.get(clusterModulesVariable.id) or "").split(",")
-            if module.strip()
-        ]
+        cluster_env = cluster_setting(block, clusterEnvVariable.id, MN5_CLUSTER_ENV)
+        modules = cluster_modules(block, clusterModulesVariable.id, MN5_CLUSTER_MODULES)
 
         # program is None because bsc_calculations has no 'proteinmpnn' preset;
         # the torch environment is supplied explicitly instead.

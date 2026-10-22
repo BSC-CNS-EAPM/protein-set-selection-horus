@@ -14,6 +14,11 @@ along with the blocks that used them. Three targets remain. MareNostrum 5
 that site's queues, modules and program presets; the local machine runs the
 jobs in place; and any other SLURM cluster gets a plain array script from
 ``_write_slurm_array``, built only from the block's own settings.
+
+The block settings default to nothing site-specific, so the plugin runs on any
+SLURM cluster. The MareNostrum 5 values the plugin is tested with live in the
+blocks as fallbacks, read through ``cluster_setting``: they fill a setting left
+empty only when the job goes to MN5.
 """
 
 import datetime
@@ -23,6 +28,41 @@ import subprocess
 import typing
 
 from HorusAPI import PluginVariable, SlurmBlock, VariableList, VariableTypes
+
+
+def is_mn5_host(host) -> bool:
+    """Whether a remote host is a MareNostrum 5 login node."""
+    host = host or ""
+    return "glogin" in host or "alogin" in host
+
+
+def is_mn5(block) -> bool:
+    """Whether the block's job goes to MareNostrum 5."""
+    return not block.remote.isLocal and is_mn5_host(block.remote.host)
+
+
+def cluster_setting(block, variable_id, mn5_default=""):
+    """
+    Read a block setting, falling back to the MareNostrum 5 value on MN5.
+
+    The settings default to empty so nothing about one site leaks onto another
+    cluster. A value the user gave always wins; an empty one becomes
+    ``mn5_default`` when the job goes to MN5, and stays empty anywhere else.
+    """
+    value = block.variables.get(variable_id)
+    value = value.strip() if isinstance(value, str) else value
+    if value in (None, "") and is_mn5(block):
+        return mn5_default
+    return value if value is not None else ""
+
+
+def cluster_modules(block, variable_id, mn5_default=""):
+    """``cluster_setting`` for a comma-separated module list, split into names."""
+    return [
+        module.strip()
+        for module in cluster_setting(block, variable_id, mn5_default).split(",")
+        if module.strip()
+    ]
 
 
 def setup_bsc_calculations_based_on_horus_remote(
@@ -68,7 +108,7 @@ def setup_bsc_calculations_based_on_horus_remote(
         cluster = remote_host
 
     # marenostrum
-    if "glogin" in cluster or "alogin" in cluster:
+    if is_mn5_host(cluster):
         print("Generating Marenostrum jobs...")
         mn5_arguments = {}
         if gpus is not None:
@@ -127,6 +167,11 @@ def setup_bsc_calculations_based_on_horus_remote(
     # any other SLURM cluster
     else:
         print(f"Generating SLURM jobs for '{cluster}'...")
+        if program and not (modules or conda_env):
+            # The presets are bsc_calculations shortcuts for MN5's modules.
+            print(f"Warning: the '{program}' environment preset only exists on "
+                  "MareNostrum 5. Set the block's cluster modules or environment, "
+                  "or the job relies on what is already on the node's PATH.")
         _write_slurm_array(
             jobs,
             script_name=scriptName,
@@ -393,7 +438,8 @@ def launchCalculationAction(
     if jobs is None:
         raise Exception("No jobs selected")
 
-    partition = block.variables.get("partition")
+    # MN5 refuses a job without a QOS; elsewhere none means the cluster default.
+    partition = cluster_setting(block, "partition", "gp_bscls") or None
     account = (block.variables.get("account") or "").strip() or None
     sbatch_extra = block.variables.get("sbatch_extra") or None
     cpus = block.variables.get("cpus")
@@ -631,12 +677,11 @@ scriptNameVariable = PluginVariable(
 partitionVariable = PluginVariable(
     name="Partition / QOS",
     id="partition",
-    description="Queue to submit to, as your cluster names it. On MareNostrum 5 it is "
-    "the QOS: gp_* for general-purpose CPU, acc_* for GPU, *_debug for short test "
-    "runs. Elsewhere it is written as --partition, unless it is given as "
-    "'qos:<name>'.",
+    description="Queue to submit to, as your cluster names it. It is written as "
+    "--partition, or as --qos when given as 'qos:<name>'. Empty uses the cluster's "
+    "default queue (gp_bscls on MareNostrum 5, where it names the QOS).",
     type=VariableTypes.STRING,
-    defaultValue="gp_bscls",
+    defaultValue="",
     category="Slurm configuration",
 )
 
@@ -644,8 +689,7 @@ accountVariable = PluginVariable(
     name="Account",
     id="account",
     description="Account (project) to charge the job to, when the cluster needs one. "
-    "Leave empty to let the cluster pick your default; on MareNostrum 5 the "
-    "bsc_calculations default is used instead.",
+    "Leave empty to let the cluster pick your default.",
     type=VariableTypes.STRING,
     defaultValue="",
     category="Slurm configuration",
@@ -654,9 +698,10 @@ accountVariable = PluginVariable(
 sbatchExtraVariable = PluginVariable(
     name="Extra SBATCH lines",
     id="sbatch_extra",
-    description="Additional SBATCH directives for clusters other than MareNostrum, "
-    "one per line and without the '#SBATCH' prefix, for example "
-    "'--mem-per-cpu=4G' or '--nodes=1'.",
+    description="Additional SBATCH directives, one per line and without the "
+    "'#SBATCH' prefix, for example '--mem-per-cpu=4G', '--gpus=1' or "
+    "'--constraint=a100'. Not applied on MareNostrum 5, whose scripts "
+    "bsc_calculations writes.",
     type=VariableTypes.STRING,
     defaultValue="",
     category="Slurm configuration",
@@ -686,9 +731,10 @@ cpusPerTaskVariable = PluginVariable(
 gpusVariable = PluginVariable(
     name="GPUs",
     id="gpus",
-    description="Number of GPUs to request per job (--gres gpu:N). Only honoured on "
-    "GPU partitions (the 'acc_*' queues on MareNostrum); set the CPUs per task "
-    "variable to choose how many CPUs go with them.",
+    description="Number of GPUs to request per job (--gres=gpu:N), so the partition "
+    "must be a GPU one. Set the CPUs per task variable to choose how many CPUs go "
+    "with them. If your cluster wants another form (--gpus=N, a typed gres), set "
+    "this to 0 and write it in the extra SBATCH lines.",
     type=VariableTypes.INTEGER,
     defaultValue=1,
     category="Slurm configuration",
@@ -697,9 +743,9 @@ gpusVariable = PluginVariable(
 timeVariable = PluginVariable(
     name="Walltime (hours)",
     id="time",
-    description="Wall clock limit in hours. bsc_calculations clamps this to the "
-    "QOS cap (2h on the *_debug queues), and a request far above what a job needs "
-    "only makes it queue longer. 0 leaves the bsc_calculations default of 48h.",
+    description="Wall clock limit in hours. A request far above what a job needs "
+    "only makes it queue longer. 0 sends no limit, so the partition's default "
+    "applies (48h on MareNostrum 5, where it is also clamped to the QOS cap).",
     type=VariableTypes.INTEGER,
     defaultValue=0,
     category="Slurm configuration",

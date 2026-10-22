@@ -11,16 +11,18 @@ Reproduces the BioEmu setup and submission of the reference workflow::
 BioEmu runs off ``prepare_proteins.sequenceModels`` (sequences, not structures),
 so the block takes a FASTA of the selected sequences.
 
-``bsc_calculations`` special-cases ``program='bioemu'`` for MareNostrum: it loads
-the BioEmu conda environment and exports COLABFOLD_DIR, so the program name is
-passed through the shared launcher.
+The environment comes from the block settings: a conda environment, the
+modules that provide conda, and the ColabFold and HuggingFace locations. They
+default to empty so the block runs on any SLURM cluster; left empty on
+MareNostrum 5 they take the ``MN5_*`` values below, the setup the plugin is
+tested with.
 
-The GPU request is exposed as the "GPUs" Slurm variable (``--gres gpu:N``, only
-written on the ``acc_*`` partitions) and the CPUs that go with them are set with
-the shared "CPUs per task" variable, e.g. 1 GPU + 20 CPUs per task.
+The GPU request is exposed as the "GPUs" Slurm variable (``--gres gpu:N``) and
+the CPUs that go with them are set with the shared "CPUs per task" variable,
+e.g. 1 GPU + 20 CPUs per task.
 """
 
-from utils import BSC_JOB_VARIABLES, gpusVariable, removal_requested
+from utils import BSC_JOB_VARIABLES, cluster_modules, cluster_setting, gpusVariable, removal_requested
 
 from HorusAPI import PluginVariable, SlurmBlock, VariableTypes
 from sequence_io import input_path
@@ -71,22 +73,32 @@ bioemuEnvVariable = PluginVariable(
     type=VariableTypes.STRING,
     defaultValue="bioemu",
 )
+# Used when the job goes to MareNostrum 5 and the matching setting is empty.
+MN5_CLUSTER_ENV = "/gpfs/projects/bsc72/conda_envs/bioemu"
+MN5_COLABFOLD_BIN = "/gpfs/projects/bsc72/conda_envs/bioemu/colabfold/localcolabfold/colabfold-conda/bin"
+MN5_HF_CACHE = "/gpfs/projects/bsc72/bioemu_hf_cache"
+MN5_CLUSTER_MODULES = "bsc/1.0, anaconda, intel/2025.1"
+MN5_MMSEQS_PATH = "/apps/ACC/MMSEQS2/17-b804f/GCC/OPENMPI/bin/mmseqs"
+MN5_MSA_DATABASE = "/gpfs/apps/MN5/ACC/COLABFOLD/SRC/database/FULL"
+
 clusterEnvVariable = PluginVariable(
     name="Cluster BioEmu environment",
     id="cluster_env",
-    description="Conda environment activated by the job on the cluster, as a path or "
-    "a name. Leave it empty to use the one bsc_calculations hardcodes for BioEmu "
-    "(/gpfs/projects/bsc72/conda_envs/bioemu).",
+    description="Path to the conda environment holding BioEmu on the cluster; the "
+    "jobs call its Python directly. Leave it empty to activate the 'BioEmu "
+    "environment' by name through 'conda.sh path' instead (on MareNostrum 5, "
+    f"empty uses {MN5_CLUSTER_ENV}).",
     type=VariableTypes.STRING,
-    defaultValue="/gpfs/projects/bsc72/conda_envs/bioemu",
+    defaultValue="",
 )
 colabfoldBinVariable = PluginVariable(
     name="ColabFold bin folder",
     id="colabfold_bin",
     description="Folder holding 'colabfold_search', prepended to the job's PATH. "
-    "Adapt it to the ColabFold installation that goes with your environment.",
+    "Point it at the ColabFold installation that goes with your environment, or "
+    "leave it empty if colabfold_search is already on PATH.",
     type=VariableTypes.STRING,
-    defaultValue="/gpfs/projects/bsc72/conda_envs/bioemu/colabfold/localcolabfold/colabfold-conda/bin",
+    defaultValue="",
 )
 colabfoldDirVariable = PluginVariable(
     name="COLABFOLD_DIR",
@@ -104,15 +116,15 @@ hfCacheVariable = PluginVariable(
     "flags, so the compute node never reaches out for the model weights. Empty "
     "disables the exports, which needs the node to have internet access.",
     type=VariableTypes.STRING,
-    defaultValue="/gpfs/projects/bsc72/bioemu_hf_cache",
+    defaultValue="",
 )
 clusterModulesVariable = PluginVariable(
     name="Cluster modules",
     id="cluster_modules",
     description="Comma-separated modules loaded by the job before activating the "
-    "environment.",
+    "environment, for example the one providing conda.",
     type=VariableTypes.STRING,
-    defaultValue="bsc/1.0, anaconda, intel/2025.1",
+    defaultValue="",
 )
 condaShVariable = PluginVariable(
     name="conda.sh path",
@@ -150,7 +162,7 @@ mmseqsPathVariable = PluginVariable(
     description="Path to the MMseqs2 executable used by colabfold_search "
     "(only used when 'MSA calculation' is enabled).",
     type=VariableTypes.STRING,
-    defaultValue="/apps/ACC/MMSEQS2/17-b804f/GCC/OPENMPI/bin/mmseqs",
+    defaultValue="",
 )
 msaDatabaseVariable = PluginVariable(
     name="ColabFold database",
@@ -158,7 +170,7 @@ msaDatabaseVariable = PluginVariable(
     description="Path to the local ColabFold/MMseqs2 database searched for the MSA "
     "(only used when 'MSA calculation' is enabled).",
     type=VariableTypes.STRING,
-    defaultValue="/gpfs/apps/MN5/ACC/COLABFOLD/SRC/database/FULL",
+    defaultValue="",
 )
 clusterMsaFolderVariable = PluginVariable(
     name="Persistent MSA folder",
@@ -415,43 +427,43 @@ def initial_bioemu(block: SlurmBlock):
         msa_root = (block.variables.get(clusterMsaFolderVariable.id) or "").strip()
         if msa_root:
             print(f"Reusing any alignment already present in '{msa_root}'")
+        mmseqs_path = cluster_setting(block, mmseqsPathVariable.id, MN5_MMSEQS_PATH)
+        msa_database = cluster_setting(block, msaDatabaseVariable.id, MN5_MSA_DATABASE)
+        if not msa_database:
+            raise Exception("'MSA calculation' is on but no 'ColabFold database' is "
+                            "set: give the path of the local ColabFold database.")
         jobs = _use_local_msa(
             jobs,
             folder_name,
-            block.variables.get(mmseqsPathVariable.id)
-            or "/apps/ACC/MMSEQS2/17-b804f/GCC/OPENMPI/bin/mmseqs",
-            block.variables.get(msaDatabaseVariable.id)
-            or "/gpfs/apps/MN5/ACC/COLABFOLD/SRC/database/FULL",
+            mmseqs_path or "mmseqs",
+            msa_database,
             msa_root=msa_root or None,
         )
 
     print(f"Generated {len(jobs)} BioEmu job(s).")
 
-    # bsc_calculations pins the BioEmu environment whenever it is told the program
-    # is 'bioemu', so a custom one means setting up the environment here instead.
-    cluster_env = (block.variables.get(clusterEnvVariable.id) or "").strip()
+    # Without an environment path, the jobs activate the 'BioEmu environment' by
+    # name themselves, through conda.sh; with one, they call its Python directly.
+    cluster_env = cluster_setting(block, clusterEnvVariable.id, MN5_CLUSTER_ENV)
 
-    if not cluster_env:
-        launchCalculationAction(block, jobs, "bioemu", [folder_name])
-        return
-
-    jobs = _use_env_python(jobs, cluster_env)
+    if cluster_env:
+        jobs = _use_env_python(jobs, cluster_env)
     jobs = _harden_jobs(jobs)
 
     exports = []
 
-    colabfold_bin = (block.variables.get(colabfoldBinVariable.id) or "").strip()
+    colabfold_bin = cluster_setting(block, colabfoldBinVariable.id, MN5_COLABFOLD_BIN)
     if colabfold_bin:
         exports.append(f"PATH={colabfold_bin}:$PATH")
 
-    colabfold_dir = (block.variables.get(colabfoldDirVariable.id) or "").strip()
+    colabfold_dir = cluster_setting(block, colabfoldDirVariable.id)
     if colabfold_dir:
         exports.append(f"COLABFOLD_DIR={colabfold_dir}")
 
     # BioEmu pulls its checkpoints from the HuggingFace hub on first use. Pointing it
     # at a populated cache and forcing offline mode keeps that off the network, which
     # the compute nodes cannot use anyway.
-    hf_cache = (block.variables.get(hfCacheVariable.id) or "").strip()
+    hf_cache = cluster_setting(block, hfCacheVariable.id, MN5_HF_CACHE)
     if hf_cache:
         exports += [
             f"HF_HOME={hf_cache}",
@@ -463,13 +475,10 @@ def initial_bioemu(block: SlurmBlock):
             "PIP_NO_INDEX=1",
         ]
 
-    modules = [
-        module.strip()
-        for module in (block.variables.get(clusterModulesVariable.id) or "").split(",")
-        if module.strip()
-    ]
+    modules = cluster_modules(block, clusterModulesVariable.id, MN5_CLUSTER_MODULES)
 
-    print(f"Using the cluster environment '{cluster_env}'")
+    if cluster_env:
+        print(f"Using the cluster environment '{cluster_env}'")
     if hf_cache:
         print(f"Reading the BioEmu checkpoints from the cache at '{hf_cache}'")
 
@@ -478,7 +487,7 @@ def initial_bioemu(block: SlurmBlock):
         jobs,
         None,
         [folder_name],
-        condaEnv=cluster_env,
+        condaEnv=cluster_env or None,
         modules=modules or None,
         exports=exports,
     )
