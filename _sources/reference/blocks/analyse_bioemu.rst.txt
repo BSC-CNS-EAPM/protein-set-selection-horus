@@ -100,15 +100,15 @@ Outputs
    * - **BioEmu metrics** (``metrics_file``)
      - file
      - .csv
-     - CSV with the combined per-model metrics (RMSD, RMSF, Q and dGf).
+     - CSV with the combined per-model metrics (RMSD and RMSF in Å, Q and dGf).
    * - **RMSD values** (``rmsd_file``)
      - file
      - .json
-     - JSON mapping each model to its per-sample RMSD values.
+     - JSON mapping each model to its per-sample Cα RMSD values (Å).
    * - **RMSF values** (``rmsf_file``)
      - file
      - .json
-     - JSON mapping each model to its per-residue RMSF values.
+     - JSON mapping each model to its per-residue Cα RMSF values (Å).
    * - **Fraction of native contacts** (``q_file``)
      - file
      - .csv
