@@ -18,7 +18,7 @@ compute blocks.
 from utils import BSC_JOB_VARIABLES, removal_requested
 
 from HorusAPI import PluginVariable, SlurmBlock, VariableTypes
-from sequence_io import input_path
+from sequence_io import input_path, models_subset
 
 # ==========================#
 # Variable inputs
@@ -30,6 +30,17 @@ modelsFolder = PluginVariable(
     "folder produced by 'Collect Selected Structures').",
     type=VariableTypes.FOLDER,
     defaultValue=None,
+)
+modelsFile = PluginVariable(
+    name="Models to relax (optional)",
+    id="models_file",
+    description="List of the models to relax: a JSON list or object, or a FASTA "
+    "(e.g. 'collected_models_file' from 'Collect Selected Structures'). Only those "
+    "structures in the models folder are relaxed. Leave it empty and every PDB in "
+    "the folder is relaxed, including any left there by an earlier run.",
+    type=VariableTypes.FILE,
+    defaultValue=None,
+    allowedValues=["json", "fasta", "fa", "faa"],
 )
 
 # ==========================#
@@ -199,8 +210,12 @@ def initial_rosetta_relax(block: SlurmBlock):
     # extraData outlives a run; clear the flag a previous resume may have left.
     block.extraData["nothing_to_run"] = False
 
+    only_models = models_subset(block, modelsFile, models_folder)
+
     print("Loading models...")
-    models = prepare_proteins.proteinModels(models_folder, ignore_biopython_warnings=True)
+    models = prepare_proteins.proteinModels(
+        models_folder, only_models=only_models, ignore_biopython_warnings=True
+    )
 
     rosetta_path = block.variables.get(rosettaPathVariable.id, None)
 
@@ -294,7 +309,8 @@ rosettaRelaxBlock = SlurmBlock(
     name="Rosetta Relax",
     id="rosetta_relax",
     description="Set up and run a Rosetta relax optimization on a folder of models "
-    "as a SLURM job on a cluster remote, or on the Local remote.",
+    "as a SLURM job on a cluster remote, or on the Local remote. Connect a models "
+    "list to relax only those models; otherwise every PDB in the folder is relaxed.",
     initialAction=initial_rosetta_relax,
     finalAction=final_rosetta_relax,
     variables=BSC_JOB_VARIABLES
@@ -313,6 +329,6 @@ rosettaRelaxBlock = SlurmBlock(
         clusterEnvVariable,
         removeExistingResults,
     ],
-    inputs=[modelsFolder],
+    inputs=[modelsFolder, modelsFile],
     outputs=[relaxFolderVariable],
 )

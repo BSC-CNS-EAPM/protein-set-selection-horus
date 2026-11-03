@@ -167,6 +167,42 @@ def read_model_list(models_path: str) -> list:
     return unique
 
 
+def models_subset(block, variable, models_folder: str):
+    """
+    Return the models named in an optional models-list input, or None if it is empty.
+
+    A structures folder is not a selection: 'Collect Selected Structures' copies
+    into a folder that may already hold structures from an earlier run, and
+    ``prepare_proteins.proteinModels`` loads every PDB it finds there. Passing the
+    returned list as ``only_models`` keeps a block to the selection. Listed models
+    with no ``<model>.pdb`` in the folder are reported and left out.
+    """
+    models_path = input_path(block, variable)
+    if not models_path:
+        return None
+
+    listed = read_model_list(models_path)
+    in_folder = {
+        entry[: -len(".pdb")] for entry in os.listdir(models_folder) if entry.endswith(".pdb")
+    }
+    present = [model for model in listed if model in in_folder]
+    absent = [model for model in listed if model not in in_folder]
+
+    if not present:
+        raise ValueError(
+            f"None of the {len(listed)} models listed in '{models_path}' has a "
+            f"<model>.pdb in '{models_folder}'."
+        )
+    if absent:
+        print(f"Warning: {len(absent)} listed model(s) have no structure in "
+              f"'{models_folder}' and are skipped (e.g. {absent[:3]}).")
+    ignored = len(in_folder) - len(present)
+    if ignored:
+        print(f"Using the {len(present)} model(s) listed in '{os.path.basename(models_path)}'; "
+              f"ignoring {ignored} other structure(s) in '{models_folder}'.")
+    return present
+
+
 # ==========================#
 # Scores
 # ==========================#

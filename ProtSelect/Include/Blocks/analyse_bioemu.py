@@ -27,7 +27,10 @@ from sequence_io import input_path, read_sequences, require_local
 sequencesFile = PluginVariable(
     id="sequences_file",
     name="Sequences file",
-    description="FASTA (or JSON {name: sequence}) with the sampled sequences.",
+    description="FASTA (or JSON {name: sequence}) with the sampled sequences, e.g. "
+    "the 'selected_sequences_file' of 'Select Cluster Representatives'. A wider set "
+    "is accepted: only the sequences with both a BioEmu ensemble and a reference "
+    "structure are analysed.",
     type=VariableTypes.FILE,
     allowedValues=["fasta", "fa", "faa", "json"],
 )
@@ -439,8 +442,12 @@ def analyse_bioemu(block: PluginBlock):
     if compute_contacts:
         print("Computing native contacts (requires SMOG)...")
         try:
+            # computeNativeContacts walks every loaded sequence and raises on the
+            # first one that has an ensemble but no reference; RMSD and RMSF skip
+            # those instead. Restrict it to the matched models so a sequences file
+            # wider than the selection behaves the same in all three.
             native_contacts = sequences.computeNativeContacts(
-                contacts_folder, bioemu_folder, models_paths
+                contacts_folder, bioemu_folder, models_paths, only_models=matched
             )
             q_frame = sequences.computeFractionOfNativeContacts(
                 native_contacts,

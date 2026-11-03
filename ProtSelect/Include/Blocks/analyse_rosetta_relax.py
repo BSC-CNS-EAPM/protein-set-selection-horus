@@ -21,7 +21,7 @@ of them, so the DataFrame is only read once every job has finished.
 """
 
 from HorusAPI import Extensions, PluginBlock, PluginVariable, VariableTypes
-from sequence_io import foreign_python_env, input_path, require_local
+from sequence_io import foreign_python_env, input_path, models_subset, require_local
 
 # ==========================#
 # Variable inputs
@@ -31,6 +31,16 @@ modelsFolder = PluginVariable(
     name="Models folder",
     description="Folder with the models that were relaxed (e.g. 'selected_models').",
     type=VariableTypes.FOLDER,
+)
+modelsFile = PluginVariable(
+    id="models_file",
+    name="Models to analyse (optional)",
+    description="List of the models to analyse: a JSON list or object, or a FASTA "
+    "(e.g. 'collected_models_file' from 'Collect Selected Structures'). Leave it "
+    "empty and every PDB in the models folder is analysed.",
+    type=VariableTypes.FILE,
+    defaultValue=None,
+    allowedValues=["json", "fasta", "fa", "faa"],
 )
 relaxFolder = PluginVariable(
     id="relax_folder",
@@ -562,8 +572,12 @@ def analyse_rosetta_relax(block: PluginBlock):
             lengths = {str(k): float(v) for k, v in json.load(jf).items()}
         print(f"Loaded {len(lengths)} sequence lengths for per-residue normalisation.")
 
+    only_models = models_subset(block, modelsFile, models_folder)
+
     print("Loading models...")
-    models = prepare_proteins.proteinModels(models_folder, ignore_biopython_warnings=True)
+    models = prepare_proteins.proteinModels(
+        models_folder, only_models=only_models, ignore_biopython_warnings=True
+    )
 
     if not lengths:
         # The models folder already carries the sequences, so the per-residue
@@ -694,7 +708,7 @@ analyseRosettaRelaxBlock = PluginBlock(
     id="analyse_rosetta_relax",
     description="Extract the Rosetta relax scores, summarise them per model and "
     "display them in a table view.",
-    inputs=[modelsFolder, relaxFolder, lengthsFile],
+    inputs=[modelsFolder, modelsFile, relaxFolder, lengthsFile],
     variables=[
         cpusVariable,
         skipFinishedVariable,

@@ -61,6 +61,12 @@ Relax <block-analyse_rosetta_relax>` extracts the energies with PyRosetta and
 summarises them per model, including ``score_per_residue`` (mean score divided
 by length), which compares proteins of different sizes fairly.
 
+Both blocks take the collected-models list from Collect Selected Structures as
+well as its folder, and work only on the models in that list. The folder alone
+is not enough: Collect Selected Structures copies into a folder that may already
+hold structures from an earlier run, and without the list those would be
+relaxed too.
+
 5. Sample conformations with BioEmu
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -132,8 +138,7 @@ The main connections:
    * - Structures folder (second copy)
      - Analyse BioEmu
    * - Sequences file
-     - ProteinMPNN Scoring, MMseqs2 Clustering, Select Cluster Representatives,
-       Analyse BioEmu
+     - ProteinMPNN Scoring, MMseqs2 Clustering, Select Cluster Representatives
    * - Sequences file (second copy)
      - CodonTransformer
    * - Read ProteinMPNN Scores: vanilla / soluble scores
@@ -143,9 +148,11 @@ The main connections:
    * - Select Cluster Representatives: selected cluster representatives
      - Collect Selected Structures
    * - Select Cluster Representatives: selected sequences
-     - BioEmu Sampling, MAFFT
+     - BioEmu Sampling, Analyse BioEmu, MAFFT
    * - Select Cluster Representatives: ProteinMPNN weight-set origin
      - Pareto Selection (colours the plot)
+   * - Collect Selected Structures: selected models folder and collected models
+     - Rosetta Relax, Analyse Rosetta Relax
    * - Analyse Rosetta Relax: Rosetta score summary; Analyse BioEmu: BioEmu metrics
      - Pareto Selection
    * - Pareto Selection: Pareto-selected models
