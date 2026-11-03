@@ -69,7 +69,7 @@ structures for each selected sequence (``num_samples``, default 10,000).
 :ref:`Analyse BioEmu <block-analyse_bioemu>` compares each ensemble with the
 model's structure:
 
-- **RMSD** and **RMSF**: how far and how much the ensemble moves;
+- **RMSD** and **RMSF** (Cα, in Å): how far and how much the ensemble moves;
 - **Q**, the fraction of native contacts (needs SMOG2): how much of the model's
   fold each sample keeps;
 - **dGf**, a folding free energy from the fraction of samples above a Q

@@ -121,21 +121,21 @@ maxModelsPlotVariable = PluginVariable(
 metricsFile = PluginVariable(
     id="metrics_file",
     name="BioEmu metrics",
-    description="CSV with the combined per-model metrics (RMSD, RMSF, Q and dGf).",
+    description="CSV with the combined per-model metrics (RMSD and RMSF in Å, Q and dGf).",
     type=VariableTypes.FILE,
     allowedValues=["csv"],
 )
 rmsdFile = PluginVariable(
     id="rmsd_file",
     name="RMSD values",
-    description="JSON mapping each model to its per-sample RMSD values.",
+    description="JSON mapping each model to its per-sample Cα RMSD values (Å).",
     type=VariableTypes.FILE,
     allowedValues=["json"],
 )
 rmsfFile = PluginVariable(
     id="rmsf_file",
     name="RMSF values",
-    description="JSON mapping each model to its per-residue RMSF values.",
+    description="JSON mapping each model to its per-residue Cα RMSF values (Å).",
     type=VariableTypes.FILE,
     allowedValues=["json"],
 )
@@ -175,13 +175,18 @@ def _ensure_fasta(sequences_path: str) -> str:
     return fasta_path
 
 
-def _to_list(values):
+def _to_list(values, scale=1.0):
     """Normalise a numpy array / Series / iterable of numbers into a plain list."""
     if values is None:
         return []
     if hasattr(values, "tolist"):
-        return [float(v) for v in values.tolist()]
-    return [float(v) for v in values]
+        values = values.tolist()
+    return [float(v) * scale for v in values]
+
+
+# prepare_proteins returns RMSD and RMSF in nm (mdtraj units); every output of
+# this block reports them in Å.
+NM_TO_ANGSTROM = 10.0
 
 
 def _build_metrics(rmsd, rmsf, q_frame, gf_frame, lengths=None):
@@ -411,7 +416,10 @@ def analyse_bioemu(block: PluginBlock):
     # ---- RMSD ----
     print("Computing BioEmu RMSD...")
     rmsd_raw = sequences.computeBioEmuRMSD(bioemu_folder, models_paths, plot=False)
-    rmsd = {str(model): _to_list(values) for model, values in dict(rmsd_raw).items()}
+    rmsd = {
+        str(model): _to_list(values, NM_TO_ANGSTROM)
+        for model, values in dict(rmsd_raw).items()
+    }
     print(f"  RMSD computed for {len(rmsd)} model(s).")
 
     # ---- RMSF ----
@@ -419,7 +427,10 @@ def analyse_bioemu(block: PluginBlock):
     rmsf_raw = sequences.computeBioEmuRMSF(
         bioemu_folder, models_paths, plot=False, plot_legend=False
     )
-    rmsf = {str(model): _to_list(values) for model, values in dict(rmsf_raw).items()}
+    rmsf = {
+        str(model): _to_list(values, NM_TO_ANGSTROM)
+        for model, values in dict(rmsf_raw).items()
+    }
     print(f"  RMSF computed for {len(rmsf)} model(s).")
 
     # ---- Native contacts -> Q -> dGf ----
