@@ -1,0 +1,11 @@
+# Applied to every pip install into the shared 'protselect' environment, by
+# both install_deps.sh and Include/env_manager.py.
+#
+# CodonTransformer is the strictest tool in the environment. Without these,
+# tools installed one at a time could replace each other's dependencies, and an
+# unpinned resolve drops CodonTransformer to an old release to allow numpy 2.
+CodonTransformer==1.6.7
+numpy<2
+pandas<3
+setuptools<71
+transformers<5

@@ -5,14 +5,15 @@
 #
 # The plugin's own Python dependencies (plugin.meta) are installed by Horus into
 # ProtSelect/deps/ and are not handled here. This script covers everything that
-# cannot go there: MMseqs2, MAFFT, the torch environment ProteinMPNN runs in,
-# PyRosetta, BioEmu and CodonTransformer, each in its own conda environment so a
-# CUDA-specific torch never clashes with Horus, plus Rosetta and SMOG 2.
+# cannot go there: MMseqs2, MAFFT, the torch ProteinMPNN runs on, PyRosetta, BioEmu
+# and CodonTransformer, plus Rosetta and SMOG 2. Everything that needs a conda
+# environment shares one, 'protselect', so a CUDA-specific torch never clashes
+# with Horus and the system does not fill up with per-tool environments.
 #
 # Neither Rosetta nor SMOG 2 needs credentials. Rosetta's binary bundles download
 # freely but are licensed for non-commercial use only, so the script asks the
 # user to confirm that instead. SMOG 2 is GPL; it runs from its official
-# container when podman or docker is present, otherwise from a perl environment.
+# container when podman or docker is present, otherwise from 'protselect' too.
 #
 # It mirrors what the in-app Environment Setup page does (Include/env_manager.py)
 # for machines where Horus is not running yet, or where a terminal is easier.
@@ -49,6 +50,8 @@ ONLY=""
 ROSETTA_ARCHIVE=""
 TOOLS_DIR="${PROTSELECT_TOOLS_DIR:-$HOME/.local/share/protselect}"
 PYTHON_VERSION="3.11"
+SHARED_ENV="protselect"
+CONSTRAINTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/ProtSelect/Include/protselect_constraints.txt"
 ROSETTA_VERSION="${ROSETTA_VERSION:-3.15}"
 SMOG_IMAGE="docker.io/smogserver/smog2:stable"
 
@@ -172,25 +175,39 @@ require_conda() {
     return 1
 }
 
-# create_env <name> <pip packages...> -> prints the interpreter path
-create_env() {
-    local env_name="$1"; shift
+# shared_env -> prints the shared environment's interpreter, creating it on first use
+shared_env() {
     local python
-    python="$(env_python "$env_name")"
+    python="$(env_python "$SHARED_ENV")"
     if [ -z "$python" ]; then
-        echo "  Creating environment '$env_name' (python $PYTHON_VERSION)..." >&2
-        "$CONDA" create -y -n "$env_name" -c conda-forge "python=$PYTHON_VERSION" >&2 || return 1
-        python="$(env_python "$env_name")"
+        echo "  Creating environment '$SHARED_ENV' (python $PYTHON_VERSION)..." >&2
+        "$CONDA" create -y -n "$SHARED_ENV" -c conda-forge "python=$PYTHON_VERSION" >&2 || return 1
+        python="$(env_python "$SHARED_ENV")"
         if [ -z "$python" ]; then
-            echo "  Created '$env_name' but could not find its interpreter." >&2
+            echo "  Created '$SHARED_ENV' but could not find its interpreter." >&2
             return 1
         fi
-    fi
-    if [ $# -gt 0 ]; then
-        echo "  Installing $* into '$env_name'..." >&2
-        foreign_python "$python" -m pip install "$@" >&2 || return 1
+        # First, so a tool's own installer cannot bring in an unconstrained numpy
+        foreign_python "$python" -m pip install -c "$CONSTRAINTS" numpy >&2 || return 1
     fi
     echo "$python"
+}
+
+# shared_pip <pip arguments...> -> installs under the constraints, prints the interpreter
+shared_pip() {
+    local python
+    python="$(shared_env)" || return 1
+    echo "  Installing $* into '$SHARED_ENV'..." >&2
+    foreign_python "$python" -m pip install -c "$CONSTRAINTS" "$@" >&2 || return 1
+    echo "$python"
+}
+
+# shared_conda_install <conda packages...>: from conda-forge and bioconda
+shared_conda_install() {
+    local python prefix
+    python="$(shared_env)" || return 1
+    prefix="$(dirname "$(dirname "$python")")"
+    "$CONDA" install -y -p "$prefix" -c conda-forge -c bioconda "$@" >&2
 }
 
 # ==========================#
@@ -237,7 +254,7 @@ setup_mafft() {
     header "MAFFT  (Multiple Sequence Alignment)"
     local found
     found="$(command -v mafft 2>/dev/null || true)"
-    [ -z "$found" ] && found="$(env_bin mafft mafft)"
+    [ -z "$found" ] && found="$(env_bin "$SHARED_ENV" mafft)"
     if [ -n "$found" ] && [ -x "$found" ]; then
         ok "$found  ($("$found" --version 2>&1 | head -1))"
         record "MAFFT" ok mafft_path "$found"
@@ -245,12 +262,12 @@ setup_mafft() {
     fi
     missing "mafft is not on PATH"
     info "Alternatively: 'sudo apt install mafft' (Debian/Ubuntu) or 'brew install mafft'."
-    if ! require_conda || ! ask "Install MAFFT from bioconda into an environment 'mafft'?"; then
+    if ! require_conda || ! ask "Install MAFFT from bioconda into the environment '$SHARED_ENV'?"; then
         record "MAFFT" missing
         return
     fi
-    if "$CONDA" create -y -n mafft -c conda-forge -c bioconda mafft; then
-        found="$(env_bin mafft mafft)"
+    if shared_conda_install mafft; then
+        found="$(env_bin "$SHARED_ENV" mafft)"
         ok "$found"
         record "MAFFT" installed mafft_path "$found"
     else
@@ -261,13 +278,13 @@ setup_mafft() {
 setup_torch() {
     header "PyTorch for ProteinMPNN  (ProteinMPNN Scoring)"
     local python version
-    python="$(env_python proteinmpnn)"
+    python="$(env_python "$SHARED_ENV")"
     if [ -n "$python" ] && version="$(can_import "$python" torch numpy)"; then
         ok "$python  (torch $version)"
         record "PyTorch (ProteinMPNN)" ok proteinmpnn_python "$python"
         return
     fi
-    missing "no environment 'proteinmpnn' with torch"
+    missing "no torch in the environment '$SHARED_ENV'"
     info "Only needed to score locally; on a cluster the block's conda environment is used."
 
     local index="https://download.pytorch.org/whl/cpu"
@@ -284,12 +301,11 @@ setup_torch() {
         read -r -p "  torch wheel index [$index]: " reply
         index="${reply:-$index}"
     fi
-    if ! require_conda || ! ask "Create 'proteinmpnn' with torch from $index?"; then
+    if ! require_conda || ! ask "Install torch from $index into '$SHARED_ENV'?"; then
         record "PyTorch (ProteinMPNN)" missing
         return
     fi
-    if python="$(create_env proteinmpnn numpy)" \
-        && foreign_python "$python" -m pip install torch --index-url "$index"; then
+    if python="$(shared_pip torch --index-url "$index")"; then
         ok "$python  (torch $(can_import "$python" torch))"
         record "PyTorch (ProteinMPNN)" installed proteinmpnn_python "$python"
     else
@@ -300,20 +316,20 @@ setup_torch() {
 setup_pyrosetta() {
     header "PyRosetta  (Analyse Rosetta Relax)"
     local python version
-    python="$(env_python pyrosetta)"
+    python="$(env_python "$SHARED_ENV")"
     if [ -n "$python" ] && version="$(can_import "$python" pyrosetta)"; then
         ok "$python  (pyrosetta $version)"
         record "PyRosetta" ok pyrosetta_python "$python"
         return
     fi
-    missing "no environment 'pyrosetta' with PyRosetta"
+    missing "no PyRosetta in the environment '$SHARED_ENV'"
     info "Installed with pyrosetta-installer, which needs no credentials (~1.5 GB download)."
     info "PyRosetta is free for non-commercial use; commercial use needs a licence."
-    if ! require_conda || ! ask "Create 'pyrosetta' and install PyRosetta?"; then
+    if ! require_conda || ! ask "Install PyRosetta into '$SHARED_ENV'?"; then
         record "PyRosetta" missing
         return
     fi
-    if python="$(create_env pyrosetta numpy pandas pyrosetta-installer)" \
+    if python="$(shared_pip pandas pyrosetta-installer)" \
         && PATH="$(dirname "$python"):$PATH" foreign_python "$python" -c \
             "import pyrosetta_installer; pyrosetta_installer.install_pyrosetta()" \
         && can_import "$python" pyrosetta >/dev/null; then
@@ -327,19 +343,19 @@ setup_pyrosetta() {
 setup_bioemu() {
     header "BioEmu  (BioEmu Sampling)"
     local python version
-    python="$(env_python bioemu)"
+    python="$(env_python "$SHARED_ENV")"
     if [ -n "$python" ] && version="$(can_import "$python" bioemu)"; then
         ok "$python  (bioemu $version)"
         record "BioEmu" ok bioemu_env "$(dirname "$(dirname "$python")")"
         return
     fi
-    missing "no environment 'bioemu'"
+    missing "no BioEmu in the environment '$SHARED_ENV'"
     info "Only needed to sample locally (wants a GPU); on a cluster the block's environment is used."
-    if ! require_conda || ! ask "Create 'bioemu' and install BioEmu?"; then
+    if ! require_conda || ! ask "Install BioEmu into '$SHARED_ENV'?"; then
         record "BioEmu" missing
         return
     fi
-    if python="$(create_env bioemu bioemu)"; then
+    if python="$(shared_pip bioemu)"; then
         ok "$python"
         record "BioEmu" installed bioemu_env "$(dirname "$(dirname "$python")")"
     else
@@ -350,18 +366,18 @@ setup_bioemu() {
 setup_codontransformer() {
     header "CodonTransformer  (CodonTransformer)"
     local python version
-    python="$(env_python codontransformer)"
+    python="$(env_python "$SHARED_ENV")"
     if [ -n "$python" ] && version="$(can_import "$python" CodonTransformer torch)"; then
         ok "$python"
         record "CodonTransformer" ok codontransformer_env "$(dirname "$(dirname "$python")")"
         return
     fi
-    missing "no environment 'codontransformer'"
-    if ! require_conda || ! ask "Create 'codontransformer' and install CodonTransformer?"; then
+    missing "no CodonTransformer in the environment '$SHARED_ENV'"
+    if ! require_conda || ! ask "Install CodonTransformer into '$SHARED_ENV'?"; then
         record "CodonTransformer" missing
         return
     fi
-    if python="$(create_env codontransformer CodonTransformer torch)"; then
+    if python="$(shared_pip CodonTransformer torch)"; then
         ok "$python"
         record "CodonTransformer" installed codontransformer_env "$(dirname "$(dirname "$python")")"
     else
@@ -567,20 +583,20 @@ EOF
 # SMOG 2 natively: perl and its XML modules from conda, PDL built by cpanm (the
 # conda PDL builds are for long-gone perl versions), then SMOG's own configure.
 install_smog_native() {
-    local env_name="smog2" perl tag dir
-    perl="$(env_bin "$env_name" perl)"
-    if [ -z "$perl" ]; then
+    local perl tag dir
+    # Looks for cpanm, not perl: another package may already have brought perl in.
+    if [ -z "$(env_bin "$SHARED_ENV" cpanm)" ]; then
         # conda-forge's perl 5.32 headers include xlocale.h, which glibc dropped
         # after 2.25, so compiled modules need the older Linux sysroot.
         local sysroot=()
         [[ "$OSTYPE" == linux* ]] && sysroot=("sysroot_linux-64=2.17")
-        "$CONDA" create -y -n "$env_name" -c conda-forge -c bioconda \
+        shared_conda_install \
             perl perl-xml-simple perl-xml-libxml perl-app-cpanminus openjdk compilers make \
-            "${sysroot[@]}" >&2 \
+            "${sysroot[@]}" \
             || return 1
-        perl="$(env_bin "$env_name" perl)"
-        [ -z "$perl" ] && return 1
     fi
+    perl="$(env_bin "$SHARED_ENV" perl)"
+    [ -z "$perl" ] && return 1
     # cpanm's shebang is '/usr/bin/env perl', which finds the system perl and
     # then installs into ~/perl5, so run it with the environment's perl. Conda's
     # perl locates its compilers' sysroot from $CC, $PREFIX or $_, in that
@@ -651,8 +667,8 @@ setup_smog() {
             found="$(install_smog_container "$engine")"
         fi
     elif require_conda; then
-        info "No podman or docker: SMOG 2 can be installed natively with a perl environment."
-        if ask "Create 'smog2' and install SMOG 2 natively?"; then
+        info "No podman or docker: SMOG 2 can be installed natively, with perl in '$SHARED_ENV'."
+        if ask "Install SMOG 2 natively, with its perl in '$SHARED_ENV'?"; then
             attempted=1
             found="$(install_smog_native)"
         fi

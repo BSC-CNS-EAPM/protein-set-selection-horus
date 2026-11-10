@@ -11,11 +11,14 @@ Reproduces the BioEmu setup and submission of the reference workflow::
 BioEmu runs off ``prepare_proteins.sequenceModels`` (sequences, not structures),
 so the block takes a FASTA of the selected sequences.
 
-The environment comes from the block settings: a conda environment, the
-modules that provide conda, and the ColabFold and HuggingFace locations. They
-default to empty so the block runs on any SLURM cluster; left empty on
-MareNostrum 5 they take the ``MN5_*`` values below, the setup the plugin is
-tested with.
+``bioemu_env`` and ``conda_sh`` control setup-time warmup on the Horus machine:
+missing cache files can trigger a one-sample run even for a cluster target.
+Returned sampling commands use ``cluster_env/bin/python`` when set and otherwise
+rely on PATH. Empty cluster fields take the ``MN5_*`` fallbacks only on MN5.
+Modules and generated exports apply to cluster jobs, not Local runs.
+
+``gpu_local`` adds the GPUID placeholder, but this block does not request the
+local GPU launcher that substitutes it. Leave that flag disabled.
 
 The GPU request is exposed as the "GPUs" Slurm variable (``--gres gpu:N``) and
 the CPUs that go with them are set with the shared "CPUs per task" variable,
@@ -54,7 +57,9 @@ output = PluginVariable(
 numSamplesVariable = PluginVariable(
     name="Number of samples",
     id="num_samples",
-    description="Number of conformations sampled per model.",
+    description="Target conformations per sequence. With filtering enabled, the generated job "
+    "repeats sampling until the retained trajectory has at least this many "
+    "frames.",
     type=VariableTypes.INTEGER,
     defaultValue=10000,
 )
@@ -69,9 +74,12 @@ batchSizeVariable = PluginVariable(
 bioemuEnvVariable = PluginVariable(
     name="BioEmu environment",
     id="bioemu_env",
-    description="Name of the conda environment holding BioEmu.",
+    description="Optional conda environment used on the Horus machine for setup-time cache "
+    "warmup. If cache files are missing, setup can run a one-sample BioEmu "
+    "calculation before cluster submission. This does not activate the returned "
+    "sampling jobs.",
     type=VariableTypes.STRING,
-    defaultValue="bioemu",
+    defaultValue="protselect",
 )
 # Used when the job goes to MareNostrum 5 and the matching setting is empty.
 MN5_CLUSTER_ENV = "/gpfs/projects/bsc72/conda_envs/bioemu"
@@ -84,59 +92,62 @@ MN5_MSA_DATABASE = "/gpfs/apps/MN5/ACC/COLABFOLD/SRC/database/FULL"
 clusterEnvVariable = PluginVariable(
     name="Cluster BioEmu environment",
     id="cluster_env",
-    description="Path to the conda environment holding BioEmu on the cluster; the "
-    "jobs call its Python directly. Leave it empty to activate the 'BioEmu "
-    "environment' by name through 'conda.sh path' instead (on MareNostrum 5, "
-    f"empty uses {MN5_CLUSTER_ENV}).",
+    description="Environment root whose bin/python is used directly by generated sampling "
+    "commands. Empty uses PATH on non-MN5 remotes; on MareNostrum 5 it uses the "
+    "MN5 fallback. It does not remove the separate setup-time warmup controlled "
+    "by BioEmu environment.",
     type=VariableTypes.STRING,
     defaultValue="",
 )
 colabfoldBinVariable = PluginVariable(
     name="ColabFold bin folder",
     id="colabfold_bin",
-    description="Folder holding 'colabfold_search', prepended to the job's PATH. "
-    "Point it at the ColabFold installation that goes with your environment, or "
-    "leave it empty if colabfold_search is already on PATH.",
+    description="Folder holding colabfold_search, prepended to PATH in cluster jobs. Empty "
+    "uses the MN5 fallback on MN5 and otherwise adds no override. Local runs need "
+    "PATH set beforehand or through Environment variables.",
     type=VariableTypes.STRING,
     defaultValue="",
 )
 colabfoldDirVariable = PluginVariable(
     name="COLABFOLD_DIR",
     id="colabfold_dir",
-    description="Exported as COLABFOLD_DIR when set. Leave it empty if your ColabFold "
-    "installation does not need it.",
+    description="COLABFOLD_DIR exported in cluster jobs when set. For Local runs, supply it "
+    "in Environment variables if your installation requires it.",
     type=VariableTypes.STRING,
     defaultValue="",
 )
 hfCacheVariable = PluginVariable(
     name="HuggingFace cache",
     id="hf_cache",
-    description="Pre-populated HuggingFace cache holding the BioEmu checkpoints. "
-    "Exported as HF_HOME (with HF_HUB_CACHE=<cache>/hub) together with the offline "
-    "flags, so the compute node never reaches out for the model weights. Empty "
-    "disables the exports, which needs the node to have internet access.",
+    description="Populated checkpoint cache exported as HF_HOME/HF_HUB_CACHE with offline "
+    "flags in cluster jobs. Empty uses the MN5 fallback on MN5; elsewhere it adds "
+    "no override, so the normal cache/network behavior applies. Local runs need "
+    "these variables supplied separately.",
     type=VariableTypes.STRING,
     defaultValue="",
 )
 clusterModulesVariable = PluginVariable(
     name="Cluster modules",
     id="cluster_modules",
-    description="Comma-separated modules loaded by the job before activating the "
-    "environment, for example the one providing conda.",
+    description="Comma-separated modules loaded in cluster jobs. Empty uses the MN5 fallback "
+    "on MN5 and otherwise loads none. Ignored by the local launcher.",
     type=VariableTypes.STRING,
     defaultValue="",
 )
 condaShVariable = PluginVariable(
     name="conda.sh path",
     id="conda_sh",
-    description="Path to the conda profile script used to activate the environment.",
+    description="Conda profile script used on the Horus machine by setup-time warmup through "
+    "BioEmu environment. Returned sampling jobs do not source this script.",
     type=VariableTypes.STRING,
     defaultValue="~/miniconda3/etc/profile.d/conda.sh",
 )
 gpuLocalVariable = PluginVariable(
     name="Local GPU",
     id="gpu_local",
-    description="Build the commands for a local GPU run instead of a cluster job.",
+    description="Adds the backend's CUDA_VISIBLE_DEVICES=GPUID placeholder. This block "
+    "currently does not configure the launcher to substitute GPUID; leave "
+    "disabled. The selected Horus remote controls where jobs run.",
     type=VariableTypes.BOOLEAN,
     defaultValue=False,
 )
@@ -150,9 +161,10 @@ filterSamplesVariable = PluginVariable(
 msaCalculationVariable = PluginVariable(
     name="MSA calculation",
     id="msa_calculation",
-    description="Build the MSA on the cluster with colabfold_search against a local "
-    "database. Leave it off only if the compute nodes have internet access: BioEmu "
-    "otherwise queries the ColabFold web API to align the raw sequence.",
+    description="Prepend colabfold_search against a local database and pass its .a3m "
+    "alignment to BioEmu. Runs wherever the selected remote executes jobs. "
+    "Without this, uncached embeddings/MSAs may require the ColabFold "
+    "service/network.",
     type=VariableTypes.BOOLEAN,
     defaultValue=False,
 )
@@ -175,17 +187,19 @@ msaDatabaseVariable = PluginVariable(
 clusterMsaFolderVariable = PluginVariable(
     name="Persistent MSA folder",
     id="cluster_msa_folder",
-    description="Absolute folder on the cluster where the alignments are kept, one "
-    "subfolder per model. Living outside the folder uploaded on each launch, an "
-    "alignment found there is reused and colabfold_search is skipped. Empty keeps "
-    "them inside the run folder, so every launch searches again.",
+    description="Optional absolute MSA root on the execution machine, with one subfolder per "
+    "model. Empty uses <run folder>/msas. Both locations reuse an existing .a3m "
+    "by presence, without validating changed sequences or databases; an external "
+    "root survives removal of the run folder.",
     type=VariableTypes.STRING,
     defaultValue="",
 )
 skipFinishedVariable = PluginVariable(
     name="Skip finished",
     id="skip_finished",
-    description="Do not regenerate jobs whose sampling already completed.",
+    description="Skip sequences with topology.pdb and a samples.xtc trajectory containing at "
+    "least the requested number of frames. Input sequences, filtering settings "
+    "and protocol changes are not validated against existing results.",
     type=VariableTypes.BOOLEAN,
     defaultValue=True,
 )
@@ -237,10 +251,9 @@ def _use_local_msa(jobs, folder_name, mmseqs_path, database_path, msa_root=None)
     Prepend a local ``colabfold_search`` to each job and feed it its MSA.
 
     Without this BioEmu receives the raw sequence and aligns it through the
-    ColabFold web API, which the compute nodes cannot reach. ``setUpBioEmu`` has
-    an ``msa_calculation`` flag meant to do this, but it writes the search and
-    the ``RUN_SAMPLES`` assignment on the same line and then reads the alignment
-    from a path the search never produces, so the step is built here instead.
+    ColabFold web API, which offline compute nodes cannot reach. The block builds
+    this step itself rather than using the backend's ``msa_calculation`` flag,
+    adding explicit failure checks and an optional external alignment root.
 
     ``msa_root`` keeps the alignments outside the folder uploaded on each launch,
     so a rerun reuses them instead of searching again.
@@ -442,8 +455,8 @@ def initial_bioemu(block: SlurmBlock):
 
     print(f"Generated {len(jobs)} BioEmu job(s).")
 
-    # Without an environment path, the jobs activate the 'BioEmu environment' by
-    # name themselves, through conda.sh; with one, they call its Python directly.
+    # The named BioEmu environment was used for setup-time warmup above. Returned
+    # jobs rely on PATH unless an environment root selects its Python directly.
     cluster_env = cluster_setting(block, clusterEnvVariable.id, MN5_CLUSTER_ENV)
 
     if cluster_env:
@@ -524,8 +537,13 @@ bioEmuBlock = SlurmBlock(
     category="BioEmu",
     name="BioEmu Sampling",
     id="bioemu_sampling",
-    description="Sample conformational ensembles with BioEmu "
-    "as a SLURM job on a GPU cluster remote, or on the Local remote.",
+    description="Sample BioEmu ensembles on the selected Local or SLURM remote. Setup may "
+    "first run one sample locally in BioEmu environment to populate caches. "
+    "Cluster environment selects the returned jobs' interpreter; on Local runs it "
+    "can also rewrite that interpreter, but launcher modules/exports are ignored. "
+    "Keep Local GPU disabled because its GPUID placeholder is not assigned by "
+    "this block. Existing samples/MSAs are reused without validating input or "
+    "protocol changes; use new folders when they change.",
     initialAction=initial_bioemu,
     finalAction=final_bioemu,
     variables=BSC_JOB_VARIABLES

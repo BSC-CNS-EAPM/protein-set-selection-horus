@@ -5,16 +5,16 @@ The plugin's own Python dependencies are declared in ``plugin.meta`` and Horus
 pip-installs them into ``deps/`` at install time, so nothing here needs to touch
 them; the entries of kind ``python-import`` only *check* that they arrived.
 
-What this module exists for is everything that cannot go in ``deps/``:
-executables (MMseqs2, MAFFT, Rosetta, SMOG), packages that need their own
-environment because of a large or CUDA-specific torch (BioEmu, CodonTransformer,
-PyRosetta), and torch itself. Those are detected here, installed on request, and
-the paths that result are written into the plugin configuration so the blocks
-find them.
+This module detects external executables and scientific Python packages and
+installs supported tools on request. MAFFT, torch, PyRosetta, BioEmu and
+CodonTransformer all go into one conda environment, ``protselect``; MMseqs2 is a
+static build in the plugin's dependency folder. Saved paths are not consumed by
+every block; Rosetta and BioEmu require block settings and SMOG must be on PATH.
 
-Two tools are deliberately never installed automatically. Rosetta is licensed
-and distributed as a large compiled bundle, and SMOG 2 is registration-gated;
-for both, this module detects and validates what the user already has.
+This page detects Rosetta and SMOG2 but does not install them. The separate
+terminal installer supports a licensed Rosetta bundle and SMOG2 installation;
+consult the installation guide for licensing and runtime requirements.
+
 """
 
 import json
@@ -24,6 +24,12 @@ import subprocess
 import sys
 
 PLUGIN_ID = "protselect"
+
+# The one conda environment every installable tool shares.
+SHARED_ENV = "protselect"
+CONSTRAINTS_FILE = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "protselect_constraints.txt"
+)
 
 
 # ==========================#
@@ -127,6 +133,11 @@ def _check_executable(tool, values):
     candidates.append(tool.get("command", tool["key"]))
     # pip --target installs land in deps/bin, which is not on PATH.
     candidates.append(os.path.join(_deps_bin(), tool.get("command", tool["key"])))
+    shared_python = resolve_env_python(SHARED_ENV)
+    if shared_python:
+        candidates.append(
+            os.path.join(os.path.dirname(shared_python), tool.get("command", tool["key"]))
+        )
 
     for candidate in candidates:
         if not candidate:
@@ -138,7 +149,7 @@ def _check_executable(tool, values):
 
 
 def _check_conda_env(tool, values):
-    """A package living in its own environment."""
+    """A package living in a conda environment, by default the shared one."""
     configured = (values.get(tool["config_var"]) or "").strip() or tool.get("default_env", "")
     interpreter = resolve_env_python(configured)
     if not interpreter:
@@ -187,12 +198,13 @@ _CHECKS = {
 # the registry can dispatch to them uniformly, and returns the config values it
 # produced. Most do not need all four arguments.
 # pylint: disable=unused-argument
-def _run(command, log, env=None, secrets=()):
+def _run(command, log, env=None, secrets=(), base_env=None):
     """
     Run a command, streaming into ``log``, with secrets redacted.
 
     ``log`` is a list the caller drains; redaction happens before anything is
-    appended, so a credential cannot reach the page or a log file.
+    appended, so a credential cannot reach the page or a log file. ``base_env``
+    replaces the inherited environment, and ``env`` is applied on top of it.
     """
     printable = " ".join(command)
     for secret in secrets:
@@ -200,7 +212,7 @@ def _run(command, log, env=None, secrets=()):
             printable = printable.replace(secret, "***")
     log.append(f"$ {printable}")
 
-    merged = dict(os.environ)
+    merged = dict(os.environ if base_env is None else base_env)
     if env:
         merged.update(env)
 
@@ -219,19 +231,42 @@ def _run(command, log, env=None, secrets=()):
             raise RuntimeError(f"Command failed with exit code {process.returncode}")
 
 
-def _pip_install(packages, log, index_url=None):
-    """Install into the plugin's own deps folder, as Horus does."""
-    command = [sys.executable, "-m", "pip", "install", "--prefix", _deps_dir()]
+def _shared_env_python(log):
+    """Return the shared environment's interpreter, creating it on first use."""
+    interpreter = resolve_env_python(SHARED_ENV)
+    if interpreter:
+        return interpreter
+
+    conda = _conda_command()
+    if not conda:
+        raise RuntimeError(
+            "No conda, mamba or micromamba was found on PATH, so the "
+            f"'{SHARED_ENV}' environment cannot be created. Install micromamba, "
+            "or install the tool by hand and give its path in the configuration."
+        )
+    _run([conda, "create", "-y", "-n", SHARED_ENV, "-c", "conda-forge", "python=3.11"], log)
+    interpreter = resolve_env_python(SHARED_ENV)
+    if not interpreter:
+        raise RuntimeError(f"Created '{SHARED_ENV}' but could not find its interpreter.")
+    # Installed first so a tool's own installer cannot bring in an unconstrained numpy.
+    _shared_pip_install(["numpy"], log)
+    return interpreter
+
+
+def _shared_pip_install(packages, log, index_url=None, secrets=()):
+    """pip-install into the shared environment under its constraints."""
+    interpreter = _shared_env_python(log)
+    command = [interpreter, "-m", "pip", "install", "-c", CONSTRAINTS_FILE]
     if index_url:
         command += ["--index-url", index_url]
     command += list(packages)
-    _run(command, log)
+    _run(command, log, secrets=secrets, base_env=_foreign_python_env())
+    return interpreter
 
 
 def _install_torch(tool, options, credentials, log):
     index = (options.get("cuda_index") or "").strip()
-    _pip_install(["torch"], log, index_url=index or None)
-    return {"proteinmpnn_python": sys.executable}
+    return {"proteinmpnn_python": _shared_pip_install(["torch"], log, index_url=index or None)}
 
 
 def _install_mmseqs(tool, options, credentials, log):
@@ -264,39 +299,18 @@ def _install_mmseqs(tool, options, credentials, log):
     return {"mmseqs_path": binary}
 
 
-def _install_conda_package(env_name, packages, log, channels=("conda-forge", "bioconda")):
-    """Create (if needed) a conda environment and pip-install into it."""
-    conda = _conda_command()
-    if not conda:
-        raise RuntimeError(
-            "No conda, mamba or micromamba was found on PATH, so an environment "
-            "cannot be created automatically. Create it by hand and give its name "
-            "in the configuration."
-        )
-
-    interpreter = resolve_env_python(env_name)
-    if not interpreter:
-        command = [conda, "create", "-y", "-n", env_name, "python=3.11"]
-        for channel in channels:
-            command += ["-c", channel]
-        _run(command, log)
-        interpreter = resolve_env_python(env_name)
-        if not interpreter:
-            raise RuntimeError(f"Created '{env_name}' but could not find its interpreter.")
-
-    _run([interpreter, "-m", "pip", "install"] + list(packages), log)
-    return interpreter
-
-
 def _install_mafft(tool, options, credentials, log):
+    interpreter = _shared_env_python(log)
     conda = _conda_command()
     if not conda:
         raise RuntimeError(
             "MAFFT needs conda/micromamba to install, or your system package "
             "manager ('apt install mafft'). Then give its path in the configuration."
         )
-    _run([conda, "install", "-y", "-c", "bioconda", "mafft", "-p", _deps_dir()], log)
-    binary = os.path.join(_deps_bin(), "mafft")
+    prefix = os.path.dirname(os.path.dirname(interpreter))
+    _run([conda, "install", "-y", "-p", prefix, "-c", "conda-forge", "-c", "bioconda", "mafft"],
+         log)
+    binary = os.path.join(prefix, "bin", "mafft")
     if not os.path.isfile(binary):
         raise RuntimeError("MAFFT was installed but its binary was not where expected.")
     return {"mafft_path": binary}
@@ -315,34 +329,31 @@ def _install_pyrosetta(tool, options, credentials, log):
 
     if username and password:
         index = f"https://{username}:{password}@conda.graylab.jhu.edu/pypi/simple"
-        _pip_install(["pyrosetta"], log, index_url=index)
+        interpreter = _shared_pip_install(
+            ["pyrosetta"], log, index_url=index, secrets=(username, password)
+        )
     else:
-        _pip_install(["pyrosetta-installer"], log)
+        interpreter = _shared_pip_install(["pandas", "pyrosetta-installer"], log)
+        # The installer calls the 'pip' on PATH, which has to be this environment's.
+        path = os.pathsep.join([os.path.dirname(interpreter), os.environ.get("PATH", "")])
         _run(
-            [sys.executable, "-c",
+            [interpreter, "-c",
              "import pyrosetta_installer; pyrosetta_installer.install_pyrosetta()"],
             log,
-            env={"PYTHONPATH": _site_packages()},
+            env={"PATH": path},
+            base_env=_foreign_python_env(),
         )
-    return {"pyrosetta_python": sys.executable}
+    return {"pyrosetta_python": interpreter}
 
 
 def _install_bioemu(tool, options, credentials, log):
-    env_name = (options.get("env") or "bioemu").strip()
-    interpreter = _install_conda_package(env_name, ["bioemu"], log)
+    interpreter = _shared_pip_install(["bioemu"], log)
     return {"bioemu_env": os.path.dirname(os.path.dirname(interpreter))}
 
 
 def _install_codontransformer(tool, options, credentials, log):
-    env_name = (options.get("env") or "codontransformer").strip()
-    interpreter = _install_conda_package(env_name, ["CodonTransformer", "torch"], log)
+    interpreter = _shared_pip_install(["CodonTransformer", "torch"], log)
     return {"codontransformer_env": os.path.dirname(os.path.dirname(interpreter))}
-
-
-def _site_packages():
-    """The site-packages inside deps/, for PYTHONPATH."""
-    version = f"python{sys.version_info.major}.{sys.version_info.minor}"
-    return os.path.join(_deps_dir(), "lib", version, "site-packages")
 
 
 # pylint: enable=unused-argument
@@ -415,27 +426,30 @@ TOOLS = [
         "install": _install_mafft,
         "credentials": None,
         "needed_by": ["Multiple Sequence Alignment"],
-        "note": "Installed from bioconda; 'apt install mafft' also works.",
+        "note": "Installed from bioconda into the 'protselect' environment; "
+                "'apt install mafft' also works.",
     },
     {
         "key": "torch",
         "label": "PyTorch",
-        "kind": "python-import",
+        "kind": "conda-env",
         "module": "torch",
+        "default_env": SHARED_ENV,
         "optional": False,
         "config_var": "proteinmpnn_python",
         "install": _install_torch,
         "credentials": None,
         "needed_by": ["ProteinMPNN Scoring"],
-        "note": "Not a plugin dependency: the wheel is large and its build has "
-                "to match the machine's CUDA version. A CPU build works but is slow.",
+        "note": "Installed into the 'protselect' environment, not the plugin's "
+                "dependencies: the wheel is large and its build has to match the "
+                "machine's CUDA version. A CPU build works but is slow.",
     },
     {
         "key": "pyrosetta",
         "label": "PyRosetta",
         "kind": "conda-env",
         "module": "pyrosetta",
-        "default_env": "",
+        "default_env": SHARED_ENV,
         "optional": False,
         "config_var": "pyrosetta_python",
         "install": _install_pyrosetta,
@@ -450,27 +464,28 @@ TOOLS = [
         "label": "BioEmu",
         "kind": "conda-env",
         "module": "bioemu",
-        "default_env": "bioemu",
+        "default_env": SHARED_ENV,
         "optional": False,
         "config_var": "bioemu_env",
         "install": _install_bioemu,
         "credentials": None,
         "needed_by": ["BioEmu Sampling"],
-        "note": "Runs in its own environment. On a cluster it is given per-block "
-                "instead, so a local install is only needed to sample here.",
+        "note": "Installed into the 'protselect' environment. On a cluster it is "
+                "given per-block instead, so a local install is only needed to "
+                "sample here.",
     },
     {
         "key": "codontransformer",
         "label": "CodonTransformer",
         "kind": "conda-env",
         "module": "CodonTransformer",
-        "default_env": "codontransformer",
+        "default_env": SHARED_ENV,
         "optional": False,
         "config_var": "codontransformer_env",
         "install": _install_codontransformer,
         "credentials": None,
         "needed_by": ["CodonTransformer"],
-        "note": "Runs in its own environment because of its torch stack.",
+        "note": "Installed into the 'protselect' environment.",
     },
     {
         "key": "rosetta",

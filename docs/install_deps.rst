@@ -12,7 +12,11 @@ The plugin's own Python dependencies are installed by Horus with the plugin
 What it needs
 -------------
 
-- **Linux** (x86_64 or aarch64) or **macOS**, with bash, ``curl`` and ``tar``.
+- **Linux or macOS**, with bash, ``curl`` and ``tar``. Individual tools have
+  platform restrictions: the MMseqs2 download is architecture-specific,
+  Rosetta bundles do not cover Linux ARM, and the native SMOG2 route requests
+  an x86_64 Linux sysroot. Use an appropriate container or manual SMOG2
+  installation on other architectures.
 - **micromamba, mamba or conda** on ``PATH``. To install micromamba:
 
   .. code-block:: bash
@@ -21,8 +25,9 @@ What it needs
 
 - An internet connection, except for an offline Rosetta install (see
   :ref:`install_deps:Installing Rosetta offline`).
-- ``python3``, only for ``--config``.
-- No root access: everything is installed in your home folder.
+- ``python3`` (or ``python``), for ``--config``.
+- No root access is needed for the default installation locations. A container
+  installation additionally needs a working podman or docker setup.
 
 Quick start
 -----------
@@ -61,7 +66,9 @@ Options
        ``pyrosetta``, ``bioemu``, ``codontransformer``, ``rosetta``, ``smog``.
    * - ``--config FILE``
      - Also save the resulting paths into a Horus configuration file, normally
-       ``<AppSupport>/config/protselect/protselect_Local.json``.
+       ``<AppSupport>/config/protselect/protselect_Local.json``. It writes
+       results; it does not read this file to discover tools, and ``--check``
+       suppresses the write.
    * - ``--rosetta-noncommercial``
      - Confirm that your use of Rosetta is academic or non-commercial, so it can
        be installed without the question. Needed for unattended installs.
@@ -95,7 +102,12 @@ Examples:
 What it installs, and where
 ---------------------------
 
-Most tools get their own conda environment, named after the tool.
+MAFFT, ProteinMPNN's PyTorch, PyRosetta, BioEmu and CodonTransformer all go
+into one conda environment, ``protselect``, created the first time a tool needs
+it. MMseqs2 and Rosetta use standalone directories, and SMOG2 uses a container
+wrapper or ``protselect``. The installer reuses MMseqs2, MAFFT, Rosetta and
+SMOG2 when it finds them on ``PATH``. Tools in environments left by an earlier
+version are not reused; see :ref:`configuration:The protselect environment`.
 
 .. list-table::
    :header-rows: 1
@@ -111,23 +123,24 @@ Most tools get their own conda environment, named after the tool.
      - ``mmseqs_path``
    * - MAFFT
      - Multiple Sequence Alignment (MAFFT)
-     - conda environment ``mafft``
+     - conda environment ``protselect``
      - ``mafft_path``
    * - PyTorch
      - ProteinMPNN Scoring, locally
-     - conda environment ``proteinmpnn``
+     - conda environment ``protselect``
      - ``proteinmpnn_python``
    * - PyRosetta
      - Analyse Rosetta Relax
-     - conda environment ``pyrosetta``
+     - conda environment ``protselect``
      - ``pyrosetta_python``
    * - BioEmu
      - BioEmu Sampling, locally
-     - conda environment ``bioemu``
-     - ``bioemu_env``, for the block's **BioEmu environment**
+     - conda environment ``protselect``
+     - ``bioemu_env`` (environment directory); use that directory in the
+       block's **Cluster BioEmu environment** for sampling
    * - CodonTransformer
      - CodonTransformer
-     - conda environment ``codontransformer``
+     - conda environment ``protselect``
      - ``codontransformer_env``
    * - Rosetta (optional)
      - Rosetta Relax, locally
@@ -135,19 +148,25 @@ Most tools get their own conda environment, named after the tool.
      - ``rosetta_path``, for the block's **Rosetta executable**
    * - SMOG2 (optional)
      - Analyse BioEmu, for the fraction of native contacts only
-     - ``<tools-dir>/bin/smog2``, or conda environment ``smog2``
+     - Container wrapper ``<tools-dir>/bin/smog2``, or native
+       ``<tools-dir>/smog2-<version>/bin/smog2`` with dependencies in environment
+       ``protselect``
      - ``smog_path``
 
 PyTorch and the GPU
 ~~~~~~~~~~~~~~~~~~~
 
-On a machine with an NVIDIA GPU the installer offers the CUDA build of
-PyTorch, otherwise the CPU build, which works but is slow. Before installing it
-shows the PyTorch package index it will use; type another one to change it, for
-example ``https://download.pytorch.org/whl/cu118`` for an older driver.
+If ``nvidia-smi`` is on ``PATH``, the script defaults to the CUDA 12.4 PyTorch
+index; otherwise it uses the CPU index. This is a simple heuristic, not a
+check that your driver supports the chosen build. In interactive mode, the
+script prompts for the index URL; choose one compatible with your driver
+using the `official PyTorch installer <https://pytorch.org/get-started/locally/>`_.
+``--yes`` accepts the script's default without that prompt.
 
-PyTorch is only needed to score with ProteinMPNN **locally**. On a cluster
-remote the block uses the conda environment set in its parameters.
+The ``protselect`` environment is used for ProteinMPNN scoring **locally**. On
+a cluster, that block uses the environment in its parameters. BioEmu and
+CodonTransformer use the same PyTorch, so the build you choose applies to all
+three.
 
 Rosetta
 ~~~~~~~
@@ -155,18 +174,48 @@ Rosetta
 Rosetta is optional: skip it if Rosetta Relax runs on a cluster that provides
 Rosetta as a module.
 
-- **Licence.** Rosetta is licensed for academic and non-commercial use only
-  (see :doc:`installation`). The installer asks you to confirm that your use is
-  covered, or takes ``--rosetta-noncommercial`` for unattended runs.
+- **Licence.** This installer's Rosetta download route is for non-commercial
+  use. It asks for confirmation or accepts ``--rosetta-noncommercial``.
+  Rosetta is also available under a separate commercial licence; follow
+  :ref:`install_deps:Installing Rosetta for commercial use` for that route.
 - **Size.** About 21.5 GB to download and 52 GB once installed; have about
   75 GB free while installing.
 - **Platforms.** Linux x86_64 and macOS (Intel and Apple silicon).
 - **Interrupted downloads.** Run the installer again to resume the download.
 
 When it finishes, it prints what to set in the Rosetta Relax block:
-**Rosetta executable** (the binary's name) and, if you use symmetry,
-**Rosetta path**. It then offers to link the binary into ``~/.local/bin`` so
-Horus finds it on ``PATH``.
+**Rosetta executable** (use the full binary path unless it is on ``PATH``)
+and, if needed by your workflow, **Rosetta path** (the installation directory).
+It then offers to link the binary into ``~/.local/bin`` so Horus can find it
+when that directory is on ``PATH``.
+
+Installing Rosetta for commercial use
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+1. Obtain or confirm your organisation's Rosetta commercial licence through
+   `University of Washington CoMotion <https://els2.comotion.uw.edu/product/rosetta>`_
+   (``license@uw.edu``). Check PyRosetta coverage separately if you use
+   **Analyse Rosetta Relax**: it has a
+   `separate licensing page <https://els2.comotion.uw.edu/product/pyrosetta>`_.
+   The `Rosetta licence <https://github.com/RosettaCommons/rosetta/blob/main/LICENSE.md>`_
+   explains that a commercial agreement supersedes the non-commercial terms.
+2. Download or build the distribution permitted by your agreement, following
+   the `official installation instructions
+   <https://docs.rosettacommons.org/demos/latest/tutorials/install_build/install_build>`_.
+   Preserve the bundle's ``main/source/bin`` and ``main/database`` layout.
+3. In **Rosetta Relax**, set **Rosetta executable** to the full path of the
+   suitable ``rosetta_scripts`` binary. Set the block's **Rosetta path** to
+   the installation directory if required by your workflow. You may also fill
+   in the configuration dialog's Rosetta executable for its check, but the
+   block does not read that saved configuration entry.
+4. Install licensed PyRosetta into an environment following its distribution
+   instructions, then point ``pyrosetta_python`` at that environment's Python.
+
+Do not pass ``--rosetta-noncommercial`` or answer yes to the non-commercial
+question for commercial work. The script has no commercial-licence option;
+its offline archive route asks the same question. Install licensed Rosetta
+separately, then use ``./install_deps.sh --only rosetta --check`` to look for
+it (put the binary on ``PATH`` if it is outside the installer's tools folder).
 
 Installing Rosetta offline
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -185,12 +234,18 @@ another machine without downloading it again:
 SMOG2
 ~~~~~
 
-SMOG2 is optional: Analyse BioEmu only needs it for the fraction of native
-contacts (Q) and the folding free energy derived from it.
+SMOG2 is needed to generate the native contacts used for Q and the
+Q-derived folding free-energy estimate. Its absence is allowed by the
+installer, but **Analyse BioEmu** does not automatically skip this phase:
+disable **Compute native contacts** if you are not supplying the required
+contacts. The preset's Pareto objective ``Q_Average`` then also needs changing.
+SMOG2 is distributed under the GPL; see its
+`official repository <https://github.com/smog-server/SMOG2>`_.
 
 - With **podman or docker** installed, SMOG2 runs from its official container.
-- Otherwise it is installed into a ``smog2`` conda environment, which takes
-  several minutes.
+- Otherwise the script adds Perl, Java and build dependencies to the
+  ``protselect`` environment, then downloads and configures SMOG2 under
+  ``<tools-dir>/smog2-<version>``. This includes compiling dependencies.
 
 Analyse BioEmu needs ``smog2`` on ``PATH``, so the installer offers to link it
 into ``~/.local/bin``.
@@ -211,7 +266,7 @@ At the end, the installer prints a summary and the configuration values:
 
    == Plugin configuration values ==
      mmseqs_path            /home/me/.local/share/protselect/mmseqs/bin/mmseqs
-     mafft_path             /home/me/micromamba/envs/mafft/bin/mafft
+     mafft_path             /home/me/micromamba/envs/protselect/bin/mafft
      ...
 
 Each tool ends as ``ok`` (already there), ``installed``, ``missing`` (you
@@ -222,7 +277,9 @@ Get the values into Horus in one of three ways:
 
 - run with ``--config FILE`` to save them into that configuration file (keep
   Horus closed, or restart it afterwards);
-- press **Save detected paths** on the **Environment Setup** page;
+- press **Save detected paths** on **Extensions → Environment Setup**, then
+  review and correct the values described in
+  :ref:`configuration:Detection and saving limitations`;
 - enter them by hand in the plugin's configurations, with the **Local** remote
   selected.
 
@@ -235,6 +292,8 @@ your shell profile, and make sure Horus is started from a shell that has it.
 Exit status
 -----------
 
-The installer exits with **1** when a required tool is still missing at the
-end, and **0** otherwise; Rosetta and SMOG2 are optional. So
-``./install_deps.sh --check`` also works as a quick test of a machine's setup.
+The installer exits with **1** if any processed tool is recorded as
+``missing`` or ``failed``, and **0** otherwise. Skipping Rosetta or SMOG2
+produces ``optional-missing`` and does not fail the check, but a failed attempt
+to install either tool does. ``--only`` limits the tools included in this
+summary. A successful check confirms discovery, not a complete workflow run.

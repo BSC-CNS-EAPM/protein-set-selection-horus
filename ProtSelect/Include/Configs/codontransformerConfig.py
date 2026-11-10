@@ -1,8 +1,8 @@
 """
 Plugin configuration for the CodonTransformer environment.
 
-CodonTransformer needs torch and a transformers stack of its own, so it lives in
-a separate conda environment rather than in the plugin's dependencies. The block
+CodonTransformer needs torch and a transformers stack, so it lives in the shared
+``protselect`` conda environment rather than in the plugin's dependencies. The block
 resolves that environment's ``bin`` onto PATH rather than calling
 ``conda activate``, which does not work on hosts where conda is provided by
 micromamba.
@@ -16,7 +16,7 @@ codonTransformerEnvVariable = PluginVariable(
     description="Name of the conda environment holding CodonTransformer, a path to "
     "it, or a path to its python interpreter.",
     type=VariableTypes.STRING,
-    defaultValue="codontransformer",
+    defaultValue="protselect",
 )
 
 
@@ -69,9 +69,8 @@ def checkCodonTransformerInstallation(block: PluginConfig):
     env = (block.variables.get(codonTransformerEnvVariable.id) or "").strip()
     if not env:
         raise Exception(
-            "No CodonTransformer environment configured. Create one with "
-            "'conda create -n codontransformer python=3.11' followed by "
-            "'pip install CodonTransformer', then name it here."
+            "No CodonTransformer environment configured. Install it with "
+            "install_deps.sh, then name its 'protselect' environment here."
         )
 
     interpreter = _resolve_env_python(env)

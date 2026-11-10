@@ -145,6 +145,18 @@ if [[ "$INSTALL_FLAGS" == *--rosetta-noncommercial* ]] && want rosetta; then
     echo "rosetta_scripts ok ($(basename "$rosetta"))"
 fi
 
+step "One shared environment"
+envs="$(ls "$MAMBA_ROOT_PREFIX/envs")"
+echo "$envs"
+[ -z "$(grep -vx protselect <<< "$envs")" ] || fail "expected only the protselect environment"
+if [ -z "$ONLY" ]; then
+    /root/micromamba/envs/protselect/bin/python -c "
+import numpy, torch, pyrosetta, bioemu, CodonTransformer
+print('numpy', numpy.__version__, 'torch', torch.__version__)
+assert int(numpy.__version__.split('.')[0]) < 2" || fail "tools do not import together"
+    /root/micromamba/envs/protselect/bin/python -m pip check || fail "pip check"
+fi
+
 step "Config file"
 cat "$CONFIG"
 for pair in mmseqs:mmseqs_path mafft:mafft_path torch:proteinmpnn_python \

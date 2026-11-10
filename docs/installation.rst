@@ -25,19 +25,18 @@ Requirements
   install it locally.
 - **A SLURM cluster** is recommended for anything beyond a small test:
   ProteinMPNN and BioEmu want a GPU, and a Rosetta relax of many models is a
-  cluster job. Any SLURM cluster works: you name its queue, modules and
-  environments in the block settings. See :doc:`remotes`.
+  substantial compute workload. The plugin supports SLURM submission using
+  your site's queue, modules and environments; see :doc:`remotes`.
 
 .. important::
 
-   **Rosetta and PyRosetta need a licence.** They are free for academic and
-   non-commercial use under the Rosetta Software Non-Commercial License
-   Agreement, which covers the Rosetta Relax and Analyse Rosetta Relax blocks.
-   Commercial use, including fee-for-service work done by an academic group,
-   needs a commercial licence from the University of Washington
-   (`license@uw.edu <mailto:license@uw.edu>`_). Neither download asks for a
-   login, so it is up to you to check that your use is covered. See
-   `Rosetta licensing <https://rosettacommons.org/software/license-and-download/>`_.
+   **Rosetta and PyRosetta need licences.** Their non-commercial licences
+   are distinct; commercial use requires the appropriate commercial agreement
+   from the University of Washington CoMotion. Check coverage for both
+   **Rosetta Relax** (Rosetta) and **Analyse Rosetta Relax** (PyRosetta).
+   Download access alone does not grant commercial-use rights. See the
+   `official licensing information <https://rosettacommons.org/software/download/>`_
+   and :ref:`install_deps:Installing Rosetta for commercial use`.
 
 Step 1: install Horus
 ---------------------
@@ -66,9 +65,11 @@ Download the latest Horus release for your system from the
 
 **Windows**
 
-There is no Windows build. Use the web app at `horus.bsc.es
-<https://horus.bsc.es>`_, or run Horus on a Linux machine or server and open it
-from your browser.
+Use a browser connected to a Linux or macOS Horus server with this plugin and
+its tools installed. The Horus website links a `public demo
+<https://horus.bsc.es/demo>`_ for exploring the interface; do not assume it
+provides this plugin, your files or permission to install tools. In server
+mode, **Local** means the server, not the computer running your browser.
 
 **From source**
 
@@ -137,11 +138,16 @@ PyTorch is not installed with the plugin; Step 3 installs it.
 Step 3: install the external tools
 ----------------------------------
 
-Each external tool is installed in its own environment. There are two ways to
-install them; both install the tools in the same places, so you can mix them.
+There are two installers. Both put the tools that need a conda environment
+into one environment, ``protselect``. See
+:ref:`configuration:Where the two installers put tools` before choosing.
 
-**From Horus: the Environment Setup page.** Open the page the plugin adds. For
-every tool it shows whether it is found, where, and which blocks need it, with
+**From Horus: the Environment Setup page.** In a flow window, choose
+**Extensions → Environment Setup**. This is separate from **Horus → Plugins →
+Protein Set Selection**, which opens the configuration dialog. The
+:ref:`configuration:Finding the setup page and configuration dialog` section
+shows both routes with screenshots. For every tool the page shows whether it
+is found, where, and which blocks need it, with
 an **Install** button for MMseqs2, MAFFT, PyTorch, PyRosetta, BioEmu and
 CodonTransformer. It only detects Rosetta and SMOG2.
 
@@ -171,8 +177,11 @@ Rosetta offline are in :doc:`install_deps`.
 
    Install only what you will run **locally**. A block that runs on a cluster
    remote uses the cluster's modules and environments, not these. If
-   ProteinMPNN, BioEmu and Rosetta all run on the cluster, locally you only need
-   PyRosetta, CodonTransformer, MAFFT and, for local clustering, MMseqs2.
+   ProteinMPNN, BioEmu and Rosetta all run on the cluster, local post-processing
+   still needs PyRosetta, CodonTransformer, MAFFT and SMOG2 if native-contact
+   analysis is enabled. Local clustering also needs MMseqs2. For BioEmu, clear
+   the block's **BioEmu environment** if you do not intend to run cache
+   preparation on the Horus host; see :ref:`configuration:BioEmu execution`.
 
 Step 4: point the plugin at the tools
 -------------------------------------
@@ -180,8 +189,10 @@ Step 4: point the plugin at the tools
 The blocks find the local tools through the plugin's **configurations**, which
 Horus stores per remote. Fill them in one of three ways:
 
-- on the **Environment Setup** page, press **Save detected paths**, then reopen
-  the configurations in Horus to see the new values;
+- on the **Environment Setup** page, keep **Remote** set to **Local** and
+  press **Save detected paths**, then reopen the configuration dialog and
+  review the values. In particular, correct the PyTorch and BioEmu values as
+  described in :ref:`configuration:Detection and saving limitations`;
 - run the installer with ``--config``, pointing at the Local remote's
   configuration file in the AppSupport folder from Step 1:
 
@@ -194,11 +205,21 @@ Horus stores per remote. Fill them in one of three ways:
 - enter the values the installer prints at the end by hand, in the plugin's
   configurations with the **Local** remote selected.
 
-Rosetta, BioEmu and SMOG2 are not read from the configurations yet. Set them on
-the blocks instead: the Rosetta Relax block's **Rosetta executable** (and
-**Rosetta path** for symmetry), the BioEmu Sampling block's **BioEmu
-environment**, and ``smog2`` on the ``PATH`` Horus runs with. The installer
-prints these values too. See :doc:`configuration`.
+The current blocks do **not** read the saved ``rosetta_path``, ``bioemu_env``
+or ``smog_path`` configuration entries. These entries support setup checks,
+but saving them alone does not configure execution:
+
+- **Rosetta Relax**: set the block's **Rosetta executable** to the full path
+  of ``rosetta_scripts``, or to its command name if it is on ``PATH``. The
+  block's **Rosetta path** is an installation directory, not the executable.
+- **BioEmu Sampling**: set **Cluster BioEmu environment** to the environment
+  directory used for sampling (this also works locally). **BioEmu environment**
+  and **conda.sh path** control a separate cache-preparation step on the Horus
+  host in the current backend; see :ref:`configuration:BioEmu execution`.
+- **Analyse BioEmu**: make ``smog2`` available on the ``PATH`` inherited by
+  Horus. Disable **Compute native contacts** if that analysis is not needed.
+
+The installer prints the detected locations. See :doc:`configuration`.
 
 Step 5: set up your cluster (optional)
 --------------------------------------
@@ -214,12 +235,16 @@ Step 6: check the installation
 
 1. Run ``./install_deps.sh --check``. It ends with a summary; every tool you
    need should read ``ok`` or ``installed``. It exits with status 1 while a
-   required tool is missing.
-2. In Horus, open the **Environment Setup** page and check the same.
+   checked tool is missing or an installation attempt failed. Use ``--only``
+   to limit checks to the tools you need locally.
+2. In Horus, choose **Extensions → Environment Setup** and review the local
+   checks. These are discovery checks, not a full test of each tool; see
+   :ref:`configuration:Detection and saving limitations`.
 3. Open the **ProteSel Pipeline** preset from the plugin's presets. Its input
    blocks come filled in with the small lysozyme example. Lower the expensive
-   settings (Rosetta ``nstruct`` 2 with **CPUs** 3, BioEmu ``num_samples`` 10)
-   and run it. See :doc:`workflow` and :doc:`example_data`.
+   settings (Rosetta ``nstruct`` 2, BioEmu ``num_samples`` 10). For an MPI
+   Rosetta cluster run, use **CPUs** 3; locally this setting instead controls
+   concurrent model jobs. Configure the remotes and run it. See :doc:`workflow` and :doc:`example_data`.
 
 If a block cannot find a tool, see :doc:`troubleshooting`.
 

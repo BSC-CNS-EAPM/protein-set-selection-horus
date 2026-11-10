@@ -1,11 +1,11 @@
 """
 Plugin configuration for the BioEmu environment and the SMOG installation.
 
-BioEmu runs in its own conda environment because it pulls in a large torch and
-model stack that has no business in the plugin's own dependencies. SMOG is only
-needed for the native-contacts half of the BioEmu analysis, which produces Q and
-the folding free energy; it is registration-gated, so the plugin never installs
-it and the analysis degrades gracefully without it.
+These saved entries support detection and validation. The execution blocks do
+not currently read them: configure BioEmu on its sampling block and expose
+smog2 on the Horus process PATH. Native-contact analysis must be disabled
+explicitly if compatible cached contacts or SMOG2 are unavailable.
+
 """
 
 from HorusAPI import PluginConfig, PluginVariable, VariableTypes
@@ -13,17 +13,18 @@ from HorusAPI import PluginConfig, PluginVariable, VariableTypes
 bioemuEnvVariable = PluginVariable(
     id="bioemu_env",
     name="BioEmu environment",
-    description="Name or path of the conda environment holding BioEmu. On a "
-    "cluster this is set per-block instead, so it can be left empty here.",
+    description="Name or directory of the BioEmu environment to check locally. "
+    "Sampling does not read this entry; configure its block environment fields.",
     type=VariableTypes.STRING,
-    defaultValue="bioemu",
+    defaultValue="protselect",
 )
 
 smogPathVariable = PluginVariable(
     id="smog_path",
     name="SMOG executable (optional)",
-    description="Path to the SMOG 2 executable, used for native contacts (Q and "
-    "the folding free energy). Leave empty to skip that analysis phase.",
+    description="SMOG2 executable to check locally. Analysis does not read this "
+    "entry: expose smog2 on PATH. To omit Q and dGf, disable Compute native "
+    "contacts on Analyse BioEmu explicitly.",
     type=VariableTypes.FILE,
     defaultValue="",
 )
@@ -88,7 +89,7 @@ def checkBioEmuInstallation(block: PluginConfig):
                 f"Warning: could not find a local conda environment named '{env}'. "
                 "This is expected when BioEmu only exists on the cluster; if you "
                 "meant to run it locally, create the environment with "
-                "'conda create -n bioemu python=3.11 && pip install bioemu'."
+                "install_deps.sh, which puts it in the 'protselect' environment."
             )
         else:
             probe = subprocess.run(
@@ -107,18 +108,18 @@ def checkBioEmuInstallation(block: PluginConfig):
     smog_path = (block.variables.get(smogPathVariable.id) or "").strip()
     if not smog_path:
         print(
-            "No SMOG executable configured. The BioEmu analysis will skip native "
-            "contacts, so it produces RMSD and RMSF but not Q or the folding free "
-            "energy. Disable 'Compute native contacts' on that block to match."
+            "No SMOG executable configured for this check. Analyse BioEmu uses "
+            "smog2 on PATH or cached contacts. To omit Q and dGf, disable "
+            "'Compute native contacts' on the analysis block explicitly."
         )
         return
 
     resolved = smog_path if os.path.isfile(smog_path) else shutil.which(smog_path)
     if not resolved:
         raise Exception(
-            f"The SMOG executable '{smog_path}' was not found. SMOG 2 requires "
-            "registration and is not installed by this plugin; see "
-            "https://smog-server.org, or clear this entry to skip native contacts."
+            f"The SMOG executable '{smog_path}' was not found. Install SMOG2 "
+            "separately or with install_deps.sh; see https://smog-server.org. "
+            "Clearing this entry does not disable native-contact analysis."
         )
     print(f"Found SMOG at {resolved}")
 
@@ -126,8 +127,8 @@ def checkBioEmuInstallation(block: PluginConfig):
 bioemuExecutableConfig = PluginConfig(
     id="bioemu_environment",
     name="BioEmu environment",
-    description="Configure the BioEmu conda environment and the optional SMOG "
-    "installation used for native contacts",
+    description="Check a local BioEmu environment and optional SMOG2 executable. "
+    "Execution uses block settings and PATH instead of these saved entries.",
     variables=[bioemuEnvVariable, smogPathVariable],
     action=checkBioEmuInstallation,
 )
