@@ -19,10 +19,11 @@ Requirements
   ProteinMPNN), Rosetta and PyRosetta, BioEmu, CodonTransformer and, optionally,
   SMOG2. Which ones you need depends on the blocks you use and where they run;
   see :doc:`configuration`. Step 3 installs them.
-- **micromamba, mamba or conda**, to create the environments the tools live in.
-- **Disk space**: several GB for the tool environments (PyTorch, BioEmu and
-  PyRosetta are the large ones), plus about 75 GB while Rosetta installs if you
-  install it locally.
+- **micromamba, mamba or conda**, to create the ``protselect`` environment the
+  tools share.
+- **Disk space**: about 7 GB for the ``protselect`` environment with CPU
+  PyTorch, more with a CUDA build, plus about 75 GB while Rosetta installs if
+  you install it locally.
 - **A SLURM cluster** is recommended for anything beyond a small test:
   ProteinMPNN and BioEmu want a GPU, and a Rosetta relax of many models is a
   substantial compute workload. The plugin supports SLURM submission using
@@ -191,8 +192,8 @@ Horus stores per remote. Fill them in one of three ways:
 
 - on the **Environment Setup** page, keep **Remote** set to **Local** and
   press **Save detected paths**, then reopen the configuration dialog and
-  review the values. In particular, correct the PyTorch and BioEmu values as
-  described in :ref:`configuration:Detection and saving limitations`;
+  review the values. In particular, correct the BioEmu value as described in
+  :ref:`configuration:Detection and saving limitations`;
 - run the installer with ``--config``, pointing at the Local remote's
   configuration file in the AppSupport folder from Step 1:
 

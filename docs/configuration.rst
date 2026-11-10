@@ -109,8 +109,10 @@ The Environment Setup page
 
 The page reports detected locations and which blocks need each tool. It has
 **Install** buttons for MMseqs2, MAFFT, PyTorch, PyRosetta, BioEmu and
-CodonTransformer. It only detects Rosetta and SMOG2; install those separately
-(see :doc:`install_deps`, including the commercial Rosetta instructions).
+CodonTransformer. Every button except MMseqs2 installs into the ``protselect``
+environment, which needs micromamba, mamba or conda on the ``PATH`` of the Horus
+process. The page only detects Rosetta and SMOG2; install those separately (see
+:doc:`install_deps`, including the commercial Rosetta instructions).
 
 After **Save detected paths**, reopen the configuration dialog to inspect the
 new values. The page's **Remote** field chooses a configuration file; checks
@@ -142,11 +144,12 @@ Both use one conda environment, ``protselect``, for every tool that needs one:
 Detection and saving limitations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The setup page checks executables using the saved path, ``PATH`` and the
-plugin's ``deps/bin``. A found file is not proof that it can run successfully.
-For BioEmu, PyRosetta and CodonTransformer, it resolves an environment or
-interpreter and tries to import the package. This does not test model downloads,
-GPU execution or a complete calculation.
+The setup page checks executables using the saved path, ``PATH``, the plugin's
+``deps/bin`` and the ``protselect`` environment. A found file is not proof that
+it can run successfully. For PyTorch, BioEmu, PyRosetta and CodonTransformer, it
+uses the saved environment or interpreter, or ``protselect`` if none is saved,
+and tries to import the package. This does not test model downloads, GPU
+execution or a complete calculation.
 
 One current limitation needs manual attention. For **BioEmu**, **Save detected
 paths** writes the detected Python executable, but the configuration dialog's
@@ -268,10 +271,11 @@ BioEmu execution
 
 The current ``prepare_proteins`` backend distinguishes setup from sampling:
 
-- **BioEmu environment**, when nonempty, can activate an environment through
-  **conda.sh path** and run a one-sample cache-preparation command on the Horus
-  host. This happens during job setup, even when the selected remote is a
-  cluster. Clear this field if you do not want that local preparation step.
+- **BioEmu environment** (default ``protselect``), when nonempty, can activate
+  an environment through **conda.sh path** and run a one-sample cache-preparation
+  command on the Horus host. This happens during job setup, even when the
+  selected remote is a cluster. Clear this field if you do not want that local
+  preparation step.
 - **Cluster BioEmu environment** is an environment directory. The plugin
   substitutes its ``bin/python`` into the sampling commands. An explicit
   directory works for local runs too, despite the field's name. Without it,
