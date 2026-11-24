@@ -166,6 +166,16 @@ Running the preset
    File blocks; the second copy of each sits next to the block it feeds, to keep
    the flow readable. See :doc:`example_data`.
 
+   Every sequence needs a unique identifier. A FASTA header is truncated at the
+   first whitespace, so ``>prot_1 variant A`` and ``>prot_1 variant B`` are both
+   read as ``prot_1``. That truncated name is the key every later stage joins on
+   -- the ProteinMPNN scores, the MMseqs2 clusters, the PDB basenames and the
+   Rosetta and BioEmu metric rows -- so two different sequences sharing it would
+   attribute one protein's results to another. The plugin refuses such a file and
+   names the identifier and the two records, rather than renaming or merging
+   anything. An identifier repeated with an *identical* sequence is redundancy,
+   not a conflict: it is reported and collapsed to one record.
+
    With the example paths, the Folder and File blocks print *"is not a folder
    on the local machine"* (or *"is not a file"*), and the file preview in the
    editor cannot open them. Both are expected and can be ignored: Horus checks
