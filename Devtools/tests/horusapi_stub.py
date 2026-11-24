@@ -37,6 +37,26 @@ class VariableTypes:
     CUSTOM = "custom"
 
 
+class Extensions:
+    """
+    Stands in for the Horus UI panel sink.
+
+    A block reports results to the user with ``Extensions().loadHTML(...)``.
+    Outside Horus there is no panel, so the payload is kept on the class where a
+    caller can look at it instead of being rendered. Keeping it rather than
+    discarding it means a block that renders can be driven headlessly and still
+    be checked.
+    """
+
+    loaded = []
+
+    def loadHTML(self, html, title=""):  # noqa: N802 - HorusAPI spelling
+        type(self).loaded.append({"title": title, "html": html})
+
+    def loadPage(self, *args, **kwargs):  # noqa: N802 - HorusAPI spelling
+        type(self).loaded.append({"page": args, "kwargs": kwargs})
+
+
 def install():
     """Put the stub on ``sys.modules`` unless the real HorusAPI is importable."""
     try:  # pragma: no cover - only true inside a Horus installation
@@ -49,10 +69,11 @@ def install():
     module = types.ModuleType("HorusAPI")
     for name in (
         "PluginVariable", "SlurmBlock", "VariableList", "PluginBlock",
-        "PluginConfig", "PluginPage", "Extensions", "VariableGroup",
+        "PluginConfig", "PluginPage", "VariableGroup",
     ):
         setattr(module, name, _Declared)
     module.VariableTypes = VariableTypes
+    module.Extensions = Extensions
     sys.modules["HorusAPI"] = module
 
 
