@@ -71,3 +71,22 @@ class FakeBlock:
     def __init__(self, variables=None, remote=None):
         self.variables = dict(variables or {})
         self.remote = remote or FakeRemote()
+
+
+class FakeActionBlock(FakeBlock):
+    """
+    A block an analysis action can actually run against.
+
+    A block action reads ``inputs`` and ``variables`` and reports results
+    through ``setOutput``; the ones tested here need nothing else. Driving the
+    real action this way tests the production code rather than a restatement of
+    it.
+    """
+
+    def __init__(self, inputs=None, variables=None, remote=None):
+        super().__init__(variables, remote or FakeRemote(name="Local", is_local=True))
+        self.inputs = dict(inputs or {})
+        self.outputs = {}
+
+    def setOutput(self, variable_id, value):  # noqa: N802 - HorusAPI spelling
+        self.outputs[variable_id] = value

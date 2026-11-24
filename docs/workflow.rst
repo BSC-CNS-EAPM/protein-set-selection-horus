@@ -38,8 +38,8 @@ representatives it would select. It needs a scores file, so connect it to one
 of the ProteinMPNN score outputs. For a CSV with several columns, set **Score
 column** to the one to rank by.
 
-3. Pick one representative per cluster
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3. Pick one representative per cluster, per score set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 :ref:`Select Cluster Representatives <block-select_cluster_representatives>`
 ranks the clusters by their best-scoring member, keeps the top N clusters
@@ -48,6 +48,16 @@ this separately for the vanilla and soluble scores and keeps the **union**,
 labelling each model *vanilla only*, *soluble only* or *common*. Connect the
 sequences file too: the block then writes the selected sequences, which BioEmu
 and MAFFT need.
+
+One representative per cluster holds **per score set**, not overall. The two
+weight sets are different criteria, and where they disagree about which member
+of a cluster scores best, each picks its own and the union keeps both: that
+cluster then contributes two models to the next stage, labelled *vanilla only*
+and *soluble only*. This is intended -- the point of using both weight sets is
+to keep what either one favours -- so the selected set can hold more models
+than there are clusters. The selection table shows it: one row per cluster per
+score set. To get a strict one-per-cluster set instead, set **ProteinMPNN
+weight sets to keep** (``model_selection``) to ``vanilla`` or ``soluble``.
 
 :ref:`Collect Selected Structures <block-collect_selected_pdbs>` copies the
 selected models' structures into their own folder.

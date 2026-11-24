@@ -9,7 +9,8 @@ Starting from structures (for example AlphaFold models) and their sequences, it:
 1. scores every structure with **ProteinMPNN**, using both the vanilla and the
    soluble weights;
 2. clusters the sequences by identity with **MMseqs2** and keeps the
-   best-scoring member of each of the top clusters;
+   best-scoring member of each of the top clusters, under each weight set in
+   turn, keeping the union of the two selections;
 3. relaxes the representatives with **Rosetta** and samples their
    conformational ensembles with **BioEmu**;
 4. ranks them on several objectives at once with a **Pareto** selection;
