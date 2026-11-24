@@ -182,8 +182,13 @@ Running the preset
    the path from the flow's folder, while the plugin's blocks find the example
    inside the plugin. Paths to your own data do not give the warning.
 2. Assign the remotes: ProteinMPNN and BioEmu to your GPU remote, MMseqs2 and
-   Rosetta to your CPU remote, and check the blocks' cluster software settings
-   against your site (see :doc:`remotes`). Leave the rest on Local.
+   Rosetta to your CPU remote, and fill in the blocks' cluster software settings
+   for your site (see :doc:`remotes`). Leave the rest on Local.
+
+   The preset names no site: the queue, modules, environments and ColabFold
+   paths all open blank. On MareNostrum 5 they can stay blank, because the
+   blocks fall back to that site's values; anywhere else they have to be filled
+   in, or the job runs with whatever happens to be on the node's PATH.
 3. For a quick test, reduce the expensive settings first: Rosetta ``nstruct`` 2
    (and **CPUs** 3), BioEmu ``num_samples`` 10, Pareto ``n_select`` below the
    number of representatives.
