@@ -57,3 +57,31 @@ UniProt REST API; six of the ten accessions have since been deleted from
 UniProtKB as "not part of a reference proteome", so those carry the taxonomic
 mnemonic from their entry id rather than a species name. `provenance.json`
 records the status of each.
+
+The ten were drawn from a 50,698-sequence search of the family, filtered for
+length (450-650 residues) and the FAD-binding motif, then kept as the heads of
+the largest 50%-identity clusters. The structure files hold ATOM records only;
+the per-atom B-factor column carries the model's pLDDT.
+
+## Sources and attribution
+
+This example is third-party data redistributed with the plugin, not data the
+plugin's authors produced.
+
+- **Structures**: predicted models from the AlphaFold Protein Structure
+  Database (https://alphafold.ebi.ac.uk/), trimmed. That database states its
+  data is "available for academic and commercial use, under a CC-BY-4.0
+  licence", and EMBL-EBI expects attribution in work that uses it. Cite
+  AlphaFold DB as its site asks, and DeepMind's AlphaFold papers for the
+  method. The AlphaFold DB release these models came from was not recorded, and
+  the trimmed files no longer carry the header that would say.
+- **Sequences and organism names**: UniProtKB accessions
+  (https://www.uniprot.org/). Check UniProt's current licence and citation
+  terms at https://www.uniprot.org/help/license before redistributing them
+  further.
+- **Status**: six of the ten accessions are no longer live in UniProtKB. The
+  copies here are a snapshot, kept deliberately so the example stays runnable;
+  they are not a current view of the database.
+
+Anyone redistributing this plugin redistributes these files too. The plugin's
+own GPL-3.0 licence covers the code, not this data.
