@@ -36,7 +36,7 @@ def built_archive(tmp_path_factory):
     stage = tmp_path_factory.mktemp("package")
 
     shutil.copytree(os.path.join(REPO, PLUGIN), stage / PLUGIN)
-    for name in ("LICENSE", "NOTICE", "build_plugin.sh"):
+    for name in ("LICENSE", "NOTICE", "CITATION.cff", "build_plugin.sh"):
         source = os.path.join(REPO, name)
         if os.path.exists(source):
             shutil.copy(source, stage / name)
@@ -118,6 +118,19 @@ def test_notice_records_the_packaged_version(built_archive):
 
     assert "@VERSION@" not in text
     assert "0.0.1" in text
+
+
+def test_archive_carries_the_citation_metadata(names):
+    """An installed copy should be citable without the repository."""
+    assert f"{PLUGIN}/CITATION.cff" in names
+
+
+def test_packaged_citation_names_the_authors_and_the_grant(built_archive):
+    text = built_archive.read(f"{PLUGIN}/CITATION.cff").decode()
+
+    assert "orcid.org/0000-0001-8120-888X" in text
+    assert "orcid.org/0000-0001-8453-0815" in text
+    assert "101135119" in text
 
 
 def test_notice_says_the_external_tools_are_not_covered(built_archive):

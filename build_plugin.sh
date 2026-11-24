@@ -52,6 +52,10 @@ cp -r "$PLUGIN_DIR" "$stage/$PLUGIN_DIR"
 # so the two cannot drift apart.
 cp LICENSE "$stage/$PLUGIN_DIR/LICENSE"
 
+# Citation metadata travels with the plugin for the same reason: someone with an
+# installed copy and no repository should still be able to cite it correctly.
+[ -f CITATION.cff ] && cp CITATION.cff "$stage/$PLUGIN_DIR/CITATION.cff"
+
 # The notice records where this build came from, so an installed plugin can be
 # traced back to a version and a commit without the repository at hand.
 commit=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
