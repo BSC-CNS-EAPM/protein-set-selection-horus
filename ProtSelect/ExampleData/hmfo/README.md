@@ -63,6 +63,12 @@ length (450-650 residues) and the FAD-binding motif, then kept as the heads of
 the largest 50%-identity clusters. The structure files hold ATOM records only;
 the per-atom B-factor column carries the model's pLDDT.
 
+They are taken **unchanged** from the project's family-wide set of trimmed
+AlphaFold models — 50,699 structures, one per sequence, assembled in February
+2025 — and each of the ten here is byte-identical to its counterpart there. The
+trimming was applied before that set was stored, so the models in this folder
+have never been edited by the plugin.
+
 ## Sources and attribution
 
 This example is third-party data redistributed with the plugin, not data the

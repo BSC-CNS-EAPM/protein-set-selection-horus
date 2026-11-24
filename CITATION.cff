@@ -1,0 +1,50 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+
+title: "Protein Set Selection"
+abstract: >-
+  A Horus plugin that selects a small, expressible, structurally diverse subset
+  of a protein family: ProteinMPNN scoring, MMseqs2 clustering, Rosetta relax,
+  BioEmu ensemble sampling, Pareto ranking and codon optimisation. Developed at
+  the Barcelona Supercomputing Center for the ROBUSTOO project (deliverable
+  D1.3, WP1), funded by the European Union under Grant Agreement No 101135119.
+
+authors:
+  - family-names: "Cañellas-Solé"
+    given-names: "Albert"
+    orcid: "https://orcid.org/0000-0001-8120-888X"
+    affiliation: "Barcelona Supercomputing Center (BSC-CNS)"
+    email: "albert.canellas@bsc.es"
+  - family-names: "Floor Pilquil"
+    given-names: "Martin"
+    orcid: "https://orcid.org/0000-0001-8453-0815"
+    affiliation: "Barcelona Supercomputing Center (BSC-CNS)"
+    email: "martin.floor@bsc.es"
+
+contact:
+  - family-names: "Cañellas-Solé"
+    given-names: "Albert"
+    orcid: "https://orcid.org/0000-0001-8120-888X"
+    affiliation: "Barcelona Supercomputing Center (BSC-CNS)"
+    email: "albert.canellas@bsc.es"
+
+version: "v0.3.1"
+commit: "1cdb293e2efa892ee2de6e7bda6f473aba841c79"
+date-released: "2026-11-03"
+
+license: GPL-3.0
+repository-code: "https://github.com/BSC-CNS-EAPM/protein-set-selection-horus"
+url: "https://bsc-cns-eapm.github.io/protein-set-selection-horus/"
+
+keywords:
+  - protein bioprospecting
+  - protein family selection
+  - ProteinMPNN
+  - MMseqs2
+  - Rosetta
+  - BioEmu
+  - Pareto optimisation
+  - codon optimisation
+  - Horus
+  - ROBUSTOO
