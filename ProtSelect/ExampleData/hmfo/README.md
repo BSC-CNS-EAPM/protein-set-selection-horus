@@ -82,9 +82,11 @@ plugin's authors produced.
   method. The AlphaFold DB release these models came from was not recorded, and
   the trimmed files no longer carry the header that would say.
 - **Sequences and organism names**: UniProtKB accessions
-  (https://www.uniprot.org/). Check UniProt's current licence and citation
-  terms at https://www.uniprot.org/help/license before redistributing them
-  further.
+  (https://www.uniprot.org/). UniProt applies the [Creative Commons Attribution
+  4.0 International (CC BY 4.0)
+  licence](https://creativecommons.org/licenses/by/4.0/) to all copyrightable
+  parts of its databases. Cite The UniProt Consortium, *UniProt: the Universal
+  Protein Knowledgebase in 2025*, Nucleic Acids Research 53:D609-D617 (2025).
 - **Status**: six of the ten accessions are no longer live in UniProtKB. The
   copies here are a snapshot, kept deliberately so the example stays runnable;
   they are not a current view of the database.
