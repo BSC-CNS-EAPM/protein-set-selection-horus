@@ -1,0 +1,41 @@
+{
+  "upload_type": "software",
+  "title": "Protein Set Selection: a Horus plugin for multi-objective protein family selection",
+  "description": "<p>A Horus plugin that selects a small, expressible, structurally diverse subset of a protein family: ProteinMPNN scoring, MMseqs2 clustering, Rosetta relax, BioEmu ensemble sampling, Pareto ranking and codon optimisation.</p><p>Developed at the Barcelona Supercomputing Center for the ROBUSTOO project (deliverable D1.3, WP1), funded by the European Union under Grant Agreement No 101135119. Views and opinions expressed are however those of the authors only and do not necessarily reflect those of the European Union. Neither the European Union nor the granting authority can be held responsible for them.</p><p>Documentation: https://bsc-cns-eapm.github.io/protein-set-selection-horus/</p>",
+  "creators": [
+    {
+      "name": "Cañellas-Solé, Albert",
+      "affiliation": "Barcelona Supercomputing Center (BSC-CNS)",
+      "orcid": "0000-0001-8120-888X"
+    },
+    {
+      "name": "Floor Pilquil, Martin",
+      "affiliation": "Barcelona Supercomputing Center (BSC-CNS)",
+      "orcid": "0000-0001-8453-0815"
+    }
+  ],
+  "license": "gpl-3.0-only",
+  "access_right": "open",
+  "keywords": [
+    "protein bioprospecting",
+    "protein family selection",
+    "ProteinMPNN",
+    "MMseqs2",
+    "Rosetta",
+    "BioEmu",
+    "Pareto optimisation",
+    "codon optimisation",
+    "Horus",
+    "ROBUSTOO"
+  ],
+  "grants": [
+    {
+      "id": "10.13039/501100000780::101135119"
+    }
+  ],
+  "communities": [
+    {
+      "identifier": "robustoo"
+    }
+  ]
+}
