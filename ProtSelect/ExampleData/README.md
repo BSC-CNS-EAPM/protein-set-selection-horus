@@ -38,9 +38,12 @@ the plugin redistributes these files too.
   the Universal Protein Knowledgebase in 2025*, Nucleic Acids Research
   53:D609-D617 (2025).
 
-Per-set detail is in each folder's README: the lysozyme set records the
-AlphaFold model version and a source URL per model; the HMFO set does not, and
-says so.
+Per-set detail is in each folder's README. The lysozyme set records the
+AlphaFold model version and a source URL per model. The HMFO set was recorded
+without either and was traced afterwards. Eight of its ten models match their
+current AlphaFold DB file exactly, and that file's URL is recorded. The release
+they were downloaded from cannot be pinned, and two models have no retrievable
+source file. The HMFO README sets out the evidence.
 
 ## Which to use
 
