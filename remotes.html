@@ -38,7 +38,7 @@
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="_static/documentation_options.js?v=2709fde1"></script>
+    <script src="_static/documentation_options.js?v=4621528c"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -612,6 +612,11 @@ change the remote of these four blocks:</p>
 <li><p><strong>Rosetta Relax</strong>: your CPU remote.</p></li>
 </ul>
 <p>Leave all the other blocks on Local.</p>
+<p>The preset also opens with every site setting <strong>blank</strong> -- queue, modules,
+environments and the ColabFold paths -- for the same reason: it names no site.
+On MareNostrum 5 you can leave them blank and the blocks supply that site's
+values (<a class="reference internal" href="#mn5-values"><span class="std std-ref">The MareNostrum 5 values</span></a>). On any other cluster, fill them in for your site
+before running, as <a class="reference internal" href="#software-on-the-cluster">Software on the cluster</a> describes.</p>
 </section>
 <section id="sizing-the-cluster-jobs">
 <h2>Sizing the cluster jobs<a class="headerlink" href="#sizing-the-cluster-jobs" title="Link to this heading">#</a></h2>
@@ -692,6 +697,82 @@ modules <code class="docutils literal notranslate"><span class="pre">bsc_calcula
 the module that provides <code class="docutils literal notranslate"><span class="pre">rosetta_scripts</span></code> there, or the environment holding
 it.</p>
 </section>
+<section id="the-marenostrum-5-values">
+<span id="mn5-values"></span><h3>The MareNostrum 5 values<a class="headerlink" href="#the-marenostrum-5-values" title="Link to this heading">#</a></h3>
+<p>These are the values an empty setting takes when the job goes to a MareNostrum 5
+login node (a host named <code class="docutils literal notranslate"><span class="pre">glogin*</span></code> or <code class="docutils literal notranslate"><span class="pre">alogin*</span></code>). They live in the blocks as
+<code class="docutils literal notranslate"><span class="pre">MN5_*</span></code> constants, not in the shipped preset, so they apply on MN5 and nowhere
+else. They are listed here so a BSC user can see what a job will be built from,
+and so a user at another site can see what to replace.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 27.3%" />
+<col style="width: 18.2%" />
+<col style="width: 54.5%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Block</p></th>
+<th class="head"><p>Value on MareNostrum 5</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Partition / QOS</p></td>
+<td><p>every cluster block</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gp_bscls</span></code> (named as the QOS)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Cluster modules</p></td>
+<td><p>ProteinMPNN Scoring</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bsc/1.0,</span> <span class="pre">anaconda</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Cluster environment</p></td>
+<td><p>ProteinMPNN Scoring</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">/gpfs/projects/bsc72/conda_envs/ligandmpnn</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Cluster modules</p></td>
+<td><p>MMseqs2 Clustering</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bsc/1.0,</span> <span class="pre">mmseqs2/15-6f452</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Cluster modules</p></td>
+<td><p>BioEmu Sampling</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bsc/1.0,</span> <span class="pre">anaconda,</span> <span class="pre">intel/2025.1</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Cluster BioEmu environment</p></td>
+<td><p>BioEmu Sampling</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">/gpfs/projects/bsc72/conda_envs/bioemu</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>ColabFold bin folder</p></td>
+<td><p>BioEmu Sampling</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">/gpfs/projects/bsc72/conda_envs/bioemu/colabfold/localcolabfold/colabfold-conda/bin</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>HuggingFace cache</p></td>
+<td><p>BioEmu Sampling</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">/gpfs/projects/bsc72/bioemu_hf_cache</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>MMseqs2 binary</p></td>
+<td><p>BioEmu Sampling</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">/apps/ACC/MMSEQS2/17-b804f/GCC/OPENMPI/bin/mmseqs</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>ColabFold database</p></td>
+<td><p>BioEmu Sampling</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">/gpfs/apps/MN5/ACC/COLABFOLD/SRC/database/FULL</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Running at another site means filling in the same settings with that site's
+equivalents. An empty setting is never replaced by an MN5 value anywhere but
+MN5.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Saving a flow writes every setting's current value into the file, so a preset
+saved while its blocks were configured for one cluster carries that site's
+queue, modules and paths as values -- and a saved value wins over the
+fallback, on every cluster. <code class="docutils literal notranslate"><span class="pre">Devtools/strip_site_settings.py</span></code> blanks those
+fields again; run it on the shipped preset after any save made on a cluster,
+and <code class="docutils literal notranslate"><span class="pre">--check</span></code> reports without changing anything.</p>
+</div>
+</section>
 <section id="per-block-advice">
 <h3>Per-block advice<a class="headerlink" href="#per-block-advice" title="Link to this heading">#</a></h3>
 <p><strong>ProteinMPNN Scoring.</strong> GPU queue, <strong>GPUs</strong> 1, jobs grouped into one task,
@@ -771,6 +852,7 @@ server and fails. <strong>Persistent MSA folder</strong> keeps the MSAs between 
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#assigning-remotes-in-the-preset">Assigning remotes in the preset</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sizing-the-cluster-jobs">Sizing the cluster jobs</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#software-on-the-cluster">Software on the cluster</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-marenostrum-5-values">The MareNostrum 5 values</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#per-block-advice">Per-block advice</a></li>
 </ul>
 </li>

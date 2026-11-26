@@ -38,7 +38,7 @@
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="_static/documentation_options.js?v=2709fde1"></script>
+    <script src="_static/documentation_options.js?v=4621528c"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -510,8 +510,8 @@ representatives it would select. It needs a scores file, so connect it to one
 of the ProteinMPNN score outputs. For a CSV with several columns, set <strong>Score
 column</strong> to the one to rank by.</p>
 </section>
-<section id="pick-one-representative-per-cluster">
-<h3>3. Pick one representative per cluster<a class="headerlink" href="#pick-one-representative-per-cluster" title="Link to this heading">#</a></h3>
+<section id="pick-one-representative-per-cluster-per-score-set">
+<h3>3. Pick one representative per cluster, per score set<a class="headerlink" href="#pick-one-representative-per-cluster-per-score-set" title="Link to this heading">#</a></h3>
 <p><a class="reference internal" href="reference/blocks/select_cluster_representatives.html#block-select-cluster-representatives"><span class="std std-ref">Select Cluster Representatives</span></a>
 ranks the clusters by their best-scoring member, keeps the top N clusters
 (<code class="docutils literal notranslate"><span class="pre">top_n_clusters</span></code>, default 100) and takes the best member of each. It does
@@ -519,6 +519,15 @@ this separately for the vanilla and soluble scores and keeps the <strong>union</
 labelling each model <em>vanilla only</em>, <em>soluble only</em> or <em>common</em>. Connect the
 sequences file too: the block then writes the selected sequences, which BioEmu
 and MAFFT need.</p>
+<p>One representative per cluster holds <strong>per score set</strong>, not overall. The two
+weight sets are different criteria, and where they disagree about which member
+of a cluster scores best, each picks its own and the union keeps both: that
+cluster then contributes two models to the next stage, labelled <em>vanilla only</em>
+and <em>soluble only</em>. This is intended -- the point of using both weight sets is
+to keep what either one favours -- so the selected set can hold more models
+than there are clusters. The selection table shows it: one row per cluster per
+score set. To get a strict one-per-cluster set instead, set <strong>ProteinMPNN
+weight sets to keep</strong> (<code class="docutils literal notranslate"><span class="pre">model_selection</span></code>) to <code class="docutils literal notranslate"><span class="pre">vanilla</span></code> or <code class="docutils literal notranslate"><span class="pre">soluble</span></code>.</p>
 <p><a class="reference internal" href="reference/blocks/collect_selected_pdbs.html#block-collect-selected-pdbs"><span class="std std-ref">Collect Selected Structures</span></a> copies the
 selected models' structures into their own folder.</p>
 </section>
@@ -681,6 +690,15 @@ sequences file (FASTA or JSON, keyed by the structure file names) in both
 <strong>Sequences file</strong> blocks. In the editor these are the two Folder and the two
 File blocks; the second copy of each sits next to the block it feeds, to keep
 the flow readable. See <a class="reference internal" href="example_data.html"><span class="doc">Example data</span></a>.</p>
+<p>Every sequence needs a unique identifier. A FASTA header is truncated at the
+first whitespace, so <code class="docutils literal notranslate"><span class="pre">&gt;prot_1</span> <span class="pre">variant</span> <span class="pre">A</span></code> and <code class="docutils literal notranslate"><span class="pre">&gt;prot_1</span> <span class="pre">variant</span> <span class="pre">B</span></code> are both
+read as <code class="docutils literal notranslate"><span class="pre">prot_1</span></code>. That truncated name is the key every later stage joins on
+-- the ProteinMPNN scores, the MMseqs2 clusters, the PDB basenames and the
+Rosetta and BioEmu metric rows -- so two different sequences sharing it would
+attribute one protein's results to another. The plugin refuses such a file and
+names the identifier and the two records, rather than renaming or merging
+anything. An identifier repeated with an <em>identical</em> sequence is redundancy,
+not a conflict: it is reported and collapsed to one record.</p>
 <p>With the example paths, the Folder and File blocks print <em>&quot;is not a folder
 on the local machine&quot;</em> (or <em>&quot;is not a file&quot;</em>), and the file preview in the
 editor cannot open them. Both are expected and can be ignored: Horus checks
@@ -688,8 +706,13 @@ the path from the flow's folder, while the plugin's blocks find the example
 inside the plugin. Paths to your own data do not give the warning.</p>
 </li>
 <li><p>Assign the remotes: ProteinMPNN and BioEmu to your GPU remote, MMseqs2 and
-Rosetta to your CPU remote, and check the blocks' cluster software settings
-against your site (see <a class="reference internal" href="remotes.html"><span class="doc">Remotes and clusters</span></a>). Leave the rest on Local.</p></li>
+Rosetta to your CPU remote, and fill in the blocks' cluster software settings
+for your site (see <a class="reference internal" href="remotes.html"><span class="doc">Remotes and clusters</span></a>). Leave the rest on Local.</p>
+<p>The preset names no site: the queue, modules, environments and ColabFold
+paths all open blank. On MareNostrum 5 they can stay blank, because the
+blocks fall back to that site's values; anywhere else they have to be filled
+in, or the job runs with whatever happens to be on the node's PATH.</p>
+</li>
 <li><p>For a quick test, reduce the expensive settings first: Rosetta <code class="docutils literal notranslate"><span class="pre">nstruct</span></code> 2
 (and <strong>CPUs</strong> 3), BioEmu <code class="docutils literal notranslate"><span class="pre">num_samples</span></code> 10, Pareto <code class="docutils literal notranslate"><span class="pre">n_select</span></code> below the
 number of representatives.</p></li>
@@ -816,7 +839,7 @@ submission and downloads the results. Run submits the job again.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#stages">Stages</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#score-the-structures-with-proteinmpnn">1. Score the structures with ProteinMPNN</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#cluster-the-sequences-with-mmseqs2">2. Cluster the sequences with MMseqs2</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pick-one-representative-per-cluster">3. Pick one representative per cluster</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pick-one-representative-per-cluster-per-score-set">3. Pick one representative per cluster, per score set</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#relax-with-rosetta">4. Relax with Rosetta</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sample-conformations-with-bioemu">5. Sample conformations with BioEmu</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rank-with-a-pareto-selection">6. Rank with a Pareto selection</a></li>

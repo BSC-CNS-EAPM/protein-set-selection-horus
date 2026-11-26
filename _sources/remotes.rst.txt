@@ -114,6 +114,12 @@ change the remote of these four blocks:
 
 Leave all the other blocks on Local.
 
+The preset also opens with every site setting **blank** -- queue, modules,
+environments and the ColabFold paths -- for the same reason: it names no site.
+On MareNostrum 5 you can leave them blank and the blocks supply that site's
+values (:ref:`mn5-values`). On any other cluster, fill them in for your site
+before running, as `Software on the cluster`_ describes.
+
 Sizing the cluster jobs
 -----------------------
 
@@ -182,6 +188,68 @@ Rosetta Relax has the same two settings. Left empty, the job loads the Rosetta
 modules ``bsc_calculations`` knows on MareNostrum 5; on any other cluster, name
 the module that provides ``rosetta_scripts`` there, or the environment holding
 it.
+
+.. _mn5-values:
+
+The MareNostrum 5 values
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+These are the values an empty setting takes when the job goes to a MareNostrum 5
+login node (a host named ``glogin*`` or ``alogin*``). They live in the blocks as
+``MN5_*`` constants, not in the shipped preset, so they apply on MN5 and nowhere
+else. They are listed here so a BSC user can see what a job will be built from,
+and so a user at another site can see what to replace.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 3 2 6
+
+   * - Setting
+     - Block
+     - Value on MareNostrum 5
+   * - Partition / QOS
+     - every cluster block
+     - ``gp_bscls`` (named as the QOS)
+   * - Cluster modules
+     - ProteinMPNN Scoring
+     - ``bsc/1.0, anaconda``
+   * - Cluster environment
+     - ProteinMPNN Scoring
+     - ``/gpfs/projects/bsc72/conda_envs/ligandmpnn``
+   * - Cluster modules
+     - MMseqs2 Clustering
+     - ``bsc/1.0, mmseqs2/15-6f452``
+   * - Cluster modules
+     - BioEmu Sampling
+     - ``bsc/1.0, anaconda, intel/2025.1``
+   * - Cluster BioEmu environment
+     - BioEmu Sampling
+     - ``/gpfs/projects/bsc72/conda_envs/bioemu``
+   * - ColabFold bin folder
+     - BioEmu Sampling
+     - ``/gpfs/projects/bsc72/conda_envs/bioemu/colabfold/localcolabfold/colabfold-conda/bin``
+   * - HuggingFace cache
+     - BioEmu Sampling
+     - ``/gpfs/projects/bsc72/bioemu_hf_cache``
+   * - MMseqs2 binary
+     - BioEmu Sampling
+     - ``/apps/ACC/MMSEQS2/17-b804f/GCC/OPENMPI/bin/mmseqs``
+   * - ColabFold database
+     - BioEmu Sampling
+     - ``/gpfs/apps/MN5/ACC/COLABFOLD/SRC/database/FULL``
+
+Running at another site means filling in the same settings with that site's
+equivalents. An empty setting is never replaced by an MN5 value anywhere but
+MN5.
+
+.. note::
+
+   Saving a flow writes every setting's current value into the file, so a preset
+   saved while its blocks were configured for one cluster carries that site's
+   queue, modules and paths as values -- and a saved value wins over the
+   fallback, on every cluster. ``Devtools/strip_site_settings.py`` blanks those
+   fields again; run it on the shipped preset after any save made on a cluster,
+   and ``--check`` reports without changing anything.
 
 Per-block advice
 ~~~~~~~~~~~~~~~~

@@ -38,7 +38,7 @@
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="_static/documentation_options.js?v=2709fde1"></script>
+    <script src="_static/documentation_options.js?v=4621528c"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -286,6 +286,10 @@ document.write(`
   
 
   
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
 </div>
 
     </header>
@@ -454,7 +458,8 @@ structurally diverse set of proteins out of a large protein family.</p>
 <li><p>scores every structure with <strong>ProteinMPNN</strong>, using both the vanilla and the
 soluble weights;</p></li>
 <li><p>clusters the sequences by identity with <strong>MMseqs2</strong> and keeps the
-best-scoring member of each of the top clusters;</p></li>
+best-scoring member of each of the top clusters, under each weight set in
+turn, keeping the union of the two selections;</p></li>
 <li><p>relaxes the representatives with <strong>Rosetta</strong> and samples their
 conformational ensembles with <strong>BioEmu</strong>;</p></li>
 <li><p>ranks them on several objectives at once with a <strong>Pareto</strong> selection;</p></li>
@@ -515,6 +520,25 @@ Block reference</div>
 </div>
 <div class="toctree-wrapper compound">
 </div>
+<section id="citing-this-plugin">
+<h2>Citing this plugin<a class="headerlink" href="#citing-this-plugin" title="Link to this heading">#</a></h2>
+<p>Citation metadata lives in <code class="docutils literal notranslate"><span class="pre">CITATION.cff</span></code> at the repository root. GitHub turns
+it into a <strong>Cite this repository</strong> button and exports BibTeX and APA from it.
+Cite the exact version you used; the released version and its commit are both
+recorded there.</p>
+</section>
+<section id="funding-and-acknowledgements">
+<h2>Funding and acknowledgements<a class="headerlink" href="#funding-and-acknowledgements" title="Link to this heading">#</a></h2>
+<p>Developed at the <a class="reference external" href="https://www.bsc.es/">Barcelona Supercomputing Center</a> for
+deliverable <strong>D1.3</strong> of work package 1 of the <a class="reference external" href="https://www.robustoo.eu/">ROBUSTOO project</a> -- <em>Robust industrial biocatalysts with
+peroxygenase, phenol-oxidase or furfuryl-oxidase activities from bacterial and
+fungal hosts</em>.</p>
+<p>Funded by the European Union under Grant Agreement No <strong>101135119</strong>. Views and
+opinions expressed are however those of the authors only and do not necessarily
+reflect those of the European Union. Neither the European Union nor the granting
+authority can be held responsible for them.</p>
+<p><a class="reference internal" href="_images/eu-funded.png"><img alt="Funded by the European Union" src="_images/eu-funded.png" style="height: 55px;" /></a> <a class="reference external" href="https://www.robustoo.eu/"><img alt="ROBUSTOO" src="_images/robustoo.png" style="height: 55px;" /></a> <a class="reference external" href="https://www.bsc.es/"><img alt="Barcelona Supercomputing Center" src="_images/bsc.jpg" style="height: 55px;" /></a></p>
+</section>
 </section>
 
 
@@ -542,6 +566,24 @@ Block reference</div>
             </div>
             
             
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#citing-this-plugin">Citing this plugin</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#funding-and-acknowledgements">Funding and acknowledgements</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>

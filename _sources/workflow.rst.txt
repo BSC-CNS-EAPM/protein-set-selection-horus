@@ -38,8 +38,8 @@ representatives it would select. It needs a scores file, so connect it to one
 of the ProteinMPNN score outputs. For a CSV with several columns, set **Score
 column** to the one to rank by.
 
-3. Pick one representative per cluster
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3. Pick one representative per cluster, per score set
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 :ref:`Select Cluster Representatives <block-select_cluster_representatives>`
 ranks the clusters by their best-scoring member, keeps the top N clusters
@@ -48,6 +48,16 @@ this separately for the vanilla and soluble scores and keeps the **union**,
 labelling each model *vanilla only*, *soluble only* or *common*. Connect the
 sequences file too: the block then writes the selected sequences, which BioEmu
 and MAFFT need.
+
+One representative per cluster holds **per score set**, not overall. The two
+weight sets are different criteria, and where they disagree about which member
+of a cluster scores best, each picks its own and the union keeps both: that
+cluster then contributes two models to the next stage, labelled *vanilla only*
+and *soluble only*. This is intended -- the point of using both weight sets is
+to keep what either one favours -- so the selected set can hold more models
+than there are clusters. The selection table shows it: one row per cluster per
+score set. To get a strict one-per-cluster set instead, set **ProteinMPNN
+weight sets to keep** (``model_selection``) to ``vanilla`` or ``soluble``.
 
 :ref:`Collect Selected Structures <block-collect_selected_pdbs>` copies the
 selected models' structures into their own folder.
@@ -166,14 +176,29 @@ Running the preset
    File blocks; the second copy of each sits next to the block it feeds, to keep
    the flow readable. See :doc:`example_data`.
 
+   Every sequence needs a unique identifier. A FASTA header is truncated at the
+   first whitespace, so ``>prot_1 variant A`` and ``>prot_1 variant B`` are both
+   read as ``prot_1``. That truncated name is the key every later stage joins on
+   -- the ProteinMPNN scores, the MMseqs2 clusters, the PDB basenames and the
+   Rosetta and BioEmu metric rows -- so two different sequences sharing it would
+   attribute one protein's results to another. The plugin refuses such a file and
+   names the identifier and the two records, rather than renaming or merging
+   anything. An identifier repeated with an *identical* sequence is redundancy,
+   not a conflict: it is reported and collapsed to one record.
+
    With the example paths, the Folder and File blocks print *"is not a folder
    on the local machine"* (or *"is not a file"*), and the file preview in the
    editor cannot open them. Both are expected and can be ignored: Horus checks
    the path from the flow's folder, while the plugin's blocks find the example
    inside the plugin. Paths to your own data do not give the warning.
 2. Assign the remotes: ProteinMPNN and BioEmu to your GPU remote, MMseqs2 and
-   Rosetta to your CPU remote, and check the blocks' cluster software settings
-   against your site (see :doc:`remotes`). Leave the rest on Local.
+   Rosetta to your CPU remote, and fill in the blocks' cluster software settings
+   for your site (see :doc:`remotes`). Leave the rest on Local.
+
+   The preset names no site: the queue, modules, environments and ColabFold
+   paths all open blank. On MareNostrum 5 they can stay blank, because the
+   blocks fall back to that site's values; anywhere else they have to be filled
+   in, or the job runs with whatever happens to be on the node's PATH.
 3. For a quick test, reduce the expensive settings first: Rosetta ``nstruct`` 2
    (and **CPUs** 3), BioEmu ``num_samples`` 10, Pareto ``n_select`` below the
    number of representatives.
