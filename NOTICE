@@ -1,0 +1,43 @@
+Protein Set Selection -- a Horus plugin
+=======================================
+
+Source        https://github.com/BSC-CNS-EAPM/protein-set-selection-horus
+Documentation https://bsc-cns-eapm.github.io/protein-set-selection-horus/
+Maintainer    BSC-CNS-EAPM
+Licence       GPL-3.0
+Packaged      version @VERSION@, commit @COMMIT@
+
+Licence
+-------
+
+This plugin is distributed under the GNU General Public License version 3.
+The full text is in the LICENSE file beside this one. The blocks are derived
+from EAPM-plugins, from which this plugin inherits GPL-3.0.
+
+What this package contains
+--------------------------
+
+Only the plugin itself: the Python modules that define the Horus blocks, the
+block and flow definitions, the configuration pages and the bundled example
+data. Nothing is compiled, and no third-party software is included.
+
+Two things are deliberately left out of this archive and are created on the
+machine that installs it: the plugin's own ``deps/`` folder, which Horus
+populates from the dependency list in ``plugin.meta``, and the ``config/``
+folder, which holds paths specific to one machine.
+
+What this package does NOT cover
+--------------------------------
+
+The plugin drives external tools that it does not ship and whose terms this
+licence does not grant: ProteinMPNN, MMseqs2, Rosetta and PyRosetta, BioEmu,
+MAFFT and CodonTransformer, together with the Python dependencies installed
+from the list in ``plugin.meta`` and any model weights fetched at install time.
+
+Each of those carries its own licence, and reviewing them is the responsibility
+of whoever installs and runs this plugin. Rosetta and PyRosetta in particular
+are free only for academic and non-commercial use and need a commercial licence
+from the University of Washington otherwise. The installation documentation
+sets out what is downloaded from where:
+
+    https://bsc-cns-eapm.github.io/protein-set-selection-horus/installation.html

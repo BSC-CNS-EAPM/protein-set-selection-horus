@@ -9,7 +9,8 @@ Starting from structures (for example AlphaFold models) and their sequences, it:
 1. scores every structure with **ProteinMPNN**, using both the vanilla and the
    soluble weights;
 2. clusters the sequences by identity with **MMseqs2** and keeps the
-   best-scoring member of each of the top clusters;
+   best-scoring member of each of the top clusters, under each weight set in
+   turn, keeping the union of the two selections;
 3. relaxes the representatives with **Rosetta** and samples their
    conformational ensembles with **BioEmu**;
 4. ranks them on several objectives at once with a **Pareto** selection;
@@ -78,3 +79,41 @@ open from the plugin's presets in Horus.
    :hidden:
 
    reference/index
+
+Citing this plugin
+------------------
+
+Citation metadata lives in ``CITATION.cff`` at the repository root. GitHub turns
+it into a **Cite this repository** button and exports BibTeX and APA from it.
+Cite the exact version you used; the released version and its commit are both
+recorded there.
+
+Funding and acknowledgements
+----------------------------
+
+Developed at the `Barcelona Supercomputing Center <https://www.bsc.es/>`_ for
+deliverable **D1.3** of work package 1 of the `ROBUSTOO project
+<https://www.robustoo.eu/>`_ -- *Robust industrial biocatalysts with
+peroxygenase, phenol-oxidase or furfuryl-oxidase activities from bacterial and
+fungal hosts*.
+
+Funded by the European Union under Grant Agreement No **101135119**. Views and
+opinions expressed are however those of the authors only and do not necessarily
+reflect those of the European Union. Neither the European Union nor the granting
+authority can be held responsible for them.
+
+.. |eu| image:: _static/logos/eu-funded.png
+   :height: 55px
+   :alt: Funded by the European Union
+
+.. |robustoo| image:: _static/logos/robustoo.png
+   :height: 55px
+   :alt: ROBUSTOO
+   :target: https://www.robustoo.eu/
+
+.. |bsc| image:: _static/logos/bsc.jpg
+   :height: 55px
+   :alt: Barcelona Supercomputing Center
+   :target: https://www.bsc.es/
+
+|eu| |robustoo| |bsc|

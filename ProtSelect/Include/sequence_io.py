@@ -67,6 +67,24 @@ def read_sequences(sequences_path: str) -> dict:
     dict
         Mapping of sequence name to sequence. FASTA headers are truncated at
         the first whitespace, so ">ABC123 some description" becomes "ABC123".
+
+    Raises
+    ======
+    ValueError
+        If two FASTA records carry different sequences under the same
+        identifier. Identifiers must be unique **after** truncation, because
+        the truncated first token is the name every downstream block joins on:
+        ">prot_1 variant A" and ">prot_1 variant B" are a collision even though
+        the header lines differ. The error names the identifier and both
+        records. A repeated identifier carrying an *identical* sequence is
+        redundancy rather than a conflict, so it is reported as a warning and
+        collapsed to one record; sequences that differ are never merged and
+        nothing is ever renamed.
+
+        The JSON form follows the same rule for a key that appears twice in the
+        object. Python's JSON parser would keep the last one silently, so the
+        file is parsed with every key/value pair kept and the check runs on
+        those; the error names the key and both sequences.
     """
     if not sequences_path:
         raise ValueError("No sequences file was given.")
@@ -74,29 +92,95 @@ def read_sequences(sequences_path: str) -> dict:
         raise ValueError(f"The sequences file '{sequences_path}' does not exist.")
 
     if sequences_path.lower().endswith(".json"):
-        with open(sequences_path) as jf:
-            data = json.load(jf)
-        if not isinstance(data, dict):
-            raise ValueError("The JSON sequences file must map sequence names to sequences.")
-        return {str(name): str(seq) for name, seq in data.items()}
+        return _read_json_sequences(sequences_path)
 
-    sequences: dict = {}
-    name = None
+    # Read every record first, keeping its header and position in the file, so a
+    # collision can name the two records a user has to go and look at.
+    records: list = []
+    header = None
     chunks: list = []
     with open(sequences_path) as ff:
         for line in ff:
             line = line.rstrip("\n")
             if line.startswith(">"):
-                if name is not None:
-                    sequences[name] = "".join(chunks)
-                name = line[1:].split()[0]
+                if header is not None:
+                    records.append((len(records) + 1, header, "".join(chunks)))
+                header = line[1:]
                 chunks = []
             elif line:
                 chunks.append(line.strip())
-    if name is not None:
-        sequences[name] = "".join(chunks)
+    if header is not None:
+        records.append((len(records) + 1, header, "".join(chunks)))
+
+    sequences: dict = {}
+    origin: dict = {}
+    for position, record_header, sequence in records:
+        name = record_header.split()[0]
+        if name in sequences:
+            first_position, first_header = origin[name]
+            if sequences[name] != sequence:
+                raise ValueError(
+                    f"The sequences file '{sequences_path}' gives the identifier '{name}' to two "
+                    f"different sequences: record {first_position} ('>{first_header}') and record "
+                    f"{position} ('>{record_header}'). FASTA headers are truncated at the first "
+                    "whitespace, so headers that differ only after that point still collide. Give "
+                    "each sequence a unique first token and read the file again."
+                )
+            print(
+                f"Warning: the sequences file '{sequences_path}' repeats the identifier '{name}' "
+                f"with an identical sequence (record {first_position} '>{first_header}' and record "
+                f"{position} '>{record_header}'); keeping one copy."
+            )
+            continue
+        sequences[name] = sequence
+        origin[name] = (position, record_header)
+
     if not sequences:
         raise ValueError(f"No sequences found in '{sequences_path}'.")
+    return sequences
+
+
+class _JsonPairs(list):
+    """The key/value pairs of one JSON object, in file order, duplicates kept."""
+
+
+def _read_json_sequences(sequences_path: str) -> dict:
+    """
+    Read the JSON form of a sequences file, refusing a key that names two sequences.
+
+    ``json.load`` builds a dict and keeps the last of two equal keys, so the
+    duplicate is gone before any check could see it. ``object_pairs_hook``
+    hands over every object's pairs instead, with the duplicates still there.
+    Collisions follow the FASTA rule in ``read_sequences``: different
+    sequences raise, an identical one is reported and collapsed.
+    """
+    with open(sequences_path) as jf:
+        data = json.load(jf, object_pairs_hook=_JsonPairs)
+    if not isinstance(data, _JsonPairs):
+        raise ValueError("The JSON sequences file must map sequence names to sequences.")
+
+    sequences: dict = {}
+    origin: dict = {}
+    for position, (key, value) in enumerate(data, start=1):
+        name, sequence = str(key), str(value)
+        if name in sequences:
+            first_position = origin[name]
+            if sequences[name] != sequence:
+                raise ValueError(
+                    f"The sequences file '{sequences_path}' gives the key '{name}' to two "
+                    f"different sequences: entry {first_position} ('{sequences[name]}') and "
+                    f"entry {position} ('{sequence}'). A JSON parser keeps only one of two "
+                    "equal keys, so one of these proteins would be lost or renamed. Give each "
+                    "sequence a unique key and read the file again."
+                )
+            print(
+                f"Warning: the sequences file '{sequences_path}' repeats the key '{name}' "
+                f"with an identical sequence (entries {first_position} and {position}); "
+                "keeping one copy."
+            )
+            continue
+        sequences[name] = sequence
+        origin[name] = position
     return sequences
 
 

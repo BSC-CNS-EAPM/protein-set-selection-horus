@@ -180,7 +180,12 @@ def _select_one(clusters, scores, top_n, maximize):
 
 def select_representatives(block: PluginBlock):
     """
-    Select one representative per cluster, optionally from two score sets.
+    Select the best member of each top cluster, under one or both score sets.
+
+    One representative per cluster holds per score set, not overall: given both
+    score sets, the default keeps the union of the two selections, so a cluster
+    whose two score sets disagree about its best member contributes both. Set
+    ``model_selection`` to one weight set for a strict one-per-cluster result.
 
     Args:
         block (PluginBlock): The PluginBlock object representing the current block.

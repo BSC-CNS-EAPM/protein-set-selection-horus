@@ -36,19 +36,53 @@ $sed_program -i 's/"version": *"[^"]*"/"version": "'"$git_tag"'"/' "$PLUGIN_DIR/
 name="protselect-$git_tag.hp"
 echo "Building $name"
 
+# Stage the archive in a temporary folder.
+#
+# An .hp is a zip of the plugin folder, so anything the distribution needs that
+# lives at the repository root -- the licence above all -- has to be put inside
+# that folder on purpose. Staging a copy is what lets the archive carry the
+# root LICENSE and NOTICE while the repository keeps its own copies in place
+# and no duplicate ever appears in the working tree.
+stage=$(mktemp -d)
+trap 'rm -rf "$stage"' EXIT
+
+cp -r "$PLUGIN_DIR" "$stage/$PLUGIN_DIR"
+
+# The licence shipped is the repository's licence, copied rather than retyped,
+# so the two cannot drift apart.
+cp LICENSE "$stage/$PLUGIN_DIR/LICENSE"
+
+# Citation metadata travels with the plugin for the same reason: someone with an
+# installed copy and no repository should still be able to cite it correctly.
+[ -f CITATION.cff ] && cp CITATION.cff "$stage/$PLUGIN_DIR/CITATION.cff"
+
+# The notice records where this build came from, so an installed plugin can be
+# traced back to a version and a commit without the repository at hand.
+commit=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
+$sed_program -e "s|@VERSION@|$git_tag|g" -e "s|@COMMIT@|$commit|g" \
+    NOTICE > "$stage/$PLUGIN_DIR/NOTICE"
+
 # Zip the plugin folder.
 #
 # deps/ and config/ are excluded deliberately. deps/ is the per-plugin
 # site-packages that Horus populates from plugin.meta at install time and can
 # run to several GB; config/ holds machine-specific paths. Shipping either
 # would bloat the artifact and leak local state onto other people's machines.
-zip -r "$name" "$PLUGIN_DIR" \
-    -x '*/__pycache__/*' \
-    -x '*.pyc' \
-    -x "$PLUGIN_DIR/deps/*" \
-    -x "$PLUGIN_DIR/config/*"
+(
+    cd "$stage"
+    zip -r "$name" "$PLUGIN_DIR" \
+        -x '*/__pycache__/*' \
+        -x '*.pyc' \
+        -x "$PLUGIN_DIR/deps/*" \
+        -x "$PLUGIN_DIR/config/*"
+)
+mv "$stage/$name" .
 
 echo
 echo "Done: $name"
 echo "Contents summary:"
 unzip -l "$name" | tail -1
+echo "Licensing in the archive:"
+unzip -l "$name" | grep -E "LICENSE|NOTICE"
+echo "SHA256:"
+sha256sum "$name" 2>/dev/null || shasum -a 256 "$name"

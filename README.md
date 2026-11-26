@@ -127,7 +127,38 @@ The blocks are derived from
 on [bioprospecting-horus](https://github.com/BSC-CNS-EAPM/bioprospecting-horus)
 for the ProteinMPNN, MAFFT and CodonTransformer backends.
 
+## Citing this plugin
+
+Citation metadata is in [CITATION.cff](CITATION.cff); GitHub turns it into a
+**Cite this repository** button in the sidebar, and it exports to BibTeX and
+APA from there. Cite the exact version you used — the released version and its
+commit are both recorded in the file.
+
+## Funding and acknowledgements
+
+Developed at the [Barcelona Supercomputing Center](https://www.bsc.es/) for
+deliverable **D1.3** of work package 1 of the [ROBUSTOO
+project](https://www.robustoo.eu/) — *Robust industrial biocatalysts with
+peroxygenase, phenol-oxidase or furfuryl-oxidase activities from bacterial and
+fungal hosts*.
+
+Funded by the European Union under Grant Agreement No **101135119**. Views and
+opinions expressed are however those of the authors only and do not necessarily
+reflect those of the European Union. Neither the European Union nor the granting
+authority can be held responsible for them.
+
+<p>
+  <img src="docs/_static/logos/eu-funded.png" alt="Funded by the European Union" height="60">
+  &nbsp;&nbsp;
+  <img src="docs/_static/logos/robustoo.png" alt="ROBUSTOO" height="60">
+  &nbsp;&nbsp;
+  <img src="docs/_static/logos/bsc.jpg" alt="Barcelona Supercomputing Center" height="60">
+</p>
+
 ## Licence
 
 GPL-3.0, inherited from EAPM-plugins, from which the blocks are derived.
 See [LICENSE](LICENSE).
+
+The bundled example data is third-party material under its own terms, not
+GPL-3.0. See [`ProtSelect/ExampleData`](ProtSelect/ExampleData/README.md).
