@@ -81,8 +81,10 @@ def read_sequences(sequences_path: str) -> dict:
         collapsed to one record; sequences that differ are never merged and
         nothing is ever renamed.
 
-        Note that duplicate keys in the JSON form are resolved by the JSON
-        parser itself, which keeps the last one, so this check cannot see them.
+        The JSON form follows the same rule for a key that appears twice in the
+        object. Python's JSON parser would keep the last one silently, so the
+        file is parsed with every key/value pair kept and the check runs on
+        those; the error names the key and both sequences.
     """
     if not sequences_path:
         raise ValueError("No sequences file was given.")
@@ -90,11 +92,7 @@ def read_sequences(sequences_path: str) -> dict:
         raise ValueError(f"The sequences file '{sequences_path}' does not exist.")
 
     if sequences_path.lower().endswith(".json"):
-        with open(sequences_path) as jf:
-            data = json.load(jf)
-        if not isinstance(data, dict):
-            raise ValueError("The JSON sequences file must map sequence names to sequences.")
-        return {str(name): str(seq) for name, seq in data.items()}
+        return _read_json_sequences(sequences_path)
 
     # Read every record first, keeping its header and position in the file, so a
     # collision can name the two records a user has to go and look at.
@@ -139,6 +137,50 @@ def read_sequences(sequences_path: str) -> dict:
 
     if not sequences:
         raise ValueError(f"No sequences found in '{sequences_path}'.")
+    return sequences
+
+
+class _JsonPairs(list):
+    """The key/value pairs of one JSON object, in file order, duplicates kept."""
+
+
+def _read_json_sequences(sequences_path: str) -> dict:
+    """
+    Read the JSON form of a sequences file, refusing a key that names two sequences.
+
+    ``json.load`` builds a dict and keeps the last of two equal keys, so the
+    duplicate is gone before any check could see it. ``object_pairs_hook``
+    hands over every object's pairs instead, with the duplicates still there.
+    Collisions follow the FASTA rule in ``read_sequences``: different
+    sequences raise, an identical one is reported and collapsed.
+    """
+    with open(sequences_path) as jf:
+        data = json.load(jf, object_pairs_hook=_JsonPairs)
+    if not isinstance(data, _JsonPairs):
+        raise ValueError("The JSON sequences file must map sequence names to sequences.")
+
+    sequences: dict = {}
+    origin: dict = {}
+    for position, (key, value) in enumerate(data, start=1):
+        name, sequence = str(key), str(value)
+        if name in sequences:
+            first_position = origin[name]
+            if sequences[name] != sequence:
+                raise ValueError(
+                    f"The sequences file '{sequences_path}' gives the key '{name}' to two "
+                    f"different sequences: entry {first_position} ('{sequences[name]}') and "
+                    f"entry {position} ('{sequence}'). A JSON parser keeps only one of two "
+                    "equal keys, so one of these proteins would be lost or renamed. Give each "
+                    "sequence a unique key and read the file again."
+                )
+            print(
+                f"Warning: the sequences file '{sequences_path}' repeats the key '{name}' "
+                f"with an identical sequence (entries {first_position} and {position}); "
+                "keeping one copy."
+            )
+            continue
+        sequences[name] = sequence
+        origin[name] = position
     return sequences
 
 

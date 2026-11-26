@@ -149,3 +149,88 @@ def test_json_sequences_are_read_as_a_mapping(tmp_path):
     source.write_text('{"ABC123": "AAAA", "DEF456": "CCCC"}')
 
     assert read_sequences(str(source)) == {"ABC123": "AAAA", "DEF456": "CCCC"}
+
+
+def test_json_sequences_keep_file_order(tmp_path):
+    source = tmp_path / "sequences.json"
+    source.write_text('{"second": "CCCC", "first": "AAAA"}')
+
+    assert list(read_sequences(str(source))) == ["second", "first"]
+
+
+def test_json_that_is_not_an_object_is_rejected(tmp_path):
+    source = tmp_path / "sequences.json"
+    source.write_text('["AAAA", "CCCC"]')
+
+    with pytest.raises(ValueError):
+        read_sequences(str(source))
+
+
+# ==========================#
+# JSON duplicate keys
+# ==========================#
+# Python's ``json`` keeps the last of two equal keys without a word, so these
+# files have to be caught while they are parsed, not after.
+COLLIDING_JSON = '{"same": "AAAA", "other": "GGGG", "same": "CCCC"}'
+"""Two distinct proteins written under the one key ``same``."""
+
+REDUNDANT_JSON = '{"same": "AAAA", "other": "GGGG", "same": "AAAA"}'
+"""One protein written twice under the same key."""
+
+
+def test_json_duplicate_key_with_different_sequences_raises(tmp_path):
+    source = tmp_path / "colliding.json"
+    source.write_text(COLLIDING_JSON)
+
+    with pytest.raises(ValueError):
+        read_sequences(str(source))
+
+
+def test_json_collision_error_names_the_key_and_both_sequences(tmp_path):
+    source = tmp_path / "colliding.json"
+    source.write_text(COLLIDING_JSON)
+
+    with pytest.raises(ValueError) as raised:
+        read_sequences(str(source))
+
+    message = str(raised.value)
+    assert "'same'" in message
+    assert "AAAA" in message and "CCCC" in message
+
+
+def test_json_colliding_keys_never_return_a_single_merged_record(tmp_path):
+    """The defect this guards: ``{'same': 'CCCC', 'other': 'GGGG'}`` and no error."""
+    source = tmp_path / "colliding.json"
+    source.write_text(COLLIDING_JSON)
+
+    try:
+        result = read_sequences(str(source))
+    except ValueError:
+        return
+    pytest.fail(f"a colliding file was read without error, as {result!r}")
+
+
+def test_json_duplicate_key_with_identical_sequence_collapses(tmp_path):
+    source = tmp_path / "redundant.json"
+    source.write_text(REDUNDANT_JSON)
+
+    assert read_sequences(str(source)) == {"same": "AAAA", "other": "GGGG"}
+
+
+def test_json_duplicate_key_with_identical_sequence_is_reported(tmp_path, capsys):
+    source = tmp_path / "redundant.json"
+    source.write_text(REDUNDANT_JSON)
+
+    read_sequences(str(source))
+
+    out = capsys.readouterr().out
+    assert "same" in out and "Warning" in out
+
+
+def test_json_without_duplicates_reads_silently(tmp_path, capsys):
+    source = tmp_path / "sequences.json"
+    source.write_text('{"ABC123": "AAAA", "DEF456": "CCCC"}')
+
+    read_sequences(str(source))
+
+    assert "Warning" not in capsys.readouterr().out
