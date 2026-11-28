@@ -87,7 +87,9 @@ def test_no_placeholder_outside_its_comment():
 
 
 @pytest.mark.skipif(shutil.which("bash") is None, reason="needs bash")
-def test_set_zenodo_doi_fills_every_slot(tmp_path):
+def test_set_zenodo_doi_fills_every_slot(tmp_path, cff):
+    if cff.get("doi"):
+        pytest.skip("the DOI is already set; there is no placeholder left to fill")
     for name in ("CITATION.cff", "README.md"):
         shutil.copy(os.path.join(REPO, name), tmp_path / name)
     (tmp_path / "docs").mkdir()

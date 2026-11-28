@@ -34,7 +34,7 @@ date-released: "2026-11-28"
 # Zenodo concept DOI: resolves to the latest archived release; each release
 # also has its own DOI on the Zenodo record. Set by Devtools/set_zenodo_doi.sh
 # after the first archived release.
-# doi: "10.5281/zenodo.CONCEPT"  # zenodo-doi
+doi: "10.5281/zenodo.24630776"
 
 license: GPL-3.0
 repository-code: "https://github.com/BSC-CNS-EAPM/protein-set-selection-horus"
