@@ -29,9 +29,8 @@ contact:
     affiliation: "Barcelona Supercomputing Center (BSC-CNS)"
     email: "albert.canellas@bsc.es"
 
-version: "v0.3.1"
-commit: "1cdb293e2efa892ee2de6e7bda6f473aba841c79"
-date-released: "2026-11-03"
+version: "v0.4.0"
+date-released: "2026-11-28"
 
 license: GPL-3.0
 repository-code: "https://github.com/BSC-CNS-EAPM/protein-set-selection-horus"
