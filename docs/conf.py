@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.abspath("_ext"))
 project = "Protein Set Selection"
 copyright = "2026, BSC | Barcelona Supercomputing Center"
 author = "Barcelona Supercomputing Center"
-release = "0.4.0"
+release = "0.4.1"
 
 # -- General configuration ---------------------------------------------------
 
