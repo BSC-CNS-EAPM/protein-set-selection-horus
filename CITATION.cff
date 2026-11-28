@@ -29,7 +29,7 @@ contact:
     affiliation: "Barcelona Supercomputing Center (BSC-CNS)"
     email: "albert.canellas@bsc.es"
 
-version: "v0.4.0"
+version: "v0.4.1"
 date-released: "2026-11-28"
 # Zenodo concept DOI: resolves to the latest archived release; each release
 # also has its own DOI on the Zenodo record. Set by Devtools/set_zenodo_doi.sh
