@@ -129,14 +129,12 @@ for the ProteinMPNN, MAFFT and CodonTransformer backends.
 
 ## Citing this plugin
 
-<!-- zenodo-doi: enabled by Devtools/set_zenodo_doi.sh
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.CONCEPT.svg)](https://doi.org/10.5281/zenodo.CONCEPT)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24630776.svg)](https://doi.org/10.5281/zenodo.24630776)
 
-Every release is archived on [Zenodo](https://doi.org/10.5281/zenodo.CONCEPT).
+Every release is archived on [Zenodo](https://doi.org/10.5281/zenodo.24630776).
 That DOI always resolves to the latest release; each release also has its own
 DOI, listed on the Zenodo record. Cite the DOI of the version you used.
 
-zenodo-doi -->
 Citation metadata is in [CITATION.cff](CITATION.cff); GitHub turns it into a
 **Cite this repository** button in the sidebar, and it exports to BibTeX and
 APA from there. Cite the exact version you used — the released version and its
