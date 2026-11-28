@@ -83,6 +83,15 @@ open from the plugin's presets in Horus.
 Citing this plugin
 ------------------
 
+.. zenodo-doi: enabled by Devtools/set_zenodo_doi.sh
+..
+.. Every release is archived on Zenodo under `doi:10.5281/zenodo.CONCEPT
+.. <https://doi.org/10.5281/zenodo.CONCEPT>`_. That DOI always resolves to the
+.. latest release; each release also has its own DOI, listed on the Zenodo
+.. record. Cite the DOI of the version you used.
+..
+.. zenodo-doi end
+
 Citation metadata lives in ``CITATION.cff`` at the repository root. GitHub turns
 it into a **Cite this repository** button and exports BibTeX and APA from it.
 Cite the exact version you used; the released version and its commit are both
